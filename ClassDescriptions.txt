@@ -1,0 +1,69 @@
+Main (alias Gameauthserver)
+	A collection of utils used for various things not related to actual gameplay.
+	Also responsible for incoming client connections and the initial handshake->handoff-to-other-port procedere.
+	This should also later implement the client-queue for the server.
+	Once a client has been fully authed, the connection is closed and it reconnects on the ip/port as told by the Gameauthserver. From here on, the GameMain handler is in charge, see below.
+
+GameMain (alias Charactermanagementserver)
+	The client connects and does a second authentication which only differs at the end. Instead of handing the client off to the next ip/port, the GameMainServer
+	starts to send character data etc. The GameMainServer is then responsible for the client until it either disconnects or joins a map.
+	Simply said, the GameMain part covers full character management (creation, deletion, cloning, first part of join request)
+	When the client trys to join a map, the GameMainserver checks if the appropiate map server (MapChannel) is online
+	and if yes, it passed the client information (socket, cryption data, accountname/id, characterId) to the mapServer and removes it from the own handling routines.
+	The client does not restablish the connection while forwarded to the mapServer, although technically possible and maybe later used for cloud like server management.
+	
+
+MapInstance (alias MapChannel)
+	The part that is responsible for everything that happens ingame on a single map. For every map in the game, there exists a seperate thread which is bound to one specific mapChannel.
+	Although it is possible (and also atm in use) that multiple mapChannels share a thread. The concept also allows to spawn multiple mapChannels of the same map to support instancing.
+	For later it is planned that the MapChannel part is fully independet and can run on a entirely different computer. So maps with high population and thus high load can be moved to a sepperate server machine.
+	However, there are some parts that are shared between the MapChannels (Communicator and EntityManager). For example this is needed when whisphering a character which is not on the same map.
+	Where the MapChannel needs to get the connection info somehow.. (idea: maybe exchange information between MapChannel servers via a message system and not to the external clients directly)
+	
+	The biggest issue of the MapChannel is safe multitasking. So to avoid any instability but still have good performance, only the above mentioned parts + the DataInterface callback functions are executed by multiple threads.
+	
+	Actor:
+		This is the parent object for all living entities in the game (players, npcs, creatures)
+		It does not have it's own code file yet, because the differences between the mentioned subtypes are too specific.
+		However, GameEffects (buffs/debuffs) are handled on actor level.
+	
+	CombatSystem:
+		Everything that is related to combat
+		
+		Missile:
+			Handling of missiles
+	
+	Manifestation:
+		The player object. Does initilizing of the player when entering the world. Responsible for everything that is player related and does not fit in any other category.
+		
+	NPC:
+		The class for NPC objects. Includes handling of vendors, trainers, parts of mission code and other conversation types.
+		
+	Mission:
+		Although very strong connected with NPCs, this is seperated for a better overview.
+		Contains everything that is related with game missions.
+
+	Creature:
+		Similar to NPC, the base object for 'mobs'.
+	
+	DynamicObject:
+		Interactable gameobjects (Like switches, waypoints, footlockers etc.)
+	
+	Communicator:
+		Responsible for everything that is chat related.
+		
+	Inventory:
+		Handling of inventory, equipment, item effects and weapon drawer slots.
+	
+	EntityMgr:
+		Utility for managing the unique id used to address any object.
+		The type of the object is encoded within the id.
+	
+	CellMgr:
+		Manages visibility by subdividing the map into smaller blocks. Tells the object instances when they enter or leave the viewrange of a player for 
+		correct loading/unloading on the client side. This is needed because on big maps there can be theoretically thousands of actors or objects.
+		Prevents sending information updates for entitys that are not within the viewrange of the player.
+			
+	
+DataInterface
+	Mostly asynchronous interface for the database.
