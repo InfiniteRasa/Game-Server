@@ -220,7 +220,12 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 		int Size = cgm->RecvSize - 4 - AlignBytes;
 		do{
 			unsigned short Subsize = *(unsigned short*)Buffer;
-			r = GameMain_DecodePacket(cgm, Buffer, Subsize);
+			// 20110729 - thuvvik if/else to avoid gamecrash
+			if (Subsize==43 && Size ==12)
+				r =1;
+			else
+				r = GameMain_DecodePacket(cgm, Buffer, Subsize);
+
 			if( r == 0 )
 				return 0;
 			Buffer += Subsize;
@@ -388,7 +393,8 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		}
 		else
 			__debugbreak();
-		GameMain_processPythonRPC(cgm, methodID, data+pIdx, dataLen);
+		if (dataLen >0)
+			GameMain_processPythonRPC(cgm, methodID, data+pIdx, dataLen);
 		pIdx += dataLen;
 		// xor check...
 
