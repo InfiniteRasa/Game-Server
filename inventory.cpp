@@ -570,6 +570,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 		if( testA )
 		{
 			item_setLocationHomeinventory(testA, client);
+			testA->itemTemplate->classId += i+20;
 			item_sendInfo(testA);
 		}
 	}
