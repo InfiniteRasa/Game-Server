@@ -99,7 +99,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
 	manifestation->classId = 1;
-	manifestation->level = 1;
+	manifestation->level = 41;
 	manifestation->actor->isRunning = true;
 	manifestation->targetEntityId = 0;
 	owner->player = manifestation;
@@ -214,7 +214,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 0); // weaponId
-		pym_addInt(&pms, 0); // abilities
+		pym_addInt(&pms, 25); // abilities
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
 		// Recv_AppearanceData (27)
@@ -283,7 +283,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// skill firearms
 			pym_tuple_begin(&pms);
 				pym_addInt(&pms, 1);  // id
-				pym_addInt(&pms, 1);// level
+				pym_addInt(&pms, 5);// level
 			pym_tuple_end(&pms);
 		pym_list_end(&pms);
 		pym_tuple_end(&pms);
@@ -507,21 +507,27 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
+		// skill firearms
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 4);  // id
+	pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
 	// skill firearms
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 1);  // id
-	pym_addInt(&pms, 1);	// level
+	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 	// skill hand to hand
 	pym_tuple_begin(&pms);
 			pym_addInt(&pms, 8);  // id
-			pym_addInt(&pms, 1);	// level
+			pym_addInt(&pms, 5);	// level
 		pym_tuple_end(&pms);
 	// skill sprint (165)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 165);  // id
-		pym_addInt(&pms, 1);	// level
+		pym_addInt(&pms, 5);	// level
 		pym_tuple_end(&pms);
+		
 		// also, sprint (401)
 		//pym_tuple_begin(&pms);
 		//pym_addInt(&pms, 401);  // id
@@ -541,13 +547,13 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_list_begin(&pms);
 	// ability sprint
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 401);  // id
-	pym_addInt(&pms, 1);	// level
+	pym_addInt(&pms, 165);  // id
+	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 	// ???
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 1);  // id
-	pym_addInt(&pms, 1);	// level
+	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 
 
