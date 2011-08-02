@@ -571,14 +571,26 @@
 				RelativePath=".\ToDo.txt"
 				>
 			</File>
-			<Filter
-				Name="Decompiled"
-				>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Data"
 			>
+			<Filter
+				Name="Libs"
+				>
+				<File
+					RelativePath=".\libmysql.dll"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="sql"
+				>
+				<File
+					RelativePath=".\sql\tabuladb.sql"
+					>
+				</File>
+			</Filter>
 			<Filter
 				Name="gameData"
 				>
@@ -596,22 +608,6 @@
 				</File>
 				<File
 					RelativePath=".\gameData\starterItemTemplateClassIds.txt"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Libs"
-				>
-				<File
-					RelativePath=".\libmysql.dll"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="sql"
-				>
-				<File
-					RelativePath=".\sql\tabuladb.sql"
 					>
 				</File>
 			</Filter>

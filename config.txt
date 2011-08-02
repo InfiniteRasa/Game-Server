@@ -1,0 +1,15 @@
+[MYSQL]
+# Put the data for your mysql database connection here
+# Also make sure the database is set up properly with the correct tables (import tabuladb.sql)
+
+# the host name, usually 'localhost'
+dbHost = localhost
+
+# the name of the database
+dbName = tabuladb
+
+# the user
+dbUser = root
+
+# the password
+dbPass = hhra2wcy

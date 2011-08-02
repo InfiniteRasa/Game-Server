@@ -1,0 +1,11 @@
+
+
+[Weapon_Avatar_Pistol_Physical_UNC_01_to_04]
+templateId = 17131
+classId = 27120
+type = WEAPON
+buybackPrice = 1000
+
+
+req1 = FIREARMS:1
+

@@ -1,0 +1,3 @@
+#(contextId, 'mapName', version, baseRegionId)
+(1220, 'Adv_Foreas_Conordia_Divide', 1492, 2) #starter Bootcamp
+#(,'', 792,2) #test
