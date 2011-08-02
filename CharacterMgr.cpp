@@ -161,13 +161,13 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, int slotId, di_characterPr
 
 	pym_addUnicode(&pms, charInfo->unicodeName);	// 0	charname
 	pym_addInt(&pms, 1);							// 1	Pos
-	pym_addInt(&pms, 1);							// 2	XPPtrs
-	pym_addInt(&pms, 1);							// 3	XPLvl
-	pym_addInt(&pms, 1);							// 4	Body
-	pym_addInt(&pms, 1);							// 5	Mind
-	pym_addInt(&pms, 1);							// 6	Spirit
+	pym_addInt(&pms, 41);							// 2	XPPtrs
+	pym_addInt(&pms, 10);							// 3	XPLvl
+	pym_addInt(&pms, 111);							// 4	Body
+	pym_addInt(&pms, 12);							// 5	Mind
+	pym_addInt(&pms, 21);							// 6	Spirit
 	pym_addInt(&pms, charInfo->classID);			// 7	Class
-	pym_addInt(&pms, 0);							// 8	CloneCredits
+	pym_addInt(&pms, 3);							// 8	CloneCredits
 	pym_addInt(&pms, charInfo->raceID);				// 9	RaceID
 
 	pym_tuple_end(&pms);
