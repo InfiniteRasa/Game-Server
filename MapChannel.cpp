@@ -377,7 +377,7 @@ void mapChannel_decodeMovementPacket(mapChannelClient_t *mc, unsigned char *data
 	netMgr_cellDomain_sendEntityMovement(mc, &netMovement, true);
 	// void netMgr_broadcastEntityMovement(mapChannel_t *broadCastChannel, netCompressedMovement_t *movement, bool skipOwner)
 	// print info
-	printf("move %f %f %f v: %f rXY: %f %f\n", posX, posY, posZ, velocity, viewX, viewY);
+	//printf("move %f %f %f v: %f rXY: %f %f\n", posX, posY, posZ, velocity, viewX, viewY);
 }
 
 int mapChannel_decodePacket(mapChannelClient_t *mc, unsigned char *data, unsigned int len)
