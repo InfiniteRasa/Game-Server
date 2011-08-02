@@ -554,8 +554,17 @@ void inventory_initForClient(mapChannelClient_t *client)
 	// test
 	item_t *testA;
 
-	for(int i=0; i<5; i++)
+	for(int i=0; i<30; i++)
 	{
+		if (i==0)
+		{
+			testA = item_createFromTemplate("Weapon_Avatar_Pistol_Physical_UNC_01_to_04");
+			if( testA )
+			{
+				item_setLocationHomeinventory(testA, client);
+				item_sendInfo(testA);
+			}
+		}
 
 		testA = item_createFromTemplate("Weapon_Avatar_Pistol_Physical_UNC_01_to_04");
 		if( testA )
