@@ -56,7 +56,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 				int difX = (int)(player->player->actor->posX) - mPosX;
 				int difY = (int)(player->player->actor->posZ) - mPosZ;
 				int dist = difX*difX + difY*difY;
-				if( dist <= minimumRange )
+				if( dist <= minimumRange && creature->currentHealth >0 )
 				{
 					//printf("Found player to attack\n");
 					// set target and change state
@@ -69,6 +69,8 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 	}
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
 	{
+		if ( creature->currentHealth <=0)
+			return;
 		// get target
 		void *target = entityMgr_get(creature->controller.targetEntityId);
 		if( target )
