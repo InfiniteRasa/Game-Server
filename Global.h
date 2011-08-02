@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "fileMgr.h"
 #include "hashTable.h"

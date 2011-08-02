@@ -275,7 +275,7 @@ void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelC
 
 void creature_init()
 {
-	hashTable_init(&creatureEnv.ht_creatureType, 256); // have to set limit high, see below..
+	hashTable_init(&creatureEnv.ht_creatureType, 65536); // have to set limit high, see below..
 	/*
 		note on internal string hashtable handling - the table can become 'full' and does NOT auto extend the size during runtime
 	    todo: find a way to auto-extend the string hashtable without having to store all strings.
@@ -285,7 +285,20 @@ void creature_init()
 
 	// init test creature
 	/* 7078, "Testcreature" */
-	creatureType_t* ct = creatureType_createCreatureType(7078, 1337);
-	creatureType_setMaxHealth(ct, 150);
-	creatureType_registerCreatureType(ct, "TEST1");
+
+	//20110728 - thuvvik complete "creature dictionary"
+	int i=0;
+	for (i=1; i<65535; i++)
+	{
+		char buffer [50];
+		int n, a=5, b=3;
+		n=sprintf (buffer, "TEST%d", i);
+
+		
+
+		creatureType_t* ct = creatureType_createCreatureType(i, 1337);
+		creatureType_setMaxHealth(ct, 150);
+
+		creatureType_registerCreatureType(ct, buffer);
+	}
 }

@@ -354,11 +354,26 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 831, pym_getData(&pms), pym_getLen(&pms));	
 		return true;
 	}
-	if( strcmp(textMsg, ".creature") == 0 )
+	if( memcmp(textMsg, ".creature ", 10) == 0 )
 	{
-		creature_t *creature = creature_createCreature(cm->mapChannel, "TEST1", NULL);
+		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
+		char *pch = textMsg + 10;
+
+		char buffer [50];		
+		sprintf (buffer, "TEST%s", pch);
+
+		creature_t *creature = creature_createCreature(cm->mapChannel, buffer, NULL);
 		creature_setLocation(creature, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ, 0.0f, 0.0f);
 		cellMgr_addToWorld(cm->mapChannel, creature);
+		return true;
+	}
+	if( memcmp(textMsg, ".effect ", 8) == 0 )
+	{
+		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
+		char *pch = textMsg + 8;
+		
+
+		gameEffect_attach(cm->mapChannel, cm->player->actor, atoi(pch), 1);
 		return true;
 	}
 	//if( strcmp(textMsg, ".bane") == 0 )
