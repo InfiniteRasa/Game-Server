@@ -345,6 +345,27 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		npc_test(cm);
 		return true;
 	}
+	if( strcmp(textMsg, ".wipe") == 0 )
+	{
+		// 20110803
+		// get current target of player
+		if( cm->player->targetEntityId == 0 )
+		{
+			communicator_systemMessage(cm, "No entity selected");
+			return true;
+		}
+		if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_CREATURE )
+		{
+			creature_t *creature = (creature_t*)entityMgr_get(cm->player->targetEntityId);
+			if( !creature )
+				return true;
+
+			// destroy it through 
+			//#define METHODID_DESTROYPHYSICALENTITY 56
+			creature_cellDiscardCreatureToClients(cm->mapChannel, creature, &cm->player->controllerUser,1);
+		}
+				
+	}
 	if( strcmp(textMsg, ".rqs") == 0 )
 	{
 		// DevRQSWindow
