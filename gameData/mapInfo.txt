@@ -1,6 +1,6 @@
 #(contextId, 'mapName', version, baseRegionId)
-(1220, 'adv_foreas_voncordia_wilderness', 1492, 1)
-#(1985, 'adv_bootcamp', 792, 2) #starter Bootcamp
+(1220, 'adv_foreas_concordia_wilderness', 1492, 1)
+(1985, 'adv_bootcamp', 792, 2) #starter Bootcamp
 #(1148, 'adv_foreas_concordia_divide', 1520, 2)
 #(1737, 'test_nexus2', 147, 2)
 #(1991, 'test_lridout_outpostcombat', 114, 2)
