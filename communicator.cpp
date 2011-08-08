@@ -319,6 +319,18 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	pym_addUnicode(&pms, playerName);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 105, pym_getData(&pms), pym_getLen(&pms));
+
+	// send MOTD ( Recv_SendMOTD - receives MOTDDict {languageId: text} )
+	// SendMOTD = 770		// Displayed only if different
+	// PreviewMOTD = 769	// Displayed always
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	pym_addInt(&pms, 1);
+	pym_addUnicode(&pms, "Welcome to the InfiniteRasa Testing Server"); 
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 769, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void communicator_systemMessage(mapChannelClient_t *client, char *message)
@@ -364,7 +376,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			//#define METHODID_DESTROYPHYSICALENTITY 56
 			creature_cellDiscardCreatureToClients(cm->mapChannel, creature, &cm->player->controllerUser,1);
 		}
-				
+		return true;
 	}
 	if( strcmp(textMsg, ".rqs") == 0 )
 	{
@@ -402,6 +414,33 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	//	dynamicObject_createBaneDropship(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY+6.0f, cm->player->actor->posZ);
 	//	return true;
 	//}
+	if( strcmp(textMsg, ".ccp") == 0 )
+	{
+		dynamicObject_developer_createControlPoint(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
+		communicator_systemMessage(cm, "ControlPoint spawned!");
+		return true;
+	}
+	if( strcmp(textMsg, ".logos") == 0 )
+	{
+		// LogosStoneAdded = 475
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 23); // power
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 475, pym_getData(&pms), pym_getLen(&pms));
+		communicator_systemMessage(cm, "Power Logos added");
+		return true;
+	}
+	if( strcmp(textMsg, ".gm") == 0 )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 366, pym_getData(&pms), pym_getLen(&pms));
+		communicator_systemMessage(cm, "GM Mode enabled!");
+		return true;
+	}
 	if( strcmp(textMsg, ".wp") == 0 )
 	{
 		pym_init(&pms);

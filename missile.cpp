@@ -12,6 +12,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	missile->type = type;
 	missile->damageA = damage;
 	missile->targetEntityId = targetEntityId;
+	//missile->source = origin;
 	// get distance between actors
 	actor_t *targetActor = NULL;
 	int targetType = entityMgr_getEntityType(targetEntityId);
@@ -110,8 +111,36 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_addInt(&pms, 1); // actionArg
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, 125, pym_getData(&pms), pym_getLen(&pms));
-
-		// TODO: Should we use AnnounceDamage?
+		/*
+		// TODO: Should we use AnnounceDamage? (399)
+		// (None, ((4101, (None, 0, 0, 0, 0, 10, 0, 0, 0, 0, None, None)),))
+		// def Recv_AnnounceDamage(self, effectTarget, damageData):
+		// for (targetId, rawInfo,) in damageData:
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addNoneStruct(&pms); // effectTarget (not used)
+		pym_tuple_begin(&pms); // damageData start
+		pym_tuple_begin(&pms); // targetId, rawInfo 1 start
+		pym_addInt(&pms, creature->actor.entityId); // targetId
+		pym_tuple_begin(&pms); // rawInfo start
+		pym_addNoneStruct(&pms); //self.damageType = none
+		pym_addInt(&pms, 0); //self.reflected = 0
+		pym_addInt(&pms, 0); //self.filtered = 0
+		pym_addInt(&pms, 0); //self.absorbed = 0
+		pym_addInt(&pms, 0); //self.resisted = 0
+		pym_addInt(&pms, missile->damageA); //self.finalAmt = missile->damageA
+		pym_addInt(&pms, 0); //self.isCrit = 0
+		pym_addInt(&pms, 0); //self.deathBlow = 0
+		pym_addInt(&pms, 0); //self.coverModifier = 0
+		pym_addInt(&pms, 0); //self.wasImmune = 0
+		pym_addNoneStruct(&pms); //targetEffectIds // 131
+		pym_addNoneStruct(&pms); //sourceEffectIds
+		pym_tuple_end(&pms); // rawInfo end
+		pym_tuple_end(&pms); // targetId, rawInfo 1 end
+		pym_tuple_end(&pms); // damageData end
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->activeEffects->effectId, 399, pym_getData(&pms), pym_getLen(&pms));
+		*/
 		// TODO: Also do use Recv_MadeDead for killing on load
 		// update health (Recv_UpdateHealth 380)
 		pym_init(&pms);

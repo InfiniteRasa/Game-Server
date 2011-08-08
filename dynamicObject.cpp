@@ -3,6 +3,7 @@
 #define OBJECTTYPE_FOOTLOCKER		1
 #define OBJECTTYPE_UNDEFINED		2
 #define OBJECTTYPE_BANE_DROPSHIP	3
+#define OBJECTTYPE_CONTROL_POINT	4
 
 #define ACTION_USEOBJECT	80
 
@@ -177,6 +178,63 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));		
 	}
+	if (dynObject->objectType == OBJECTTYPE_CONTROL_POINT)
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 1);	// enabled
+		pym_addInt(&pms, 179);	// curState
+		pym_addNoneStruct(&pms); // nameOverrideId
+		pym_addInt(&pms, 10000);	// windupTime
+		pym_addInt(&pms, 0);	// missionActivated
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));
+
+		/* Struct('ControlPointStatus', 
+		(Field('controlPointId', types.IntType, None, False),
+		Field('ownerId', types.LongType, None, True),
+		Field('stateId', types.IntType, None, False),
+		Field('endTime', types.IntType, None, False))) */
+/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "ControlPointStatus");
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "controlPointId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "ownerId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "stateId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "endTime");
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 814, pym_getData(&pms), pym_getLen(&pms));
+		*/
+		/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 6); // ownerTypeId FACTION_OWNED = 6
+		pym_addBool(&pms, false); // ownerid true / false
+		pym_addNoneStruct(&pms); // nothing
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 666, pym_getData(&pms), pym_getLen(&pms));
+		*/
+		/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 2);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 884, pym_getData(&pms), pym_getLen(&pms));
+		*/
+	}
 }
 
 bool dynamicObject_process_BaneDropship(mapChannel_t *mapChannel, dynObject_t *dynObject, int timePassed)
@@ -316,6 +374,17 @@ void dynamicObject_developer_createFootlocker(mapChannel_t *mapChannel, float x,
 	cellMgr_addToWorld(mapChannel, footLocker);
 }
 
+void dynamicObject_developer_createControlPoint(mapChannel_t *mapChannel, float x, float y, float z)
+{
+	dynObject_t *dynObject = _dynamicObject_create(3814, OBJECTTYPE_CONTROL_POINT); // 3814
+	if( !dynObject )
+		return;
+	dynamicObject_setPosition(dynObject, x, y, z);
+	// set footlocker data
+	// todo
+	cellMgr_addToWorld(mapChannel, dynObject);
+}
+
 void dynamicObject_developer_createCustom(mapChannel_t *mapChannel, int classId, float x, float y, float z)
 {
 	dynObject_t *customObj = dynamicObject_createCustom(classId, x, y, z, 0.0f, 0.0f, 0.0f);
@@ -408,6 +477,91 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, unsigned ch
 	case OBJECTTYPE_FOOTLOCKER:
 		dynamicObject_footlocker_useObject(client, actionId, actionArgId, dynObject);
 		break;
+	case OBJECTTYPE_CONTROL_POINT:
+		/*
+			(176) (USE_CPOINT_STATE_FACTION_A_OWNED)
+			(177) (USE_CPOINT_STATE_FACTION_B_CLAIMING)
+			(179) (USE_CPOINT_STATE_FACTION_B_OWNED)
+			(180) (USE_CPOINT_STATE_FACTION_A_CLAIMING)
+			(181) (USE_CPOINT_STATE_UNCLAIMED)
+		*/
+		//printf("ActionID: %i - ActionArgID: %i\n", actionId, actionArgId);
+		pyMarshalString_t pms;
+		// send interruptible use
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId); // actorID
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 691, pym_getData(&pms), pym_getLen(&pms));
+		client->player->actionEntityId = dynObject->entityId;
+		// change CP state - ForceState
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 180); // 180
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+		client->mapChannel->cp_trigger.cb = _dynamicObject_controlpoint_callback;
+		client->mapChannel->cp_trigger.param = client;
+		client->mapChannel->cp_trigger.timeLeft = 9500;
+		client->mapChannel->cp_trigger.period = 0;
+		break;
+	}
+}
+
+bool _dynamicObject_controlpoint_callback(mapChannel_t *mapChannel, void *param, int timePassed)
+{
+	printf("callback control point activated!\n");
+	mapChannelClient_t* client = (mapChannelClient_t*)param;
+	if (client->player->actionEntityId == NULL)
+		return true;
+	printf("action entity is not null\n");
+	// change CP state - ForceState
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 176); // 180
+	pym_addInt(&pms, 10000);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 454, pym_getData(&pms), pym_getLen(&pms));
+	// set usable
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 203, pym_getData(&pms), pym_getLen(&pms));
+	client->player->actionEntityId = NULL;
+	return true;
+}
+
+void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+{
+	printf("Request action interrupt\n");
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int actionId = pym_unpackInt(&pums);
+	int actionArgId = pym_unpackInt(&pums);
+	if (actionId == 80 && actionArgId == 7) //ControlPoint data?
+	{
+		printf("Interrupting control point claiming\n");
+		// Use Interrupted
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId); // actorID
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 609, pym_getData(&pms), pym_getLen(&pms));
+		// change CP state - ForceState
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 179);
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 454, pym_getData(&pms), pym_getLen(&pms));
+		client->player->actionEntityId = NULL;
+		client->mapChannel->cp_trigger.cb = NULL;
 	}
 }
 

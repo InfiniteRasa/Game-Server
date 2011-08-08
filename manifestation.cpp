@@ -19,7 +19,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	// set gameMap timeOfDay (Recv_SetSkyTime 198)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, GetTickCount()); // number of seconds the map has been up
+	pym_addInt(&pms, 6666666); // number of seconds the map has been up
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 7, 198, pym_getData(&pms), pym_getLen(&pms));
 	// setCurrentContextId (clientMethod.362)
@@ -98,8 +98,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
-	manifestation->classId = 1;
-	manifestation->level = 41;
+	manifestation->classId = 2; // soldier
+	manifestation->level = 15;
 	manifestation->actor->isRunning = true;
 	manifestation->targetEntityId = 0;
 	owner->player = manifestation;
@@ -163,8 +163,8 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 2);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 0); // currentMax
-		pym_addInt(&pms, 0); // normalMax
+		pym_addInt(&pms, 10); // currentMax
+		pym_addInt(&pms, 15); // normalMax
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
@@ -172,8 +172,8 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 3);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 0); // currentMax
-		pym_addInt(&pms, 0); // normalMax
+		pym_addInt(&pms, 15); // currentMax
+		pym_addInt(&pms, 10); // normalMax
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
@@ -350,18 +350,18 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// mind
 	pym_addInt(&pms, 2);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 0); // currentMax
-	pym_addInt(&pms, 0); // normalMax
+	pym_addInt(&pms, 15); // current
+	pym_addInt(&pms, 15); // currentMax
+	pym_addInt(&pms, 15); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// spirit
 	pym_addInt(&pms, 3);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 0); // currentMax
-	pym_addInt(&pms, 0); // normalMax
+	pym_addInt(&pms, 15); // current
+	pym_addInt(&pms, 15); // currentMax
+	pym_addInt(&pms, 15); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
@@ -503,37 +503,60 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	}
+	// set logos tabula
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	pym_addInt(&pms, 23); //power
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	for(int i=0; i<playerCount; i++)
+	{
+		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 477, pym_getData(&pms), pym_getLen(&pms));
+	}
 	// set skills (see skillData.pyo)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 		// skill firearms
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 4);  // id
-	pym_addInt(&pms, 5);	// level
+		pym_addInt(&pms, 4);  // id
+		pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 	// skill firearms
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);  // id
+		pym_addInt(&pms, 1);  // id
 	pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
 	// skill hand to hand
 	pym_tuple_begin(&pms);
-			pym_addInt(&pms, 8);  // id
-			pym_addInt(&pms, 5);	// level
-		pym_tuple_end(&pms);
-	// skill sprint (165)
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 165);  // id
+		pym_addInt(&pms, 8);  // id
 		pym_addInt(&pms, 5);	// level
-		pym_tuple_end(&pms);
-		
-		// also, sprint (401)
-		//pym_tuple_begin(&pms);
-		//pym_addInt(&pms, 401);  // id
-		//pym_addInt(&pms, 1);	// level
-		//pym_tuple_end(&pms);
-
+	pym_tuple_end(&pms);
+	//	T1_RECRUIT_MOTOR_ASSIST_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 19);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//T2_SOLDIER_REFLECTIVE_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 21);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	// T2_SOLDIER_MACHINE_GUN
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 22);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
+		pym_addInt(&pms, 5);// level
+	pym_tuple_end(&pms);
+	// ability sprint
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 165);  // id
+	pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -546,17 +569,19 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 	// ability sprint
+	//pym_tuple_begin(&pms);
+	//pym_addInt(&pms, 165);  // id
+	//pym_addInt(&pms, 5);	// level
+	//pym_tuple_end(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 165);  // id
-	pym_addInt(&pms, 5);	// level
+	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
+	pym_addInt(&pms, 5);// level
 	pym_tuple_end(&pms);
 	// ???
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 1);  // id
 	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
-
-
 
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
@@ -680,6 +705,7 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, unsigned char *pyS
 
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
+	printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -728,7 +754,8 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
 	// TODO!
 
-	//printf("TODO: "); puts(__FUNCTION__);
+	printf("TODO: "); puts(__FUNCTION__);
+	printf("target: %u\n", client->player->targetEntityId);
 	if( client->player->targetEntityId )
 		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
@@ -752,8 +779,14 @@ void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned c
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
+	float yaw = pym_unpackFloat(&pums);
+	
+	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
 	// TODO!
+
 	printf("TODO: "); puts(__FUNCTION__);
+	if( client->player->targetEntityId )
+		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
 
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client)

@@ -193,6 +193,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 	case METHODID_PERSONALINVENTORY_MOVEITEM: // PersonalInventory_MoveItem
 		item_recv_PersonalInventoryMoveItem(cm, pyString, pyStringLen);
 		return;
+	case METHODID_REQUESTEQUIPARMOR:
+		item_recv_RequestEquipArmor(cm, pyString, pyStringLen);
+		return;
 	case METHODID_REQUESTEQUIPWEAPON: // RequestEquipWeapon
 		item_recv_RequestEquipWeapon(cm, pyString, pyStringLen);
 		return;
@@ -203,6 +206,7 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
 	case 522: // RequestSetAbilitySlot
+		printf("RequestSetAbilitySlot\n");
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
 	case 530: // RequestSetAbilitySlot
@@ -225,6 +229,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		return;
 	case METHODID_REQUESTTOOLTIPFORITEMTEMPLATEID: // RequestTooltipForItemTemplateId
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
+		return;
+	case 759: // RequestActionInterrupt
+		dynamicObject_recv_RequestActionInterrupt(cm, pyString, pyStringLen);
 		return;
 	case METHODID_REQUESTLOGOUT: // RequestLogout
 		mapChannel_recv_LogoutRequest(cm, pyString, pyStringLen);
@@ -264,6 +271,7 @@ typedef struct
 HANDLE hMovementLogFile = NULL;
 void mapChannel_logMovement(int contextId, int x, int y, int z)
 {
+	return;
 	if( hMovementLogFile == NULL )
 	{
 		hMovementLogFile = CreateFile("movementlog.bin", FILE_ALL_ACCESS, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, 0, NULL);
@@ -596,6 +604,19 @@ int mapChannel_worker(mapChannelList_t *channelList)
 			{
 				gameEffect_checkForPlayers(mapChannel->playerList, mapChannel->playerCount, 500);
 				mapChannel->timer_clientEffectUpdate += 500;
+			}
+			if (mapChannel->cp_trigger.cb != NULL)
+			{
+				if ((currentTime - mapChannel->cp_trigger.period) >= 100)
+				{
+					mapChannel->cp_trigger.timeLeft -= 100;
+					mapChannel->cp_trigger.period = currentTime;
+					if (mapChannel->cp_trigger.timeLeft <= 0)
+					{
+						mapChannel->cp_trigger.cb(mapChannel, mapChannel->cp_trigger.param, 1);
+						mapChannel->cp_trigger.cb = NULL;
+					}
+				}
 			}
 			if( (currentTime-mapChannel->timer_missileUpdate) >= 100 )
 			{

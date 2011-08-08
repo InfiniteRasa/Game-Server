@@ -54,6 +54,7 @@ typedef struct _mapChannel_t
 	unsigned int timer_dynObjUpdate;
 	unsigned int timer_generalTimer;
 	unsigned int timer_controller;
+	mapChannelTimer_t cp_trigger;
 	// other timers
 	HashTable_uint32Iterable_t ht_timerList; // Todo: relace this with a list implementation
 	// cell data

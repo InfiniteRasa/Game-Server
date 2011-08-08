@@ -182,6 +182,55 @@ void _gameData_loadItemTemplates()
 			ExitProcess(-1);
 		}
 
+		// Extra Info
+		
+		itemTemplate->currentHitPoints			= atoi(sData_findOption(it, "currentHitPoints"));
+		itemTemplate->maxHitPoints				= atoi(sData_findOption(it, "maxHitPoints"));
+		//s_info = sData_findOption(it, "modifiedBy");
+		itemTemplate->hasSellableFlag			= (bool)atoi(sData_findOption(it, "hasSellableFlag"));
+		itemTemplate->hasCharacterUniqueFlag	= (bool)atoi(sData_findOption(it, "hasCharacterUniqueFlag"));
+		itemTemplate->hasAccountUniqueFlag		= (bool)atoi(sData_findOption(it, "hasAccountUniqueFlag"));
+		itemTemplate->hasBoEFlag				= (bool)atoi(sData_findOption(it, "hasBoEFlag"));
+		itemTemplate->qualityId					= atoi(sData_findOption(it, "qualityId"));
+		itemTemplate->boundToCharacter			= atoi(sData_findOption(it, "boundToCharacter"));
+		itemTemplate->notTradable				= atoi(sData_findOption(it, "notTradable"));
+		itemTemplate->notPlaceableInLockbox		= atoi(sData_findOption(it, "notPlaceableInLockbox"));
+		itemTemplate->inventoryCategory			= atoi(sData_findOption(it, "inventoryCategory"));
+
+		if (itemTemplate->type == ITEMTYPE_WEAPON)
+		{
+			itemTemplate->clipSize					= atoi(sData_findOption(it, "clipSize"));
+			itemTemplate->currentAmmo				= atoi(sData_findOption(it, "currentAmmo"));
+			itemTemplate->aimRate					= atof(sData_findOption(it, "aimRate"));
+			itemTemplate->reloadTime				= atoi(sData_findOption(it, "reloadTime"));
+			itemTemplate->altActionId				= atoi(sData_findOption(it, "altActionId"));
+			itemTemplate->altActionArg				= atoi(sData_findOption(it, "altActionArg"));
+			itemTemplate->aeType					= atoi(sData_findOption(it, "aeType"));
+			itemTemplate->aeRadius					= atoi(sData_findOption(it, "aeRadius"));
+			itemTemplate->recoilAmount				= atoi(sData_findOption(it, "recoilAmount"));
+			//itemTemplate->reuseOverride			= atoi(sData_findOption(it, "reuseOverride"));
+			itemTemplate->coolRate					= atoi(sData_findOption(it, "coolRate"));
+			itemTemplate->heatPerShot				= atof(sData_findOption(it, "heatPerShot"));
+			itemTemplate->toolType					= atoi(sData_findOption(it, "toolType"));
+			itemTemplate->isJammed					= (bool)atoi(sData_findOption(it, "isJammed"));
+			itemTemplate->ammoPerShot				= atoi(sData_findOption(it, "ammoPerShot"));
+			itemTemplate->minDamage					= atoi(sData_findOption(it, "MinDamage"));
+			itemTemplate->maxDamage					= atoi(sData_findOption(it, "MaxDamage"));
+			itemTemplate->ammoClassId				= atoi(sData_findOption(it, "AmmoClassId"));
+			itemTemplate->damageType				= atoi(sData_findOption(it, "DamageType"));
+			itemTemplate->windupTime				= atoi(sData_findOption(it, "WindupTime"));
+			itemTemplate->recoveryTime				= atoi(sData_findOption(it, "RecoveryTime"));
+			itemTemplate->refireTime				= atoi(sData_findOption(it, "RefireTime"));
+			itemTemplate->range						= atoi(sData_findOption(it, "Range"));
+			itemTemplate->altMaxDamage				= atoi(sData_findOption(it, "AltMaxDamage"));
+			itemTemplate->altDamageType				= atoi(sData_findOption(it, "AltDamageType"));
+			itemTemplate->altRange					= atoi(sData_findOption(it, "AltRange"));
+			itemTemplate->altAERadius				= atoi(sData_findOption(it, "AltAERadius"));
+			itemTemplate->altAEType					= atoi(sData_findOption(it, "AltAEType"));
+			itemTemplate->attackType				= atoi(sData_findOption(it, "AttackType"));
+		}
+		// Extra Info
+
 
 		// set
 		hashTable_set(&ht_itemTemplateById, itemTemplate->templateId, itemTemplate);

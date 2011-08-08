@@ -20,54 +20,6 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned c
 	
 	if( pums.unpackErrorEncountered )
 		return;
-/*
-000000FC     64 - LOAD_CONST          1
-000000FF     5A - STORE_NAME          'STANDING'
-00000102     64 - LOAD_CONST          2
-00000105     5A - STORE_NAME          'SITTING'
-00000108     64 - LOAD_CONST          3
-0000010B     5A - STORE_NAME          'LYING_DOWN'
-0000010E     64 - LOAD_CONST          4
-00000111     5A - STORE_NAME          'SWIMMING'
-00000114     64 - LOAD_CONST          5
-00000117     5A - STORE_NAME          'DEAD'
-0000011A     64 - LOAD_CONST          6
-0000011D     5A - STORE_NAME          'STOPPED'
-00000120     64 - LOAD_CONST          7
-00000123     5A - STORE_NAME          'SLOW'
-00000126     64 - LOAD_CONST          8
-00000129     5A - STORE_NAME          'FAST'
-0000012C     64 - LOAD_CONST          9
-0000012F     5A - STORE_NAME          'FLYING'
-00000132     64 - LOAD_CONST          10
-00000135     5A - STORE_NAME          'FLAILING'
-00000138     64 - LOAD_CONST          11
-0000013B     5A - STORE_NAME          'NORMAL'
-0000013E     64 - LOAD_CONST          12
-00000141     5A - STORE_NAME          'UNCONTROLLED'
-00000144     64 - LOAD_CONST          13
-00000147     5A - STORE_NAME          'STUNNED'
-0000014A     64 - LOAD_CONST          14
-0000014D     5A - STORE_NAME          'CROUCHED'
-00000150     64 - LOAD_CONST          15
-00000153     5A - STORE_NAME          'AT_PEACE'
-00000156     64 - LOAD_CONST          17
-00000159     5A - STORE_NAME          'COMBAT_ENGAGED'
-0000015C     64 - LOAD_CONST          18
-0000015F     5A - STORE_NAME          'IDLE'
-00000162     64 - LOAD_CONST          19
-00000165     5A - STORE_NAME          'RECOVERY'
-00000168     64 - LOAD_CONST          20
-0000016B     5A - STORE_NAME          'WINDUP'
-0000016E     64 - LOAD_CONST          21
-00000171     5A - STORE_NAME          'NO_TOOL'
-00000174     64 - LOAD_CONST          24
-00000177     5A - STORE_NAME          'TOOL_READY'
-0000017A     64 - LOAD_CONST          25
-0000017D     5A - STORE_NAME          'SPECIAL'
-00000180     64 - LOAD_CONST          26
-00000183     5A - STORE_NAME          'DYING'
-*/
 
 	// Recv_GameEffectAttached(typeId, level, sourceId, *args) -> None
 	// Notification that a game effect was attached to this entity.

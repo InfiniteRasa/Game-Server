@@ -173,13 +173,11 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// set creature info (439)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->type->nameId); // creatureNameId
+	pym_addNoneStruct(&pms); // pym_addInt(&pms, creature->type->nameId); // creatureNameId
 	pym_addBool(&pms, false); // isFlyer
 	pym_addNoneStruct(&pms); // leaderId
-	pym_tuple_begin(&pms); // creatureFlags
-	//pym_addInt(&pms, 56); // UI_INDICATOR_BOSS
-	pym_addInt(&pms, 82);	// species: ATTA
-	pym_tuple_end(&pms);
+	pym_tuple_begin(&pms);	// creatureFlags 
+	pym_tuple_end(&pms);	// creatureflag.pyo
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 439, pym_getData(&pms), pym_getLen(&pms));
 	// set running

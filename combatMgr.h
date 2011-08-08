@@ -5,6 +5,7 @@ typedef struct _missile_t
 	int damageA;
 	int damageB;
 	unsigned long long targetEntityId; // the entityId of the destination (it is possible that the object does no more exist on arrival)
+	actor_t* source;
 	int triggerTime; // amount of milliseconds left before the missile is triggered, is decreased on every tick
 	_missile_t *previous;
 	_missile_t *next;

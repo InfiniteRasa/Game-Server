@@ -4,12 +4,12 @@
 
 # the host name, usually 'localhost'
 dbHost = localhost
-
+dbPort = 10061
 # the name of the database
-dbName = tabuladb
+dbName = infinite rasa
 
 # the user
 dbUser = root
 
 # the password
-dbPass = hhra2wcy
+dbPass = usbw

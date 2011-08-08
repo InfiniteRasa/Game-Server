@@ -1,11 +1,52 @@
-
-
 [Weapon_Avatar_Pistol_Physical_UNC_01_to_04]
 templateId = 17131
 classId = 27120
 type = WEAPON
 buybackPrice = 1000
 
-
 req1 = FIREARMS:1
+
+[Weapon_Avatar_MachineGun_Physical_ELT_05_to_07]
+templateId = 17131
+classId = 28065
+type = WEAPON
+buybackPrice = 1000
+
+[Weapon_Human_Redshirt_Sword_Laser]
+templateId = 17131
+classId = 20571
+type = WEAPON
+buybackPrice = 1000
+
+[Armor_T1_MotorAssist_V09_RAR_Boots_01_to_02]
+templateId = 17131
+classId = 23199
+type = ARMOR
+buybackPrice = 1000
+
+[Armor_T1_MotorAssist_V09_RAR_Gloves_01_to_02]
+templateId = 17131
+classId = 23210
+type = ARMOR
+buybackPrice = 1000
+
+[Armor_T1_MotorAssist_V09_RAR_Legs_01_to_02]
+templateId = 17131
+classId = 23232
+type = ARMOR
+buybackPrice = 1000
+
+[Armor_T1_MotorAssist_V09_RAR_Vest_01_to_02]
+templateId = 17131
+classId = 23243
+type = ARMOR
+buybackPrice = 1000
+
+[Armor_T1_MotorAssist_V09_RAR_Helmet_01_to_02]
+templateId = 17131
+classId = 23221
+type = ARMOR
+buybackPrice = 1000
+
+
 

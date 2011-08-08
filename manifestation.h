@@ -11,6 +11,7 @@ typedef struct _manifestation_t
 	int level;
 	bool genderIsMale;
 	unsigned long long targetEntityId;
+	unsigned long long actionEntityId;
 }manifestation_t;
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData);
