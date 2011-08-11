@@ -20,6 +20,7 @@ typedef struct _actor_t
 	int entityId;
 	int entityClassId;
 	char name[64];
+	char family[64];
 	actorStats_t stats;
 	actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? (Because not used by monsters)
 	float posX;

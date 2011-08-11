@@ -9,7 +9,7 @@
 
 #include "DataInterface.h"
 
-#include "AuthServerUtil.h"
+//#include "AuthServerUtil.h"
 #include "main.h"
 #include "Bignum.h"
 #include "TabulaCrypt.h"

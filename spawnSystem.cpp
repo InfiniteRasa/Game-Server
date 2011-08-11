@@ -172,8 +172,8 @@ void spawnPool_initForMapChannel(mapChannel_t *mapChannel)
 
 	spawnPool_t *spawnPool = spawnPool_create();
 	spawnPool_setCriteriaCellCreatureCount(spawnPool, 5);
-	spawnPool_setCreatureVariant(spawnPool, 0, "TEST7078");
-	spawnPool_setCreatureVariant(spawnPool, 1, "TEST7079");
+	spawnPool_setCreatureVariant(spawnPool, 0, "TEST25580");
+	spawnPool_setCreatureVariant(spawnPool, 1, "TEST25581");
 	spawnPool_initSpawnLocations(spawnPool, 3);
 	spawnPool_setSpawnLocation(spawnPool, 0, -200.0f, 95.0f, -24.0f, 0xFFFF);
 	spawnPool_setSpawnLocation(spawnPool, 1, -197.0f, 96.0f, -44.0f, 0xFFFF);

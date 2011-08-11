@@ -325,20 +325,20 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 			wrongVersion = true;
 		if( wrongVersion == false )
 		{
-			if( memcmp(data+pIdx, "1.11.6.0", versionLen) )
+			if( memcmp(data+pIdx, "1.16.5.0", versionLen) ) // 1.11.6.0 - 1.16.5.0
 				wrongVersion = true;
 		}
 		pIdx += versionLen;
 		
-		if( wrongVersion )
-			return 0;//__debugbreak(); // shit has wrong version
+		if( wrongVersion ) { printf("Client version missmatch\n"); }
+			// return 0;//__debugbreak(); // shit has wrong version
 		
 		unsigned char ukn02_4 = *(unsigned char*)(data+pIdx); pIdx++;
 		if( ukn02_4 != 0x2A )
 			return 0;//__debugbreak();
 
 		authSessionInfo_t asi;
-		if( !AuthServerUtil_QuerySession(sessionId1, sessionId2, &asi) )
+		if( !dataInterface_QuerySession(sessionId1, sessionId2, &asi) )
 		{
 			closesocket(cgm->socket);
 			return 0;
@@ -346,7 +346,7 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		cgm->State = 1;
 
 		strcpy(cgm->Accountname, asi.Accountname);
-		cgm->userID = asi.uid;
+		cgm->userID = asi.ID;
 		cgm->sessionId1 = sessionId1;
 		cgm->sessionId2 = sessionId2;
 
@@ -416,6 +416,8 @@ int GameMain_processPythonRPC(clientGamemain_t *cgm, unsigned int methodID, unsi
 	{
 	case 149: // RequestCharacterName
 		return charMgr_recv_requestCharacterName(cgm, pyString, pyStringLen);
+	case 516: // RequestFamilyName
+		return charMgr_recv_requestFamilyName(cgm, pyString, pyStringLen);
 	case 512: // RequestCreateCharacterInSlot
 		return charMgr_recv_requestCreateCharacterInSlot(cgm, pyString, pyStringLen);
 	case 513: // RequestDeleteCharacterInSlot

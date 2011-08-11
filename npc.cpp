@@ -252,7 +252,7 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);
+	pym_addInt(&pms, 0);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	// set skills
@@ -283,6 +283,28 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 243, pym_getData(&pms), pym_getLen(&pms));
+	// Test for weapons
+	if( npc->actor.appearanceData[13].classId != 0 && strcmp(npc->actor.name, "Catherine Jones"))
+	{
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		// Recv_RequestVisualCombatMode
+		//RequestVisualCombatMode = 753
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 753, pym_getData(&pms), pym_getLen(&pms));*/
+
+		// weapon ready
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 718, pym_getData(&pms), pym_getLen(&pms));*/
+	}
 	// set conversation status
 	npc_updateConversationStatus(client, npc);
 }

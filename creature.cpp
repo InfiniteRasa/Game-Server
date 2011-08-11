@@ -7,7 +7,7 @@ typedef struct
 
 creatureEnv_t creatureEnv;
 
-
+void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId);
 /* creature type */
 
 creatureType_t* creatureType_createCreatureType(int entityClassId, int nameId)
@@ -183,7 +183,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);
+	pym_addInt(&pms, 0);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	// Recv_WorldLocationDescriptor (243)
@@ -223,6 +223,37 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	//pym_list_end(&pms);
 	//pym_tuple_end(&pms);
 	//netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
+	if (creature->actor.entityClassId == 25580) // pistol
+	{
+		 creature_updateAppearance(client->cgm, creature->actor.entityId, 3782);
+	}
+	if (creature->actor.entityClassId == 25581) // rifle
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 3878);
+	}
+}
+
+void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId)
+{
+	pyMarshalString_t pms;
+	// Recv_AppearanceData (27)
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+		pym_addInt(&pms, 13); // index(equipmentSlotId)
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, weaponId); // classId
+			pym_tuple_begin(&pms);
+				// hue
+				pym_addInt(&pms, (int)(0xFF808080&0xFF));
+				pym_addInt(&pms, (int)((0xFF808080>>8)&0xFF));
+				pym_addInt(&pms, (int)((0xFF808080>>16)&0xFF));
+				pym_addInt(&pms, (int)((0xFF808080>>24)&0xFF));
+			pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cgm, entityId, 27, pym_getData(&pms), pym_getLen(&pms));
 }
 
 // 1:n

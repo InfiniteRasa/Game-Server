@@ -3,6 +3,21 @@
 #define WORKER_QUEUELENGTH	128 // jobs at max
 #define WORKER_THREADS		1
 
+typedef struct
+{
+	char Accountname[15];
+	unsigned int ID;
+	union
+	{
+		struct
+		{
+			unsigned int UID1;
+			unsigned int UID2;
+		};
+	unsigned long long uid;
+	};
+}authSessionInfo_t;
+
 typedef struct  
 {
 	void (*workCallback)(MYSQL *dbCon, void *job, void *cb, void *param);
@@ -29,6 +44,7 @@ typedef struct
 {
 	unsigned long long characterID;
 	char unicodeName[CHARACTER_FIRSTNAMELIMIT];
+	char unicodeFamily[CHARACTER_FIRSTNAMELIMIT];
 	bool genderIsMale;
 	char raceID; // 1 to 4
 	char slotIndex; // 0 to 15
@@ -48,6 +64,7 @@ typedef struct
 typedef struct  
 {
 	char unicodeName[CHARACTER_FIRSTNAMELIMIT];
+	char unicodeFamily[CHARACTER_FIRSTNAMELIMIT];
 	bool genderIsMale;
 	char raceID; // 1 to 4
 	char slotIndex; // 0 to 15
@@ -76,6 +93,7 @@ typedef struct
 {
 	unsigned long long characterID;
 	char unicodeName[CHARACTER_FIRSTNAMELIMIT];
+	char unicodeFamily[CHARACTER_FIRSTNAMELIMIT];
 	bool genderIsMale;
 	char raceID; // 1 to 4
 	char slotIndex; // 0 to 15
@@ -203,3 +221,8 @@ unsigned long long dataInterface_NPC_getLastNPCEntityID();
 
 /* mission */
 void dataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param);
+
+/* extra */
+void dataInterface_registerServerForAuth();
+unsigned int dataInterface_getMyIP();
+int dataInterface_QuerySession(unsigned int ID1, unsigned int ID2, authSessionInfo_t *asiOut);

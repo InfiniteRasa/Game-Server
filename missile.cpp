@@ -103,14 +103,6 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 				spawnPool_increaseDeadCreatureCount(mapChannel, creature->spawnPool);
 			}
 		}
-		// send recovery
-		//Recv_PerformRecovery 125
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 102); // actionId
-		pym_addInt(&pms, 1); // actionArg
-		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, 125, pym_getData(&pms), pym_getLen(&pms));
 		/*
 		// TODO: Should we use AnnounceDamage? (399)
 		// (None, ((4101, (None, 0, 0, 0, 0, 10, 0, 0, 0, 0, None, None)),))

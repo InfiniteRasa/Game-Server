@@ -315,7 +315,7 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	char playerName[1024];
-	wsprintf(playerName, "%s %s", client->player->actor->name, client->cgm->Accountname);
+	wsprintf(playerName, "%s %s", client->player->actor->name, client->player->actor->family);
 	pym_addUnicode(&pms, playerName);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 105, pym_getData(&pms), pym_getLen(&pms));
@@ -418,6 +418,20 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	{
 		dynamicObject_developer_createControlPoint(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
 		communicator_systemMessage(cm, "ControlPoint spawned!");
+		return true;
+	}
+	if( memcmp(textMsg, ".state ", 7) == 0 )
+	{
+		unsigned int object;
+		int state;
+		sscanf(textMsg,"%*s %u %i", &object, &state);
+		dynamicObject_forceState(cm->cgm, object, state);
+		return true;
+	}
+	if (strcmp(textMsg, ".logosmarker") == 0)
+	{
+		dynamicObject_createLogosObject(cm->mapChannel, cm->player->actor->posX+2, cm->player->actor->posY+1, cm->player->actor->posZ+2);
+		communicator_systemMessage(cm, "Power Logos spawned!");
 		return true;
 	}
 	if( strcmp(textMsg, ".logos") == 0 )
@@ -626,7 +640,7 @@ void communicator_recv_radialChat(mapChannelClient_t *cm, unsigned char *pyStrin
 	//wsprintf(playerName, "%s %s", cm->player->actor->name, cm->cgm->Accountname);
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addUnicode(&pms, cm->player->actor->name); // like in real game, only first name is displayed
+	pym_addUnicode(&pms, cm->player->actor->family); // like in real game, only family name is displayed
 	pym_addUnicode(&pms, textMsg);
 	pym_addInt(&pms, cm->player->actor->entityId);
 	pym_tuple_end(&pms);

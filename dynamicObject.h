@@ -3,6 +3,9 @@ void dynamicObject_init(mapChannel_t *mapChannel);
 void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 
 bool _dynamicObject_controlpoint_callback(mapChannel_t *mapChannel, void *param, int timePassed);
+void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y, float z);
+void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z);
+void dynamicObject_forceState(clientGamemain_t* cgm, unsigned int entityId, int state);
 
 void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 

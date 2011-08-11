@@ -5,8 +5,8 @@ void charMgr_beginCharacterSelection(clientGamemain_t *cgm)
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addUnicode(&pms, "FamilyName"); // familyName
-	pym_addInt(&pms, 1); // hasCharacters
+	pym_addUnicode(&pms, "Change Me"); // familyName // this should be null if hasCharacters is 0
+	pym_addInt(&pms, 0); // hasCharacters
 	pym_addInt(&pms, cgm->userID); // userId
 	//pym_addInt(&pms, 5); // enabledRaceList
 	pym_tuple_begin(&pms);
@@ -21,13 +21,13 @@ void charMgr_beginCharacterSelection(clientGamemain_t *cgm)
 
 }
 
-void charMgr_sendCharacterCreateSuccess(clientGamemain_t *cgm, int slotNum)
+void charMgr_sendCharacterCreateSuccess(clientGamemain_t *cgm, char* familyName, int slotNum)
 {
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, slotNum); // slotNum
-	pym_addUnicode(&pms, "FamilyName"); // familyName
+	pym_addUnicode(&pms, familyName); // familyName
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_CHARACTERCREATESUCCESS, pym_getData(&pms), pym_getLen(&pms)); // 426 = CharacterCreateSuccess
 }
@@ -59,12 +59,22 @@ void charMgr_sendGeneratedCharacterName(clientGamemain_t *cgm, bool isMale)
 	pym_init(&cgm->pyms);
 	pym_tuple_begin(&cgm->pyms);
 	if( isMale )
-		pym_addUnicode(&cgm->pyms, "male");
+		pym_addUnicode(&cgm->pyms, "Richard");
 	else
-		pym_addUnicode(&cgm->pyms, "female");
+		pym_addUnicode(&cgm->pyms, "Rachel");
 
 	pym_tuple_end(&cgm->pyms);
 	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_GENERATEDCHARACTERNAME, pym_getData(&cgm->pyms), pym_getLen(&cgm->pyms));
+}
+
+
+void charMgr_sendGeneratedFamilyName(clientGamemain_t *cgm)
+{
+	pym_init(&cgm->pyms);
+	pym_tuple_begin(&cgm->pyms);
+	pym_addUnicode(&cgm->pyms, "Garriott");
+	pym_tuple_end(&cgm->pyms);
+	netMgr_pythonAddMethodCallRaw(cgm, 5, 456, pym_getData(&cgm->pyms), pym_getLen(&cgm->pyms));
 }
 
 
@@ -199,7 +209,7 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, int slotId, di_characterPr
 	pym_dict_end(&pms);
 	//UserName
 	pym_dict_addKey(&pms, "UserName");
-	pym_addUnicode(&pms, cgm->Accountname);
+	pym_addUnicode(&pms, charInfo->unicodeFamily);
 	//GameContextId
 	pym_dict_addKey(&pms, "GameContextId");
 	pym_addInt(&pms, charInfo->currentContextId); // see gamecontextlanguage.txt
@@ -227,8 +237,18 @@ int charMgr_recv_requestCharacterName(clientGamemain_t *cgm, unsigned char *pySt
 	if( pym_unpackTuple_begin(&cgm->pyums) == false )
 		return 0;
 	unsigned int gender = pym_unpackInt(&cgm->pyums); // gender (0 - male, 1 - female)
-	unsigned int ukn2 = pym_unpackInt(&cgm->pyums); // unknown, always 1?
+	unsigned int langID = pym_unpackInt(&cgm->pyums); // Language ID "always 1"
 	charMgr_sendGeneratedCharacterName(cgm, gender==0);
+	return 1;
+}
+
+int charMgr_recv_requestFamilyName(clientGamemain_t *cgm, unsigned char *pyString, int pyStringLen)
+{
+	pym_init(&cgm->pyums, pyString, pyStringLen);
+	if( pym_unpackTuple_begin(&cgm->pyums) == false )
+		return 0;
+	unsigned int langID = pym_unpackInt(&cgm->pyums); // Language ID "always 1"
+	charMgr_sendGeneratedFamilyName(cgm);
 	return 1;
 }
 
@@ -242,7 +262,7 @@ void _cb_charMgr_recv_requestCreateCharacterInSlot(void *param, di_characterLayo
 		free(characterData);
 		return;
 	}
-	charMgr_sendCharacterCreateSuccess(cgm, characterData->slotIndex);
+	charMgr_sendCharacterCreateSuccess(cgm, characterData->unicodeFamily, characterData->slotIndex);
 	charMgr_updateCharacterSelection(cgm);
 	free(characterData);
 }
@@ -260,9 +280,9 @@ int charMgr_recv_requestCreateCharacterInSlot(clientGamemain_t *cgm, unsigned ch
 	characterData->slotIndex = slotNum;
 	char familyName[128];
 	char firstName[128];
-	familyName[0] = '\0';
+	characterData->unicodeFamily[0] = '\0';
 	characterData->unicodeName[0] = '\0';
-	pym_unpackUnicode(&cgm->pyums, familyName, 128); // we ignore the familyName
+	pym_unpackUnicode(&cgm->pyums, characterData->unicodeFamily, CHARACTER_FIRSTNAMELIMIT);
 	pym_unpackUnicode(&cgm->pyums, characterData->unicodeName, CHARACTER_FIRSTNAMELIMIT);
 	char gender = pym_unpackInt(&cgm->pyums); // 0 --> male, 1 --> female
 	float scale = pym_unpackFloat(&cgm->pyums);
@@ -301,6 +321,18 @@ int charMgr_recv_requestCreateCharacterInSlot(clientGamemain_t *cgm, unsigned ch
 		characterData->appearanceData[equipmentSlotId-1].classId = classId;
 		characterData->appearanceData[equipmentSlotId-1].hue = hueRGBA;
 	}
+	// Default armor
+	characterData->appearanceData[0].classId = 10908; // helm
+	characterData->appearanceData[0].hue = 0xFF808080;
+	characterData->appearanceData[1].classId = 7054; // boots
+	characterData->appearanceData[1].hue = 0xFF808080;
+	characterData->appearanceData[2].classId = 10909; // gloves
+	characterData->appearanceData[2].hue = 0xFF808080;
+	characterData->appearanceData[14].classId = 7052; // torso
+	characterData->appearanceData[14].hue = 0xFF808080;
+	characterData->appearanceData[15].classId = 7053; // legs
+	characterData->appearanceData[15].hue = 0xFF808080;
+	// Default armor end
 	int raceId = pym_unpackInt(&cgm->pyums);
 	if( raceId < 1 || raceId > 4 )
 		return 0; // invalid race

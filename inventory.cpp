@@ -322,6 +322,13 @@ void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pySt
 	// TODO!
 	//manifestation_updateWeaponReadyState(client); ?
 	printf("TODO: "); puts(__FUNCTION__);
+	// weapon ready
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -333,6 +340,13 @@ void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pySt
 	// TODO!
 	//manifestation_updateWeaponReadyState(client); ?
 	printf("TODO: "); puts(__FUNCTION__);
+	// weapon ready
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -475,6 +489,7 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 	// tell client that the equipment state has changed
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
+
 	pym_list_begin(&pms); // pairs of (slotId, entityId)
 	// slotIds are the same as for appearance info
 	if( client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer] ) // is a weapon equipped?

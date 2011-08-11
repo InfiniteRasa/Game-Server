@@ -90,6 +90,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->entityId = entityMgr_getFreeEntityIdForPlayer(); // generate an entityId
 	// todo: should globally register entity
 	strcpy(manifestation->actor->name, characterData->unicodeName);
+	strcpy(manifestation->actor->family, characterData->unicodeFamily);
 	manifestation->actor->posX = characterData->posX;
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
@@ -267,7 +268,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set actor name
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addUnicode(&pms, tempClient->cgm->Accountname); // lastName
+		pym_addUnicode(&pms, tempClient->player->actor->family); // lastName
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 16, pym_getData(&pms), pym_getLen(&pms));
 		// set running
@@ -488,7 +489,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// set actor name
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addUnicode(&pms, client->cgm->Accountname); // lastName
+	pym_addUnicode(&pms, client->player->actor->family); // lastName
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
 	{
@@ -507,7 +508,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	pym_addInt(&pms, 23); //power
+	//pym_addInt(&pms, 23); //power
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -550,7 +551,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 	pym_tuple_begin(&pms);
 		pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
-		pym_addInt(&pms, 5);// level
+		pym_addInt(&pms, 1);// level
 	pym_tuple_end(&pms);
 	// ability sprint
 	pym_tuple_begin(&pms);
@@ -569,20 +570,14 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 	// ability sprint
-	//pym_tuple_begin(&pms);
-	//pym_addInt(&pms, 165);  // id
-	//pym_addInt(&pms, 5);	// level
-	//pym_tuple_end(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
-	pym_addInt(&pms, 5);// level
-	pym_tuple_end(&pms);
-	// ???
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);  // id
+	pym_addInt(&pms, 165);  // id
 	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
-
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
+	pym_addInt(&pms, 1);// level
+	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -770,7 +765,15 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	// TODO!
 	// Used to tell the server how long to continue shooting
 	// 
+	// Recv_PerformWindup @param actionId - actionArgId 126
+	// Recv_PerformRecovery(actionId, actionArgId, *args) 125
+	// Recv_ActionInterrupt 245
 	printf("TODO: "); puts(__FUNCTION__);
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_addInt(&pms, 149);
+	pym_addInt(&pms, 1);
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 245, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -801,11 +804,11 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 
 	// test enter combat state
-	pym_init(&pms);
+	/*pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 718, pym_getData(&pms), pym_getLen(&pms));
-
+*/
 
 	// set state (206)
 	// StateChange
