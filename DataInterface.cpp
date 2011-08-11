@@ -113,7 +113,7 @@ void _dataInterface_initWorkerThread(int index)
 void dataInterface_init()
 {
 	// read connect config details
-	sData_t *config = sData_open("E:\\InfiniteRasa\\tr_release_2\\config.txt");
+	sData_t *config = sData_open("config.txt");
 	sData_nextCategory(config);
 
 	// host

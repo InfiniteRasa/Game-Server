@@ -9,7 +9,7 @@ HashTable_uint32_t ht_starterItemTemplateClassIds;
 void _gameData_loadEquipmentClassSlots()
 {
 	hashTable_init(&ht_equipmentClassSlots, 128);
-	file_t *file = fileMgr_open("E:\\InfiniteRasa\\tr_release_2\\gameData\\equipableClassEquipmentSlot.txt");
+	file_t *file = fileMgr_open("gameData\\equipableClassEquipmentSlot.txt");
 	char *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -31,7 +31,7 @@ void _gameData_loadEquipmentClassSlots()
 void _gameData_loadStarterItemTemplateClassIds()
 {
 	hashTable_init(&ht_starterItemTemplateClassIds, 128);
-	file_t *file = fileMgr_open("E:\\InfiniteRasa\\tr_release_2\\gameData\\starterItemTemplateClassIds.txt");
+	file_t *file = fileMgr_open("gameData\\starterItemTemplateClassIds.txt");
 	char *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -57,7 +57,7 @@ void _gameData_loadMapInfo()
 {
 	// read number of maps
 	mapInfoCount = 0;
-	file_t *file = fileMgr_open("E:\\InfiniteRasa\\tr_release_2\\gameData\\mapInfo.txt");
+	file_t *file = fileMgr_open("gameData\\mapInfo.txt");
 	char *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -76,7 +76,7 @@ void _gameData_loadMapInfo()
 	// allocate maps
 	mapInfoArray = (gameData_mapInfo_t*)malloc(sizeof(gameData_mapInfo_t)*mapInfoCount);
 	// #(contextId, 'mapName', version, baseRegionId)
-	file = fileMgr_open("E:\\InfiniteRasa\\tr_release_2\\gameData\\mapInfo.txt");
+	file = fileMgr_open("gameData\\mapInfo.txt");
 	int i=0;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -133,7 +133,7 @@ void _gameData_loadItemTemplates()
 	//bool sData_nextCategory(sData_t *sData);
 	//char *sData_currentCategoryName(sData_t *sData);
 	//char *sData_findOption(sData_t *sData, char *optionName);
-	sData_t *it = sData_open("E:\\InfiniteRasa\\tr_release_2\\gameData\\ItemTemplates.txt");
+	sData_t *it = sData_open("gameData\\ItemTemplates.txt");
 	int z = 0;
 	while( sData_nextCategory(it) )
 	{
