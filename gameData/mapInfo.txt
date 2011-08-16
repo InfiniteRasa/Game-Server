@@ -1,3 +1,94 @@
-#(contextId, 'mapName', version, baseRegionId)
-(1220, 'Adv_Foreas_Conordia_Divide', 1492, 2) #starter Bootcamp
-#(,'', 792,2) #test
+#(contextId, 'mapName', version, baseRegionId)  
+#Foreas
+(1985, 'adv_bootcamp', 792, 2) #Planet Foreas - Bootcamp 
+##Foreas Concordia
+###Foreas Concordia Divide
+(1148, 'adv_foreas_concordia_divide', 1520, 0) #Planet Foreas: Concordia - Divide
+(1347, 'adv_foreas_concordia_divide_minoscaverns', 209, 0) #Planet Foreas: Concordia - Divide (Minos Caverns)
+(1348, 'adv_foreas_concordia_divide_timoramines', 286, 0) #Planet Foreas: Concordia - Divide (Timora Mines)
+(1349, 'adv_foreas_concordia_divide_torcastraprison', 465, 0) #Planet Foreas: Concordia - Divide (Torcastra Prison)
+(1806, 'adv_foreas_concordia_divide_purgasstation2', 293, 0) #Planet Foreas: Concordia - Divide (Purgas Station)
+###Foreas Concordia Wilderness
+(1220, 'adv_foreas_concordia_wilderness', 1492, 0) #Concordia Wilderness - 791,295,383
+(1721, 'adv_foreas_concordia_wilderness_clrf', 276, 0) #Planet Foreas: Concordia - Wilderness (Crater Lake Research Facility)
+(1416, 'adv_foreas_concordia_wilderness_guardianprom', 225, 0) #Planet Foreas: Concordia - Wilderness (Guardian Prominence)
+(1430, 'adv_foreas_concordia_wilderness_pravusresearch', 549, 0) #Planet Foreas: Concordia - Wilderness (Pravus Research)
+(1506, 'adv_foreas_concordia_wilderness_cavesofdonn02', 516, 0) #Planet Foreas: Concordia - Wilderness (Caves of Donn)
+###Foreas Concordia Palisades
+(1244, 'adv_foreas_concordia_palisades', 923, 0) #Planet Foreas: Concordia - Palisades
+(1384, 'adv_foreas_concordia_palisades_warnetcaverns', 200, 0) #Planet Foreas: Concordia - Palisades (Warnet Caverns)
+(1394, 'adv_foreas_concordia_palisades_devilsden', 325, 0) #Planet Foreas: Concordia - Palisades (Devils Den)
+(1397, 'adv_foreas_concordia_palisades_treebackcamp', 282, 0) #Planet Foreas: Concordia - Palisades (Treeback Camp)
+(1803, 'adv_foreas_concordia_palisades_elohtemples', 249, 0) #Planet Foreas: Concordia - Palisades (Eloh Temples)
+(2084, 'adv_foreas_concordia_elohcommtower2', 333, 0) #Planet Foreas: Concordia - Palisades (Eloh Vale)
+##Foreas Valverde
+###Foreas Valverde Plateu
+(1497, 'adv_foreas_valverde_plateau', 775, 0) #Planet Foreas: Valverde - Plateau
+(1502, 'adv_foreas_valverde_plateau_ustoryard', 185, 9) #Planet Foreas: Valverde - Plateau (Ustor Yard)
+(1823, 'adv_foreas_valverde_plateau_sanctusgrotto', 154, 0) #Planet Foreas: Valverde - Descent (Sanctus Grotto)
+(1830, 'adv_foreas_valverde_plateau_maligobasev3', 143, 0) #Planet Foreas: Valverde - Plateau (Maligo Base
+(2029, 'adv_foreas_valverde_plateau_temporalchamber', 129, 0) #Planet Foreas: Valverde - Plateau (Temporal Chamber)
+###Foreas Valverde Pools
+(1304, 'adv_foreas_valverde_pools', 508, 0) #Planet Foreas: Valverde - Pools -coords 156,900,379 (Retread Outpost)
+(1465, 'adv_foreas_valverde_pools_test_weapons_center', 132, 0) #Planet Foreas: Valverde - Pools (Lamnas Armory)
+(1763, 'adv_foreas_valverde_pools_livetargetpensv2', 175, 0) #Planet Foreas: Valverde - Howling Maw (Live Target Pens)
+###Foreas Valverde Marshes
+(1454, 'adv_foreas_valverde_marshes', 654, 0) #Planet Foreas: Valverde - Marshes
+(1429, 'adv_foreas_valverde_marshes_wetlandrefinery', 302, 0) #Planet Foreas: Valverde - Marshes (Turpis Refinery)
+(1451, 'adv_foreas_valverde_marshes_banesupplydepot', 283, 0) #Planet Foreas: Valverde - Marshes (Bane Supply Depot)
+(1700, 'adv_foreas_valverde_marshes_logosresearchfacility', 368, 0) #Planet Foreas: Valverde - Marshes (Logos Research Facility)
+(1743, 'adv_foreas_valverde_marshes_villageruins', 446, 0) #Planet Foreas: Valverde - Marshes (Preo Das)
+###Foreas Valverde Descent
+(2047, 'adv_foreas_valverde_descent', 315, 0) #Planet Foreas: Valverde - Descent
+(2156, 'adv_foreas_valverde_descent_therefuge', 55, 0) #Planet Foreas: Valverde - Descent (The Refuge)
+(2163, 'adv_foreas_valverde_descent_inferno_outpost', 128, 0) #Planet Foreas: Valverde - Descent (Outpost Inferno)
+###Foreas Howling Maw 
+(2051, 'adv_foreas_howlingmaw1', 379, 0) #Planet Foreas: Howling Maw
+(2162, 'adv_foreas_howlingmaw_cuthahbase', 124, 0) #Planet Foreas: Howling Maw: Cuthah Base
+(2136, 'adv_foreas_howlingmaw_deathburrow', 127, 0) #Planet Foreas: Valverde - Plateau (Velon Hollow)
+#Arieki
+##Arieki Torden
+###Arieki Torden Mires
+(1759, 'adv_arieki_torden_mires', 593, 0) #Planet Arieki: Torden - Mires Baylor Base -594,-742
+(2107, 'adv_arieki_torden_mires_energyweaponcenter', 214, 0) #Planet Arieki: Torden - Mires (Energy Weapon Center)
+(2115, 'adv_arieki_torden_mires_banefluxitemines', 204, 0) #Planet Arieki: Torden - Mires (Bane Fluxite Mines)
+(2125, 'adv_arieki_torden_mires_tahrendrabase', 95, 0) #Planet Arieki: Torden - Mires (Tahrendra Base)
+###Arieki Torden Plains
+(1764, 'adv_arieki_torden_plains', 743, 0) #Planet Arieki: Torden - Plains
+(1773, 'adv_arieki_torden_plains_attacolony', 259, 0) #Planet Arieki: Torden - Plains (Kardash Atta Colony)
+(2034, 'adv_arieki_torden_plains_penalresearch', 229, 0) #Planet Arieki: Torden - Plains (Phanin Research Center)
+(2093, 'adv_arieki_torden_plains_brannwaterrefinery', 156, 0) #Planet Arieki: Torden - Plains (Brann Water Refinery)
+###Arieki Torden Incline
+(1761, 'adv_arieki_torden_incline', 781, 0) #Planet Arieki: Torden - Incline
+(1865, 'adv_arieki_torden_incline_ojasaattahive', 218, 0) #Planet Arieki: Torden - Incline (Ojasa Atta Hive) 
+(2085, 'adv_arieki_torden_incline_commtower', 218, 0) #Planet Arieki: Torden - Incline (Comm Tower)
+(2111, 'adv_arieki_torden_incline_wardenbotfactory', 127, 0) #Planet Arieki: Torden - Incline (Raksha Robotic Factory)
+###Arieki Torden Abyss
+(2028, 'adv_arieki_torden_abyss', 397, 0) #Planet Arieki: Torden - Abyss
+(2155, 'adv_arieki_torden_abyss_tampei', 163, 0) #adv_arieki_torden_abyss_tampei
+(2190, 'adv_arieki_torden_abyss_dybukkar', 169, 0) #adv_arieki_torden_abyss_dybukkar
+(2203, 'adv_arieki_torden_abyss_omegalabs', 156, 0) #Planet Arieki: Torden - Abyss (Section 5: Omega Labs)
+##Arieki Ligo
+###Arieki Ligo Thunderhead
+(1911, 'adv_arieki_ligo_thunderhead', 365, 2)#Planet Arieki: Ligo - Thunderhead 
+(2112, 'adv_arieki_ligo_thunderhead_rivasaattacolony', 73, 0) #Planet Arieki: Ligo - Thunderhead (Rivasa Atta Colony)
+(2103, 'adv_arieki_ligo_thunderhead_faultlever', 298, 0) #Planet Arieki: Ligo - Thunderhead (Fault Lever)
+(2105, 'adv_arieki_ligo_thunderhead_quassostation', 259, 0) #Planet Arieki: Ligo - Thunderhead (Quasso Station)
+###Arieki Ligo Ashen Desert
+(1734, 'adv_arieki_ligo_ashendesert', 358, 0) #Planet Arieki: Ligo - Ashen Desert
+(1988, 'adv_arieki_ligo_ashendesert_baneconscriptfacility', 254, 0) #Planet Arieki: Ligo - Ashen Desert (Bane Conscription Facility)
+(2055, 'adv_arieki_ligo_ashendesert_indracaverns', 217, 0) #Planet Arieki: Ligo - Ashen Desert (Indra Caverns)
+(2110, 'adv_arieki_ligo_ashendesert_avernusoutpost', 134, 0) #Planet Arieki: Ligo - Ashen Desert (Avernus Outpost)
+###Arieki Ligo Burning Steps
+(1993, 'adv_arieki_ligo_burningsteps', 384, 0) #Planet Arieki: Ligo - Crucible
+(1977, 'adv_arieki_ligo_burningsteps_magmacaverns', 193, 0) #Planet Arieki: Torden Abyss (Magma Caverns)
+###Arieki Ligo Staal Junkyard
+(2138, 'adv_arieki_ligo_staaljunkyard', 173, 0) #Planet Arieki: Ligo - Crucible (Staal Junkyard)
+###Arieki Ligo Crucible
+(2141, 'adv_arieki_ligo_crucible_incurablesward', 199, 0) #Planet Arieki: Ligo - Crucible (Incurables Ward)
+(2146, 'adv_arieki_ligo_crucible_wbfacility', 147, 0) #adv_arieki_ligo_crucible_wbfacility
+#Empire Sector
+(2375, 'adv_earth_unitedstates_manhattan_01_shared', 4, 0) #manhattan
+(20000009, 'adv_afs_arena', 29, 0) #adv_afs_arena
+##UNUSED##
+(2371, 'adv_earth_unitedstates_newyorkcity', 0, 0) #adv_earth_unitedstates_newyorkcity
