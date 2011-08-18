@@ -455,34 +455,6 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		communicator_systemMessage(cm, "GM Mode enabled!");
 		return true;
 	}
-	if( strcmp(textMsg, ".wp") == 0 )
-	{
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-		pym_dict_begin(&pms);
-		// slot 0
-		for(int i=0; i<5; i++)
-		{
-		int abilId = (rand()%200) + 400;
-		printf("%d --> %d\n", i, abilId);
-		pym_addInt(&pms, i); // slotIdx
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, abilId); // abilityId
-		pym_addInt(&pms, 1); // level
-		pym_addInt(&pms, 0); // itemId
-		pym_tuple_end(&pms);
-		}
-		/*
-		00000040     7D - STORE_FAST          'abilityId'
-		00000043     7D - STORE_FAST          'level'
-		00000046     7D - STORE_FAST          'itemId'
-		*/
-
-		pym_dict_end(&pms);
-		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
-		return true;
-	}
 	if( strcmp(textMsg, ".save") == 0 )
 	{
 		if( cm->player->targetEntityId == 0 )

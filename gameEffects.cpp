@@ -62,6 +62,18 @@ void _gameEffect_removeFromList(actor_t *actor, gameEffect_t *gameEffect)
 /*
 	Attaches a GameEffect (buffs, etc.) to a actor entity.
 */
+void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effectId, int effectLevel)
+{
+	int entityType = entityMgr_getEntityType(entityId);
+	void *entity = entityMgr_get(entityId);
+	if( entity == NULL ) { return; }
+	creature_t *creature = NULL;
+	if (entityType == ENTITYTYPE_CREATURE)
+	{ creature = (creature_t*)entity; }
+	else { return; }
+	gameEffect_attach(mapChannel, &creature->actor, effectId, effectLevel);
+}
+
 void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel)
 {
 	// check if a effect with the same ID already exists

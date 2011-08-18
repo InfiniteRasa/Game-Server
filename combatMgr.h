@@ -1,3 +1,4 @@
+#include <vector>
 
 typedef struct _missile_t
 {
@@ -17,7 +18,7 @@ typedef struct _missile_t
  */
 typedef struct  
 {
-	missile_t *firstMissile;
+	std::vector<missile_t> list;
 }missileInfo_t;
 
 void missile_initForMapchannel(mapChannel_t *mapChannel);

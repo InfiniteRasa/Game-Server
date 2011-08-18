@@ -2,18 +2,17 @@
 
 void missile_initForMapchannel(mapChannel_t *mapChannel)
 {
-	mapChannel->missileInfo.firstMissile = NULL;
+	
 }
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage)
 {
 	printf("launching missile\n");
-	missile_t *missile = (missile_t*)malloc(sizeof(missile_t));
-	memset(missile, 0x00, sizeof(missile_t));
-	missile->type = type;
-	missile->damageA = damage;
-	missile->targetEntityId = targetEntityId;
-	//missile->source = origin;
+	missile_t missile;
+	missile.type = type;
+	missile.damageA = damage;
+	missile.targetEntityId = targetEntityId;
+	missile.source = origin;
 	// get distance between actors
 	actor_t *targetActor = NULL;
 	int targetType = entityMgr_getEntityType(targetEntityId);
@@ -22,27 +21,23 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	{
 		printf("the missile target doesnt exist\n");
 		// entity does not exist
-		free(missile);
 		return;
 	}
-	if( targetType == ENTITYTYPE_NPC )
+	switch( targetType )
 	{
-		puts("Can't shoot NPCs yet");
-		free(missile);
+	case ENTITYTYPE_NPC:
+		printf("Can't shoot NPCs yet\n");
 		return;
-	}
-	else if( targetType == ENTITYTYPE_CREATURE )
-	{
+	case ENTITYTYPE_CREATURE:
 		printf("target is a creature\n");
-		creature_t *creature = (creature_t*)entity;
-		targetActor = &creature->actor;
-	}
-	else
-	{
-		puts("Can't shoot that object");
-		free(missile);
+		{ creature_t *creature = (creature_t*)entity;
+		targetActor = &creature->actor; }
+		break;
+	default:
+		printf("Can't shoot that object\n");
 		return;
-	}
+	};
+
 	// calculate missile time
 	float dx = targetActor->posX - origin->posX;
 	float dy = targetActor->posY - origin->posY;
@@ -51,28 +46,19 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	switch( type )
 	{
 	case MISSILE_PISTOL:
-		missile->triggerTime = (int)(distance*0.5f);
-		return;
+		missile.triggerTime = (int)(distance*0.5f);
+		break;
 	case MISSILE_LIGHTNING:
-		missile->triggerTime = (int)(distance*0.5f);
-		return;
+		missile.triggerTime = (int)(distance*0.5f);
+		break;
 	default:
-		puts("Unknown missile type");
-		free(missile);
+		printf("Unknown missile type\n");
 		return;
 	};
 
 	// append to list
-	if( mapChannel->missileInfo.firstMissile == NULL )
-	{
-		mapChannel->missileInfo.firstMissile = missile;
-	}
-	else
-	{
-		mapChannel->missileInfo.firstMissile->previous = missile;
-		missile->next = mapChannel->missileInfo.firstMissile;
-		mapChannel->missileInfo.firstMissile = missile;
-	}
+	printf("Añadiendo misil a la lista\n");
+	mapChannel->missileInfo.list.push_back(missile);
 }
 
 void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
@@ -160,36 +146,23 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 
 void missile_check(mapChannel_t *mapChannel, int passedTime)
 {
-	missile_t *missile = mapChannel->missileInfo.firstMissile;
-	while( missile )
+	std::vector<missile_t>* missileList = &mapChannel->missileInfo.list;
+	if (missileList->size() > 0)
 	{
-		printf("checking missiles\n");
+		printf("Size of missile list: %i\n", missileList->size());
+	}
+	for (int i = 0; i < missileList->size(); i++) 
+	{
+		printf("checking missile\n");
+		missile_t* missile = &missileList->at(i);
 		missile->triggerTime -= passedTime;
+
 		if( missile->triggerTime <= 0 )
 		{
 			// do missile action
 			_missile_trigger(mapChannel, missile);
 			// remove missile
-			missile_t *nextMissile = missile->next;
-			if(missile->previous == NULL )
-			{
-				// is first
-				if( missile->next )
-					missile->next->previous = NULL;
-				mapChannel->missileInfo.firstMissile = NULL;
-			}
-			else
-			{
-				// is somewhere between
-				if( missile->next )
-					missile->next->previous = missile->previous;
-				missile->previous->next = missile->next;
-			}
-			free(missile);
-			missile = nextMissile;
-			continue;
+			missileList->erase(missileList->begin() + i);
 		}
-		// next
-		missile = missile->next;
 	}
 }
