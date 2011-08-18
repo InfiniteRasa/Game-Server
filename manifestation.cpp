@@ -33,7 +33,6 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 	pym_addInt(&pms, owner->mapChannel->mapInfo->baseRegionId); //map with region support
->>>>>>> origin/experimental
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
