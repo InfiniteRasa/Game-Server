@@ -212,7 +212,15 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 	{
 		//Full packet received
 		//Everything is encrypted, so do decryption job here
-		Tabula_Decrypt2(&cgm->tbc2, (unsigned int*)(cgm->RecvBuffer+4), cgm->RecvSize);
+		
+		if (cgm->RecvSize==852)
+		{
+			cgm->RecvState = 0;
+			return 1;
+		}
+		
+
+		Tabula_Decrypt2(&cgm->tbc2, (unsigned int*)(cgm->RecvBuffer+4), cgm->RecvSize);		
 		int r = 0;
 		int AlignBytes = cgm->RecvBuffer[4]%9;
 
@@ -233,6 +241,7 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 					Subsize= foundSubsize;
 				}
 				
+
 				r = GameMain_DecodePacket(cgm, Buffer, Subsize);
 			}
 
@@ -256,9 +265,11 @@ int findSubsize(int current, unsigned char *data)
 		if ((*(unsigned short*)(data+iIndex)) == 0)
 			zeroFound ++;
 
-		if (zeroFound == 2)
+		if (zeroFound==2)
 		{
-			return iIndex - 2;
+			if ((iIndex -2) < 0)
+				printf("findSubsize::HOLYSHIT !!!\n");
+			return iIndex -2;
 		}
 	}
 }
@@ -453,6 +464,7 @@ int GameMain_processPythonRPC(clientGamemain_t *cgm, unsigned int methodID, unsi
 	default:
 		return 1;
 		// no handler for that
+		// StoreUserClientInformation = 775 From ./generated/client/methodid.pyo
 	};
  	
 	// 149

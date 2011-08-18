@@ -39,6 +39,7 @@ void GameMain_PassClientToCharacterSelection(clientGamemain_t *cgm);
 int findSubsize(int current, unsigned char *data);
 
 clientGamemain_t* GameMain_isolate(clientGamemain_t *cgm);
+int findSubsize(int current, unsigned char *data);
 
 // debugging
 void HexOut(unsigned char *hex, int l);
