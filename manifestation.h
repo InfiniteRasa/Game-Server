@@ -12,6 +12,9 @@ typedef struct _manifestation_t
 	bool genderIsMale;
 	unsigned long long targetEntityId;
 	unsigned long long actionEntityId;
+	int abilityDrawer[5*5];
+	int abilityLvDrawer[5*5];
+	char currentAbilityDrawer;
 }manifestation_t;
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData);
@@ -24,6 +27,8 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client);
 void manifestation_recv_SetTargetId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_ToggleRun(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
+
+void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 
 void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);

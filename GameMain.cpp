@@ -221,10 +221,20 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 		do{
 			unsigned short Subsize = *(unsigned short*)Buffer;
 			// 20110729 - thuvvik if/else to avoid gamecrash
-			if (Subsize==43 && Size ==12)
-				r =1;
+			if (Subsize == 43 && Size == 12)
+			{
+				r = 1;
+			}
 			else
+			{
+				if (Subsize >4000)
+				{
+					int foundSubsize = findSubsize(Subsize, Buffer);
+					Subsize= foundSubsize;
+				}
+				
 				r = GameMain_DecodePacket(cgm, Buffer, Subsize);
+			}
 
 			if( r == 0 )
 				return 0;
@@ -235,6 +245,22 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 		return r;
 	}
 	return 1;
+}
+
+int findSubsize(int current, unsigned char *data)
+{
+	int iIndex = 0;
+	int zeroFound = 0;
+	for (iIndex =0; iIndex < current; iIndex++)
+	{
+		if ((*(unsigned short*)(data+iIndex)) == 0)
+			zeroFound ++;
+
+		if (zeroFound == 2)
+		{
+			return iIndex - 2;
+		}
+	}
 }
 
 /***Debug***/

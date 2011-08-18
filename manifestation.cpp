@@ -32,7 +32,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	pym_addInt(&pms, 1);
+	pym_addInt(&pms, owner->mapChannel->mapInfo->baseRegionId); 
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
@@ -103,6 +103,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->level = 15;
 	manifestation->actor->isRunning = true;
 	manifestation->targetEntityId = 0;
+	manifestation->currentAbilityDrawer = 0;
+	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
 	// introduce player to myself
 	//manifestation_introducteEntity(mapChannel, manifestation, owner);
@@ -508,7 +510,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	//pym_addInt(&pms, 23); //power
+	pym_addInt(&pms, 23); //power
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -550,13 +552,12 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
-		pym_addInt(&pms, 1);// level
-	pym_tuple_end(&pms);
-	// ability sprint
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 165);  // id
+	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRINT
 	pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
+	pym_addInt(&pms, 1);// level
 	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
@@ -571,12 +572,13 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_list_begin(&pms);
 	// ability sprint
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 165);  // id
-	pym_addInt(&pms, 5);	// level
+	pym_addInt(&pms, 401); // id
+	pym_addInt(&pms, 5); // level
 	pym_tuple_end(&pms);
+	// ability lightning
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
-	pym_addInt(&pms, 1);// level
+	pym_addInt(&pms, 194); // id
+	pym_addInt(&pms, 1); // level
 	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
@@ -698,9 +700,77 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, unsigned char *pyS
 	cm->player->targetEntityId = 0;
 }
 
+void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	int start = cm->player->currentAbilityDrawer;
+	int end = start + 4;
+	printf("Sending Drawer\n");
+	printf("Start: %i - End: %i\n", start, end);
+	for (int i = start; i <= end; i++)
+	{
+		if (cm->player->abilityDrawer[i] != 0)
+		{
+			printf("Slot %i -> ability id %i\n", i, cm->player->abilityDrawer[i]);
+			pym_addInt(&pms, i);								// slotIdx
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->player->abilityDrawer[i]);		// abilityId
+			pym_addInt(&pms, cm->player->abilityLvDrawer[i]);	// level
+			pym_addNoneStruct(&pms);							// itemId ( unknown purpose )
+			pym_tuple_end(&pms);
+		}
+	}
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_SendAbilityDrawerFull(mapChannelClient_t *cm)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	for (int i = 0; i <= 24; i++)
+	{
+		if (cm->player->abilityDrawer[i] != 0)
+		{
+			pym_addInt(&pms, i);								// slotIdx
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->player->abilityDrawer[i]);		// abilityId
+			pym_addInt(&pms, cm->player->abilityLvDrawer[i]);	// level
+			pym_addNoneStruct(&pms);							// itemId ( unknown purpose )
+			pym_tuple_end(&pms);
+		}
+	}
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int slot = pym_unpackInt(&pums);
+	cm->player->currentAbilityDrawer = (char)slot;
+	// Recv_AbilityDrawerSlot(self, slotNum, bRequested = True): 394
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, slot);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 394, pym_getData(&pms), pym_getLen(&pms));
+}
+
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
-	printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -710,26 +780,12 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 	unsigned int abilityLevel = (unsigned int)pym_unpackLongLong(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
-	// todo: safe in player manifest struct..
+
 	// todo: check if ability is available
-	// set new ability ( TODO: there is a better function that only updates one single slot, not all )
-	pyMarshalString_t pms;
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_dict_begin(&pms);
-	// slot data
-	if( abilityId != 0 ) // if abilityID is zero, then we should remove the ability
-	{
-		pym_addInt(&pms, slot); // slotIdx
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, (int)abilityId); // abilityId
-		pym_addInt(&pms, (int)abilityLevel); // level
-		pym_addNoneStruct(&pms); // itemId ( unknown purpose )
-		pym_tuple_end(&pms);
-	}
-	pym_dict_end(&pms);
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+	cm->player->abilityDrawer[slot] = (int)abilityId;
+	cm->player->abilityLvDrawer[slot] = (int)abilityLevel;
+	
+	manifestation_SendAbilityDrawerFull(cm);
 }
 // 
 

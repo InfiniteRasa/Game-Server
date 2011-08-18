@@ -534,6 +534,19 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		communicator_systemMessage(cm, "Spawned a footlocker!");
 		return true;
 	}
+	if( memcmp(textMsg, ".setregion ", 11) == 0 )
+	{
+		int regionId;
+		sscanf(textMsg,"%*s %i", &regionId);
+		// Recv_UpdateRegions (568)
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_list_begin(&pms);
+		pym_addInt(&pms, regionId);
+		pym_list_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
+	}
 	if( memcmp(textMsg, ".name ", 6) == 0 )
 	{
 		char *pch = textMsg + 6;

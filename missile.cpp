@@ -7,6 +7,7 @@ void missile_initForMapchannel(mapChannel_t *mapChannel)
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage)
 {
+	printf("launching missile\n");
 	missile_t *missile = (missile_t*)malloc(sizeof(missile_t));
 	memset(missile, 0x00, sizeof(missile_t));
 	missile->type = type;
@@ -19,6 +20,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	void *entity = entityMgr_get(targetEntityId);
 	if( entity == NULL )
 	{
+		printf("the missile target doesnt exist\n");
 		// entity does not exist
 		free(missile);
 		return;
@@ -31,6 +33,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	}
 	else if( targetType == ENTITYTYPE_CREATURE )
 	{
+		printf("target is a creature\n");
 		creature_t *creature = (creature_t*)entity;
 		targetActor = &creature->actor;
 	}
@@ -45,16 +48,20 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	float dy = targetActor->posY - origin->posY;
 	float dz = targetActor->posZ - origin->posZ;
 	float distance = sqrt(dx*dx+dy*dy+dz*dz);
-	if( type == MISSILE_PISTOL )
+	switch( type )
 	{
+	case MISSILE_PISTOL:
 		missile->triggerTime = (int)(distance*0.5f);
-	}
-	else
-	{
+		return;
+	case MISSILE_LIGHTNING:
+		missile->triggerTime = (int)(distance*0.5f);
+		return;
+	default:
 		puts("Unknown missile type");
 		free(missile);
 		return;
-	}
+	};
+
 	// append to list
 	if( mapChannel->missileInfo.firstMissile == NULL )
 	{
@@ -70,6 +77,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 
 void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 {
+	printf("missile exploding\n");
 	pyMarshalString_t pms;
 	// do work
 	int targetType = entityMgr_getEntityType(missile->targetEntityId);
@@ -135,6 +143,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		*/
 		// TODO: Also do use Recv_MadeDead for killing on load
 		// update health (Recv_UpdateHealth 380)
+		printf("updating creature health\n");
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, creature->currentHealth); // current
@@ -154,6 +163,7 @@ void missile_check(mapChannel_t *mapChannel, int passedTime)
 	missile_t *missile = mapChannel->missileInfo.firstMissile;
 	while( missile )
 	{
+		printf("checking missiles\n");
 		missile->triggerTime -= passedTime;
 		if( missile->triggerTime <= 0 )
 		{

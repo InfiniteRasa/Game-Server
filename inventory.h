@@ -35,6 +35,7 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, unsigned 
 void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);

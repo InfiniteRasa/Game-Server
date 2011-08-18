@@ -26,3 +26,4 @@ void missile_check(mapChannel_t *mapChannel, int passedTime);
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage);
 
 #define MISSILE_PISTOL	1
+#define MISSILE_LIGHTNING 2

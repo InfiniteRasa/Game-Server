@@ -311,8 +311,27 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyS
 }
 
 /*
-	maybe move the weapon related entries to manifestation?
+	maybe move the weapon related entries to manifestation? // i agree
 */
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+{
+	// RequestArmWeapon : 507
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int slot = pym_unpackInt(&pums);
+	cm->inventory.activeWeaponDrawer = (char)slot;
+	// 574 Recv_WeaponDrawerSlot(self, slotNum, bRequested = True):
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, slot);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
+}
+ 
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;

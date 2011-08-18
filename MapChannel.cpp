@@ -193,7 +193,13 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 	case METHODID_PERSONALINVENTORY_MOVEITEM: // PersonalInventory_MoveItem
 		item_recv_PersonalInventoryMoveItem(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTEQUIPARMOR:
+	case 506: // RequestArmAbility
+		manifestation_recv_RequestArmAbility(cm, pyString, pyStringLen);
+		return;
+	case 507: // RequestArmWeapon
+		item_recv_RequestArmWeapon(cm, pyString, pyStringLen);
+		return;
+	case METHODID_REQUESTEQUIPARMOR: // RequestEquipArmor
 		item_recv_RequestEquipArmor(cm, pyString, pyStringLen);
 		return;
 	case METHODID_REQUESTEQUIPWEAPON: // RequestEquipWeapon
@@ -206,10 +212,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
 	case 522: // RequestSetAbilitySlot
-		printf("RequestSetAbilitySlot\n");
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
-	case 530: // RequestSetAbilitySlot
+	case 530: // RequestWeaponDraw
 		item_recv_RequestWeaponDraw(cm, pyString, pyStringLen);
 		return;
 	case 531: // RequestWeaponReload
@@ -226,6 +231,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		return;
 	case 410: // AutoFireKeepAlive
 		manifestation_recv_AutoFireKeepAlive(cm, pyString, pyStringLen);
+		return;
+	case 573: // WeaponDrawerInventory_MoveItem
+		printf("TODO: WeaponDrawerInventory MoveItem\n");
 		return;
 	case METHODID_REQUESTTOOLTIPFORITEMTEMPLATEID: // RequestTooltipForItemTemplateId
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
@@ -600,7 +608,7 @@ int mapChannel_worker(mapChannelList_t *channelList)
 			cellMgr_doWork(mapChannel);
 			// check timers
 			unsigned int currentTime = GetTickCount();
-			if( (currentTime-mapChannel->timer_clientEffectUpdate) >= 500 )
+			if( (currentTime - mapChannel->timer_clientEffectUpdate) >= 500 )
 			{
 				gameEffect_checkForPlayers(mapChannel->playerList, mapChannel->playerCount, 500);
 				mapChannel->timer_clientEffectUpdate += 500;
@@ -618,22 +626,22 @@ int mapChannel_worker(mapChannelList_t *channelList)
 					}
 				}
 			}
-			if( (currentTime-mapChannel->timer_missileUpdate) >= 100 )
+			if( (currentTime - mapChannel->timer_missileUpdate) >= 100 )
 			{
 				missile_check(mapChannel, 100);
 				mapChannel->timer_missileUpdate += 100;
 			}
-			if( (currentTime-mapChannel->timer_dynObjUpdate) >= 100 )
+			if( (currentTime - mapChannel->timer_dynObjUpdate) >= 100 )
 			{
 				dynamicObject_check(mapChannel, 100);
 				mapChannel->timer_dynObjUpdate += 100;
 			}
-			if( (currentTime-mapChannel->timer_controller) >= 250 )
+			if( (currentTime - mapChannel->timer_controller) >= 250 )
 			{
 				controller_mapChannelThink(mapChannel);
 				mapChannel->timer_controller += 250;
 			}
-			if( (currentTime-mapChannel->timer_generalTimer) >= 100 )
+			if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
 			{
 				int timePassed = 100;
 				// parse through all timers

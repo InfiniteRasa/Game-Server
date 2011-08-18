@@ -10,23 +10,44 @@
 
 void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
+	/*
+	ServerArgs = (self.actionId, self.actionArgId, target, self.itemId)
+    if self.useClientYaw: serverArgs += (actor.body.GetYaw())
+    gameclient.SendCallActorMethod('RequestPerformAbility', serverArgs)
+	*/
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int abilityActionId = pym_unpackInt(&pums);
-	int unknown = pym_unpackInt(&pums); //(level / actionArg?)
+	int actionId = pym_unpackInt(&pums);
+	int actionArgId = pym_unpackInt(&pums); //(level / actionArg?)
 	unsigned long long targetEntityId = pym_unpackLongLong(&pums);
-	
+	// unpack item id
+	// unpack yaw
 	if( pums.unpackErrorEncountered )
 		return;
 
+	switch( actionId )
+	{
+	case 194: // Lightning
+		printf("Lightning: Target %u\n", (unsigned int)targetEntityId);
+		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 20);
+		return;
+	case 401: // Sprint
+		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId);
+		return;
+	default:
+		printf("Unknown Ability: ID %i ArgID %i Target %u64\n", actionId, actionArgId, targetEntityId);
+		return;
+	};
+	
+	//missile_launch(cm->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 	// Recv_GameEffectAttached(typeId, level, sourceId, *args) -> None
 	// Notification that a game effect was attached to this entity.
 	// 247
 
 
-	gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, 1);
+	
 
 	//pyMarshalString_t pms;
 	//pym_init(&pms);
