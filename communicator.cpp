@@ -1,4 +1,5 @@
 #include"global.h"
+extern mapChannelList_t *global_channelList; //20110827 @dennton
 
 typedef struct _chatChannel_playerLink_t
 {
@@ -588,6 +589,146 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		{
 			communicator_systemMessage(cm, "Wrong syntax");
 		}
+		return true;
+	}
+
+	// 20110827 @dennton
+	if(  memcmp(textMsg,".tport ",7) == 0 )
+	{
+		
+		char cmd[7];
+	    //char *cmdpos = textMsg + 7;
+
+		typedef struct tloc
+		{
+			int x;
+			int y;
+			int z;
+			float rotation; //not necessary, could add
+			int mapContextId;
+		};
+
+		tloc telepos = {0};
+	    communicator_systemMessage(cm, "Teleporting...");
+		sscanf(textMsg,"%s %d %d %d %d",cmd,&telepos.x,&telepos.y,&telepos.z,&telepos.mapContextId);			
+		
+		// #################### notify telport ##################
+
+		if(cm->mapChannel->mapInfo->contextId != telepos.mapContextId)
+		{
+            
+			//remove entity from old map
+			//cm->removeFromMap = true;
+	        //remove client from all channels
+			communicator_playerExitMap(cm);
+			//unregister player
+			//communicator_unregisterPlayer(cm);
+			//remove visible entity
+			EnterCriticalSection(&cm->cgm->cs_general);
+			cellMgr_removeFromWorld(cm);
+			// remove from list
+			for(int i=0; i<cm->mapChannel->playerCount; i++)
+			{
+				if( cm == cm->mapChannel->playerList[i] )
+				{
+					if( i == cm->mapChannel->playerCount-1 )
+					{
+						cm->mapChannel->playerCount--;
+					}
+					else
+					{
+						cm->mapChannel->playerList[i] = cm->mapChannel->playerList[cm->mapChannel->playerCount-1];
+						cm->mapChannel->playerCount--;
+					}
+					break;
+				}
+			}
+			LeaveCriticalSection(&cm->cgm->cs_general);
+			//entityMgr_unregisterEntity(cm->player->actor->entityId);
+			
+			//cm->cgm->mapLoadSlotId = cm->tempCharacterData->slotIndex;
+			//############## map loading stuff ##############
+			// send PreWonkavate (clientMethod.134)
+			pyMarshalString_t pms;
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, 0); // wonkType - actually not used by the game
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 134, pym_getData(&pms), pym_getLen(&pms));
+			// send Wonkavate (inputstateRouter.242)
+			cm->cgm->mapLoadContextId = telepos.mapContextId;
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, telepos.mapContextId);	// gameContextId (alias mapId)
+			pym_addInt(&pms, 0);	// instanceId ( not important for now )
+			// find map version
+			int mapVersion = 0; // default = 0;
+			for(int i=0; i<mapInfoCount; i++)
+			{
+				if( mapInfoArray[i].contextId == telepos.mapContextId )
+				{
+					mapVersion = mapInfoArray[i].version;
+					break;
+				}
+			}
+			pym_addInt(&pms, mapVersion);	// templateVersion ( from the map file? )
+			pym_tuple_begin(&pms);  // startPosition
+			pym_addFloat(&pms, telepos.x); // x (todo: send as float)
+			pym_addFloat(&pms, telepos.y); // y (todo: send as float)
+			pym_addFloat(&pms, telepos.z); // z (todo: send as float)
+			pym_tuple_end(&pms);
+			pym_addInt(&pms, 0);	// startRotation (todo, read from db and send as float)
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 6, METHODID_WONKAVATE, pym_getData(&pms), pym_getLen(&pms));
+			//wonkavate = buggy?
+			//cm->cgm->State = GAMEMAIN_STATE_RELIEVED;
+			//################## player assigning ###############
+			//communicator_registerPlayer(cm);
+			communicator_loginOk(cm->mapChannel, cm);
+			communicator_playerEnterMap(cm);
+			//add entity to new map
+			cm->player->actor->posX = telepos.x; 
+			cm->player->actor->posY = telepos.y;
+			cm->player->actor->posZ = telepos.z;
+			//cm->mapChannel->mapInfo->contextId = telepos.mapContextId;
+		  
+			
+			cm->player->controllerUser->inventory = cm->inventory;
+			cm->player->controllerUser->mission = cm->mission;
+			cm->tempCharacterData = cm->player->controllerUser->tempCharacterData;
+
+				
+			//---search new mapchannel
+			for(int chan=0; chan < global_channelList->mapChannelCount; chan++)
+			{
+               mapChannel_t *mapChannel = global_channelList->mapChannelArray+chan;
+			   if(mapChannel->mapInfo->contextId == telepos.mapContextId)
+			   {
+				   cm->mapChannel = mapChannel;
+				   break;
+			   }
+			}
+
+			mapChannel_t *mapChannel = cm->mapChannel;
+			EnterCriticalSection(&cm->mapChannel->criticalSection);
+			mapChannel->playerList[mapChannel->playerCount] = cm;
+			mapChannel->playerCount++;
+			hashTable_set(&mapChannel->ht_socketToClient, (unsigned int)cm->cgm->socket, cm);
+			LeaveCriticalSection(&mapChannel->criticalSection);
+			
+			cellMgr_addToWorld(cm); //cellintroducing to player /from players
+			// setCurrentContextId (clientMethod.362)
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->mapChannel->mapInfo->contextId);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
+			
+            
+		}
+
+		communicator_systemMessage(cm, "arrived");
+
 		return true;
 	}
 

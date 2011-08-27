@@ -79,6 +79,13 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData)
 {
+	// 20110827 @dennton
+	if( owner ->player != NULL)
+	{
+		manifestation_assignPlayer(mapChannel, owner, owner->player);
+        return;	
+	}
+
 	manifestation_t *manifestation = (manifestation_t*)malloc(sizeof(manifestation_t));
 	manifestation->actor = (actor_t*)malloc(sizeof(actor_t));
 	for(int i=0; i<SWAPSET_SIZE; i++)

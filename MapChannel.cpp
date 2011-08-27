@@ -7,6 +7,7 @@
 */
 
 HashTable_uint32_t ht_mapChannelsByContextId;
+mapChannelList_t *global_channelList; //20110827 @dennton
 
 
 void _cb_mapChannel_addNewPlayer(void *param, diJob_characterData_t *jobData)
@@ -109,6 +110,16 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param,
 	hashTable_set(&mapChannel->ht_timerList, (unsigned int)timer, timer);
 }
 
+//20110827 @dennton
+bool CheckTempCharacter(di_characterData_t *tcd)
+{
+   bool valid = true;   
+   if(tcd == NULL) valid = false;
+   if(tcd->missionStateData == NULL) valid = false;
+   return valid;
+}
+
+
 void mapChannel_recv_mapLoaded(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
 	manifestation_createPlayerCharacter(cm->mapChannel, cm, cm->tempCharacterData);
@@ -116,8 +127,8 @@ void mapChannel_recv_mapLoaded(mapChannelClient_t *cm, unsigned char *pyString, 
 	communicator_playerEnterMap(cm);
 	inventory_initForClient(cm);
 	mission_initForClient(cm);
-	// free temporary character data
-	if( cm->tempCharacterData )
+	// free temporary character data	
+	if( CheckTempCharacter(cm->tempCharacterData) != 0 )// 20110827 @dennton
 	{
 		if( cm->tempCharacterData->missionStateData )
 			free(cm->tempCharacterData->missionStateData);
@@ -541,6 +552,7 @@ void mapChannel_readData(mapChannelClient_t *mc)
 
 int mapChannel_worker(mapChannelList_t *channelList)
 {
+	global_channelList = channelList; //20110827 @dennton
 	FD_SET fd;
 	timeval sTimeout;
 	sTimeout.tv_sec = 0;
