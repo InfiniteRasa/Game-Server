@@ -31,6 +31,7 @@ typedef struct _creature_t
 	int currentHealth;
 	int attackspeed;
 	int lastattack;
+	int lastresttime;
 	float velocity;
 	float rotspeed;
 	float range; //attackrange
