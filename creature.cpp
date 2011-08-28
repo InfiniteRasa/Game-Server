@@ -99,6 +99,7 @@ void creature_setLocation(creature_t *creature, float x, float y, float z, float
 	creature->pathnodes = (baseBehavior_baseNode*) malloc(sizeof(baseBehavior_baseNode));
 	memset(creature->pathnodes, 0x00, sizeof(baseBehavior_baseNode));
 	creature->lastattack = GetTickCount();
+	creature->lastresttime = GetTickCount();
 }
 
 /* update function*/
@@ -260,7 +261,30 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 		creature_updateAppearance(client->cgm, creature->actor.entityId, 6042);
 	}
 
+	// Recv_WorldLocationDescriptor (243)
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_tuple_begin(&pms); // position
+	pym_addInt(&pms, creature->actor.posX); // x 
+	pym_addInt(&pms, creature->actor.posY); // y 
+	pym_addInt(&pms, creature->actor.posZ); // z 
+	pym_tuple_end(&pms); 
+	pym_tuple_begin(&pms); // rotation quaterninion
+	pym_addFloat(&pms, 0.0f);
+	pym_addFloat(&pms, 0.0f);
+	pym_addFloat(&pms, 0.0f);
+	pym_addFloat(&pms, 1.0f);
+	pym_tuple_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->mapChannel, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
 	
+	netCompressedMovement_t netMovement = {0};
+	netMovement.entityId = creature->actor.entityId;
+	netMovement.posX24b = creature->actor.posX * 256.0f;
+	netMovement.posY24b = creature->actor.posY * 256.0f;
+	netMovement.posZ24b = creature->actor.posZ * 256.0f;
+	netMovement.flag = 0x08;
+	netMgr_cellDomain_sendEntityMovement(client->mapChannel, &creature->actor, &netMovement);
 	//rangeattack (every 2 sec)
 	/*srand(GetTickCount());
     int rnd1 = rand() % 200;

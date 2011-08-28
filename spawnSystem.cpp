@@ -75,17 +75,17 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 	// check simple spawn conditions
 	if( spawnPool->spawnVariantCount == 0 ) // nothing to spawn?
 		return true;
-	if( spawnPool->dropshipQueue >= spawnPool->maxQueueLength ) // creaturespawner queue full?
+	if( spawnPool->dropshipQueue > spawnPool->maxQueueLength ) // creaturespawner queue full? >=
 		return true;
 	// check criteria based spawnconditions
 	// (todo: criteria switch)
 	int totalCreaturesActive = spawnPool->aliveCreatures + spawnPool->queuedCreatures;
-	if( totalCreaturesActive >= 10 ) // no more than 10 creatures at once
+	if( totalCreaturesActive > spawnPool->maxCreatures ) // max. creatures per spawnpoint >=
 		return true;
 	// get time
 	unsigned int time = GetTickCount(); // todo: rather read the time from a global object time variable than via api everytime
-	// get random spawnpoint
-	int rSpawnLoc = rand()%spawnPool->locationCount;
+	// get random spawnpoint(only one spawnlocation per spawnpoint)
+	int rSpawnLoc = 0;
 	spawnLocation_t *location = spawnPool->locationList+rSpawnLoc;
 	// is spawnpoint cooled down?
 	if( (time-location->lastSpawnTime) < spawnPool->spawnLocationLockTime)
@@ -115,7 +115,8 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 		srand(GetTickCount());
 		for(int i=0; i< spawnCount;i++)
 		{
-			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool,1);
+			printf("(w /0 anim)set class:%d -> faction: %d \n",spawnTypeList[i]->entityClassId,spawnPool->faction);
+			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool,spawnPool->faction);
 			if( creature == NULL )
 				continue;
 			
@@ -132,6 +133,7 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 	if(spawnPool->spawnAnimationType == 2)
 	{
          // create dropship
+		printf("(anim 2) faction: %d \n",spawnPool->faction);
 	    dynamicObject_createBaneDropship(mapChannel, location->x, location->y, location->z, spawnCount, spawnTypeList, spawnPool);
 	}
 	return true;
@@ -187,41 +189,46 @@ void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnTypeW2_t *jobData)
 {
 	//__debugbreak();
 	mapChannel_t *mapChannel = (mapChannel_t*)param;
-	//---allocate spawnpools
-	spawnPool_t *spawnPool = (spawnPool_t*)malloc(sizeof(spawnPool_t) * jobData->scount);	
-	memset(spawnPool, 0x00, sizeof(spawnPool_t) * jobData->scount);
-
-	
+		
 	for(int i=0; i<jobData->scount; i++)
 	{
 		di_spawnTypeW2_t *npcData = jobData->spawnType+i;
 		if(npcData->locationlist == NULL || npcData->spawnlocCount <=0) continue;
-		spawnPool_t *tPool = spawnPool+i;
-		tPool->maxQueueLength = npcData->activeSpawnCount; //simultaneously used spawns
-		tPool->spawnLocationLockTime = npcData->locktime;
-		tPool->spawnAnimationType = npcData->anim_type;
-		tPool->faction = npcData->faction;
-		spawnPool_setCriteriaCellCreatureCount(tPool,npcData->maxcreatures);
-		char tname[70];
-		sprintf(tname,"TEST%s",npcData->creatures);
-		spawnPool_setCreatureVariant(tPool, 0, tname);
-		spawnPool_initSpawnLocations(tPool,npcData->spawnlocCount);
+		
+		//---allocate spawnpools per location
 		int tspawncount = npcData->spawnlocCount;
+	    spawnPool_t *spawnPool = (spawnPool_t*)malloc(sizeof(spawnPool_t) * tspawncount);	
+	    memset(spawnPool, 0x00, sizeof(spawnPool_t) * tspawncount);
+		
 		//---allocate spawn locations
 		di_spawnDataW2_t *locationlist = (di_spawnDataW2_t*)malloc(sizeof(di_spawnDataW2_t) * tspawncount);	
 		locationlist = npcData->locationlist;
-		//memcpy(locationlist,npcData->locationlist,sizeof(di_spawnDataW2_t) * tspawncount);
-		for( int sc = 0; sc < tspawncount; sc ++)
+		
+		for(int sp = 0; sp < tspawncount; sp++)
 		{
-            float tx = (locationlist+sc)->posX;
-			float ty = (locationlist+sc)->posY;
-			float tz = (locationlist+sc)->posZ;
-			spawnPool_setSpawnLocation(tPool,sc,tx,ty,tz, 0xFFFF);
-
-		}		
-
-        spawnPool_activate(mapChannel,tPool);
-	}
+			spawnPool_t *tPool = spawnPool+sp;
+	
+			tPool->maxQueueLength = npcData->activeSpawnCount; //simultaneously used spawns
+			tPool->spawnLocationLockTime = npcData->locktime;
+			tPool->spawnAnimationType = npcData->anim_type;
+			tPool->faction = npcData->faction;
+			spawnPool_setCriteriaCellCreatureCount(tPool,npcData->maxcreatures);
+			char tname[70];
+			sprintf(tname,"TEST%s",npcData->creatures);
+			spawnPool_setCreatureVariant(tPool, 0, tname);
+			//use only one spawnlocation per spawnpoint
+			spawnPool_initSpawnLocations(tPool,1); 
+			
+			//memcpy(locationlist,npcData->locationlist,sizeof(di_spawnDataW2_t) * tspawncount);
+	        float tx = (locationlist+sp)->posX;
+			float ty = (locationlist+sp)->posY;
+		    float tz = (locationlist+sp)->posZ;
+			//use only one spawnlocation per spawnpoint	
+		    spawnPool_setSpawnLocation(tPool,0,tx,ty,tz, 0xFFFF); 			
+	
+	        spawnPool_activate(mapChannel,tPool);
+		}//---for:spawnpoints
+	}//---for: spawntypes
 
 	mapChannel->loadState = 1; // loading is done
 }
