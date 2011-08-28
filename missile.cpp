@@ -33,6 +33,13 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		{ creature_t *creature = (creature_t*)entity;
 		targetActor = &creature->actor; }
 		break;
+		case ENTITYTYPE_CLIENT:
+         printf("target is a player\n");
+            { 
+				mapChannelClient_t *player = (mapChannelClient_t*)entity;            
+				targetActor = player->player->actor; 
+			}
+            break;
 	default:
 		printf("Can't shoot that object\n");
 		return;
