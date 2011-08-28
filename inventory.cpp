@@ -376,6 +376,17 @@ void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *py
 		return;
 	// TODO!
 	printf("TODO: "); puts(__FUNCTION__);
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, 
+											 client->player->actor, 
+											 client->player->actor->entityId,
+											 METHODID_REQUESTWEAPONRELOAD, 
+											 pym_getData(&pms), 
+											 pym_getLen(&pms));
 }
 
 void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)

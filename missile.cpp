@@ -76,6 +76,8 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		creature_t *creature = (creature_t*)entity;
 		if( creature->actor.state == ACTOR_STATE_DEAD )
 			return;
+	
+		gameEffect_attachW2(mapChannel, &creature->actor, 102, 1,500);										
 		creature->currentHealth -= missile->damageA;
 		if( creature->currentHealth <= 0 )
 		{
@@ -138,6 +140,54 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_addInt(&pms, 0); // whoId
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, 380, pym_getData(&pms), pym_getLen(&pms));
+	}
+	else if( targetType == ENTITYTYPE_CLIENT )
+	{
+		mapChannelClient_t *player = (mapChannelClient_t*)entity;
+		if( player->player->actor->state == ACTOR_STATE_DEAD )
+			return;
+        //direct decrease health
+		
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+	
+		gameEffect_attachW2(mapChannel, player->player->actor, 102, 1,500);										
+		player->player->actor->stats.healthCurrent -= missile->damageA;
+		 //send death notification when health <= zero
+		if( player->player->actor->stats.healthCurrent <= 0 )
+		{
+			player->player->actor->state = ACTOR_STATE_DEAD;
+			// dead!
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_list_begin(&pms);
+			pym_addInt(&pms, 5); // dead
+			pym_list_end(&pms);
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
+				                                    player->player->actor, 
+													player->player->actor->entityId, 
+													206, 
+													pym_getData(&pms), pym_getLen(&pms));
+			// fix health
+			player->player->actor->stats.healthCurrent = 0;
+			
+		}
+
+		// if still alive update health,play anims
+		// update health (Recv_UpdateHealth 380) or 285
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, player->player->actor->stats.healthCurrent); // current
+		pym_addInt(&pms, player->player->actor->stats.healthMax); // currentMax
+		pym_addInt(&pms, 0); // refreshAmount
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
+												 player->player->actor, 
+			                                     player->player->actor->entityId, 380, 
+												 pym_getData(&pms), pym_getLen(&pms));
+
 	}
 	else
 		puts("No damage handling for that type yet");

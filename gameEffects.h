@@ -13,5 +13,6 @@ typedef struct _gameEffect_t
 
 void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effectId, int effectLevel);
 void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel);
+void gameEffect_attachW2(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel,int duration);
 void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *gameEffect);
 void gameEffect_checkForPlayers(mapChannelClient_t **clients, int count, int passedTime);

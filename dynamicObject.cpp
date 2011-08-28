@@ -5,6 +5,7 @@
 #define OBJECTTYPE_BANE_DROPSHIP	3
 #define OBJECTTYPE_CONTROL_POINT	4
 #define OBJECTTYPE_LOGOS			5
+#define OBJECTTYPE_AFS_DROPSHIP		6
 
 #define ACTION_USEOBJECT	80
 
@@ -273,10 +274,15 @@ bool dynamicObject_process_BaneDropship(mapChannel_t *mapChannel, dynObject_t *d
 		// spawn creatures ( for some odd reason there is a delay until they appear on the client?)
 		for(int i=0; i<baneDropshipData->spawnCount;i++)
 		{
-			creature_t *creature = creature_createCreature(mapChannel, baneDropshipData->spawnTypeList[i], baneDropshipData->spawnPool);
+			creature_t *creature = creature_createCreature(mapChannel, 
+				                                           baneDropshipData->spawnTypeList[i], 
+														   baneDropshipData->spawnPool,
+														   baneDropshipData->spawnPool->faction);
 			if( creature == NULL )
 				continue;
-			creature_setLocation(creature, dynObject->x, dynObject->y, dynObject->z, 0.0f, 0.0f);
+			srand(GetTickCount());
+			int srnd = rand() % 5;
+			creature_setLocation(creature, dynObject->x+(float)srnd, dynObject->y, dynObject->z+(float)srnd, 0.0f, 0.0f);
 			cellMgr_addToWorld(mapChannel, creature);
 		}
 		if( baneDropshipData->spawnPool )
@@ -373,13 +379,13 @@ void dynamicObject_check(mapChannel_t *mapChannel, int timePassed)
 		free(dynObjectWorkEntry);
 	}
 }
-
+//---init all dynamic objects in mapchannel
 void dynamicObject_init(mapChannel_t *mapChannel)
 {
 	hashTable_init(&mapChannel->ht_updateObjectList, 32);
 	dynObject_t *footLocker = dynamicObject_createFootlocker(-231.800781f, 101.050781f, -69.894531f, 0.0f, 0.0f, 0.0f);
 	cellMgr_addToWorld(mapChannel, footLocker);
-	dynamicObject_createHumanDropship(mapChannel, -231.800781f, 105.0f, -69.894531f);
+	//dynamicObject_createHumanDropship(mapChannel, -231.800781f, 105.0f, -69.894531f);
 }
 
 void dynamicObject_developer_createFootlocker(mapChannel_t *mapChannel, float x, float y, float z)

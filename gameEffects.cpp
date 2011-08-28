@@ -62,6 +62,14 @@ void _gameEffect_removeFromList(actor_t *actor, gameEffect_t *gameEffect)
 /*
 	Attaches a GameEffect (buffs, etc.) to a actor entity.
 */
+void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel)
+{
+	
+	gameEffect_attachW2(mapChannel, actor, effectId, effectLevel, 5);
+}
+/*
+	Attaches a GameEffect (buffs, etc.) to a actor entity.
+*/
 void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effectId, int effectLevel)
 {
 	int entityType = entityMgr_getEntityType(entityId);
@@ -74,7 +82,57 @@ void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effe
 	gameEffect_attach(mapChannel, &creature->actor, effectId, effectLevel);
 }
 
-void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel)
+void gameEffect_attachW2(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel,int duration)
+{
+
+  // check if a effect with the same ID already exists
+	gameEffect_t *link = actor->activeEffects;
+	while( link )
+	{
+		if( link->effectId == effectId )
+			return; // already exists
+		// next
+		link = link->next;
+	}
+	// create effect struct
+	gameEffect_t *gameEffect = (gameEffect_t*)malloc(sizeof(gameEffect_t));
+	// setup struct
+	gameEffect->aliveTime = duration; // 5 seconds (test)
+	gameEffect->time = 0; // reset timer
+	gameEffect->effectId = effectId;
+	gameEffect->effectLevel = effectLevel;
+	// add to list
+	_gameEffect_addToList(actor, gameEffect);
+	// inform clients
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, (int)gameEffect->effectId);	//typeId
+	pym_addInt(&pms, (int)gameEffect->effectId);	//effectId
+	pym_addInt(&pms, (int)gameEffect->effectLevel);	//level
+	pym_addInt(&pms, (int)0);//sourceId
+	pym_addBool(&pms, (int)true);//announce
+	pym_dict_begin(&pms);//tooltipDict
+	// keys:
+	// 'duration'
+	// 'damageType'
+	// 'attrId'
+	// 'isActive'
+	// 'isBuff'
+	// 'isDebuff'
+	// 'isNegativeEffect'
+	pym_dict_end(&pms);
+	//args ( variable)
+	pym_dict_begin(&pms);
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
+	// do ability specific work
+	if( effectId == EFFECTID_SPRINT )
+		_gameEffect_updateMovementMod(mapChannel, actor);
+	// more todo..
+}
+/*void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel)
 {
 	// check if a effect with the same ID already exists
 	gameEffect_t *link = actor->activeEffects;
@@ -98,7 +156,6 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-
 	pym_addInt(&pms, (int)gameEffect->effectId);	//typeId
 	pym_addInt(&pms, (int)gameEffect->effectId);	//effectId
 	pym_addInt(&pms, (int)gameEffect->effectLevel);	//level
@@ -115,17 +172,15 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	// 'isNegativeEffect'
 	pym_dict_end(&pms);
 	//args ( variable)
-
 	pym_dict_begin(&pms);
 	pym_dict_end(&pms);
-
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work
 	if( effectId == EFFECTID_SPRINT )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
-}
+}*/
 
 void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *gameEffect)
 {

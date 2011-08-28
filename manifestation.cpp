@@ -29,14 +29,14 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
 	// Recv_UpdateRegions (568)
-	pym_init(&pms);
+	/*pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 	pym_addInt(&pms, owner->mapChannel->mapInfo->baseRegionId); //map with region support
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));*/
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB)
@@ -110,6 +110,9 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->level = 15;
 	manifestation->actor->isRunning = true;
 	manifestation->targetEntityId = 0;
+	manifestation->actor->stats.healthBonus = 110;
+	manifestation->actor->stats.healthMax = 100;
+	manifestation->actor->stats.healthCurrent = 100;
 	manifestation->currentAbilityDrawer = 0;
 	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
@@ -190,9 +193,9 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// health
 		pym_addInt(&pms, 4);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 100); // current (current Max, base)
-		pym_addInt(&pms, 100); // currentMax (modfierTarget?)
-		pym_addInt(&pms, 2); // normalMax (current Value)
+		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
+	    pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
+		pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
 		pym_addInt(&pms, 8); // refreshIncrement
 		pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 		pym_tuple_end(&pms);
@@ -378,9 +381,9 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// health
 	pym_addInt(&pms, 4);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 100); // current (current Max, base)
-	pym_addInt(&pms, 100); // currentMax (modfierTarget?)
-	pym_addInt(&pms, 2); // normalMax (current Value)
+	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
+	pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
+	pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
 	pym_addInt(&pms, 8); // refreshIncrement
 	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
@@ -517,7 +520,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	pym_addInt(&pms, 23); //power
+	//pym_addInt(&pms, 23); //power
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -778,6 +781,7 @@ void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char 
 
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
+	printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -787,7 +791,6 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 	unsigned int abilityLevel = (unsigned int)pym_unpackLongLong(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
-
 	// todo: check if ability is available
 	cm->player->abilityDrawer[slot] = (int)abilityId;
 	cm->player->abilityLvDrawer[slot] = (int)abilityLevel;

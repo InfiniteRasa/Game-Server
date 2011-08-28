@@ -348,6 +348,108 @@ void communicator_systemMessage(mapChannelClient_t *client, char *message)
 bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 {
 	pyMarshalString_t pms;
+	
+	if( memcmp(textMsg,".spawner ",9) == 0 )
+	{
+		char cmd[9];
+		int spawntype; //---which type of spawn to place( look db for id)
+		sscanf(textMsg,"%s %d",cmd,&spawntype);	
+		
+		//---todo: make a db check
+		if(spawntype <= 0 || spawntype >= 200 )
+		{
+			sprintf(textMsg, "unvalid spawntype id");
+			return true;
+		}
+
+		di_spawnDataW2_t spawndata = {0};
+		spawndata.currentContextId = cm->mapChannel->mapInfo->contextId;
+		spawndata.posX = cm->player->actor->posX;
+		spawndata.posY = cm->player->actor->posY;
+		spawndata.posZ = cm->player->actor->posZ;
+		spawndata.spawntype = spawntype;	
+		dataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
+
+		sprintf(textMsg, "added spawnlocation: %f %f %f of spawntype-id: %d", 
+						cm->player->actor->posX, 
+			            cm->player->actor->posY, 
+						cm->player->actor->posZ,spawntype);
+      return true;
+	}
+	if( memcmp(textMsg,".animtest ",10) == 0 )
+	{
+		    //__debugbreak();
+		    creature_t *npc = (creature_t*)entityMgr_get(cm->player->targetEntityId);
+			if( !npc )
+				return true; 
+			// various actions/animations
+			int action;
+			char cmd[40];
+			sscanf(textMsg,"%s %d",cmd,&action);
+			if(action <= 0 || action == NULL )
+			{
+				sprintf(textMsg, "invalid action");
+				return true;
+			}
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_list_begin(&pms);
+			pym_addInt(&pms, action); // dead
+			pym_list_end(&pms);
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, &npc->actor, npc->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
+			
+		
+		    return true;
+	}
+	if( strcmp(textMsg, ".savedb") == 0 )
+	{ 
+		if( cm->player->targetEntityId == 0 )
+		{
+			communicator_systemMessage(cm, "No entity selected");
+			return true;
+		}
+		
+		    creature_t *npc = (creature_t*)entityMgr_get(cm->player->targetEntityId);
+			if( !npc )
+				return true;
+						
+
+			di_entityDataW_t entityData = {0};
+			entityData.npcID = npc->actor.entityId;
+			entityData.posX = npc->actor.posX;
+			entityData.posY = npc->actor.posY;
+			entityData.posZ = cm->player->actor->posZ; //npc actor havent z value
+			entityData.rotation = npc->actor.rotation;
+			entityData.entityClassID = npc->type->entityClassId;
+			entityData.currentContextId = cm->mapChannel->mapInfo->contextId;
+			strcpy(entityData.unicodeName, npc->actor.name);
+			
+			
+			for(int i=0; i<SWAPSET_SIZE; i++)
+			{
+				entityData.appearanceData[i].classId = npc->actor.appearanceData[i].classId;
+				entityData.appearanceData[i].hue = npc->actor.appearanceData[i].hue;
+			}
+			
+			dataInterface_Entity_updateEntityW(&entityData,NULL,NULL);
+
+			sprintf(textMsg, "Player Location(x y z): %f %f %f \n Entity Location(x y z): %f %f %f \n Entityid: %i Classid: %i Nameid: %i \n", 
+													cm->player->actor->posX, 
+			                                        cm->player->actor->posY, 
+													cm->player->actor->posZ,
+													npc->actor.posX,
+													npc->actor.posY,
+													cm->player->actor->posZ,
+													npc->actor.entityId,
+													npc->type->entityClassId,
+													npc->type->nameId);
+           
+		    communicator_systemMessage(cm, textMsg);
+			
+
+		return true;
+	}
 	if( strcmp(textMsg, "_test1") == 0 )
 	{
 		netMgr_entityMovementTest(cm->cgm, 0, 0);
@@ -393,10 +495,15 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
 		char *pch = textMsg + 10;
 
-		char buffer [50];		
-		sprintf (buffer, "TEST%s", pch);
+		int creatureClass;
+		char cmd[30];
+		sscanf(textMsg,"%s %d",cmd,&creatureClass);			
+		creatureType_t ctype = {0};
+		ctype.maxHealth = 150;
+		ctype.nameId = 0;
+		ctype.entityClassId = creatureClass;
 
-		creature_t *creature = creature_createCreature(cm->mapChannel, buffer, NULL);
+		creature_t *creature = creature_createCreature(cm->mapChannel, &ctype, NULL,0);
 		creature_setLocation(creature, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ, 0.0f, 0.0f);
 		cellMgr_addToWorld(cm->mapChannel, creature);
 		return true;
@@ -454,6 +561,34 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 366, pym_getData(&pms), pym_getLen(&pms));
 		communicator_systemMessage(cm, "GM Mode enabled!");
+		return true;
+	}
+	if( strcmp(textMsg, ".wp") == 0 )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_dict_begin(&pms);
+		// slot 0
+		for(int i=0; i<5; i++)
+		{
+		int abilId = (rand()%200) + 400;
+		printf("%d --> %d\n", i, abilId);
+		pym_addInt(&pms, i); // slotIdx
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, abilId); // abilityId
+		pym_addInt(&pms, 1); // level
+		pym_addInt(&pms, 0); // itemId
+		pym_tuple_end(&pms);
+		}
+		/*
+		00000040     7D - STORE_FAST          'abilityId'
+		00000043     7D - STORE_FAST          'level'
+		00000046     7D - STORE_FAST          'itemId'
+		*/
+
+		pym_dict_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
 		return true;
 	}
 	if( strcmp(textMsg, ".save") == 0 )

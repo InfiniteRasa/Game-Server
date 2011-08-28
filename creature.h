@@ -16,12 +16,32 @@ void				creatureType_setMaxHealth(creatureType_t *creatureType, int maxHealth);
 
 /* creature */
 
+typedef struct baseBehavior_baseNode
+{
+	float x;
+	float y;
+	float z;
+}cbaseNode;
+
 typedef struct _creature_t
 {
 	creatureType_t *type;		// the creature 'layout'
 	actor_t			actor;		// the base actor object
 	// stats
 	int currentHealth;
+	int attackspeed;
+	int lastattack;
+	float velocity;
+	float rotspeed;
+	float range; //attackrange
+	int attack_habbit; //meelee or range fighter 
+	int agression; // probability of attacking 
+	int faction; // hostile /friendly
+	int wanderstate; 
+	float wx,wy,wz; 
+    float wander_dist; // -- wander boundaries 
+    baseBehavior_baseNode homePos;  //--- spawn location (used for wander)
+    baseBehavior_baseNode *pathnodes; //--entity patrol nodes
 	// origin
 	spawnPool_t *spawnPool; // the spawnpool that initiated the creation of this creature
 	// behavior controller
@@ -31,7 +51,7 @@ typedef struct _creature_t
 //creature_t*			creature_createCreature(mapChannel_t *mapChannel, int classId, char *name);
 //creature_t*			creature_createCreature(mapChannel_t *mapChannel, unsigned long long entityId, int classId, char *name);
 creature_t*			creature_createCreature(mapChannel_t *mapChannel, char *typeName, spawnPool_t *spawnPool);
-creature_t*			creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool);
+creature_t*			creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool,int faction);
 creatureType_t*		creatureType_findType(char *typeName);
 void				creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY);
 

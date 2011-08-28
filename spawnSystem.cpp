@@ -80,7 +80,7 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 	// check criteria based spawnconditions
 	// (todo: criteria switch)
 	int totalCreaturesActive = spawnPool->aliveCreatures + spawnPool->queuedCreatures;
-	if( totalCreaturesActive >= 5 ) // no more than 5 creatures at once
+	if( totalCreaturesActive >= 10 ) // no more than 10 creatures at once
 		return true;
 	// get time
 	unsigned int time = GetTickCount(); // todo: rather read the time from a global object time variable than via api everytime
@@ -93,7 +93,7 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 	location->lastSpawnTime = time;
 	// create list of units to spawn
 	creatureType_t *spawnTypeList[24];
-	int spawnCount = 0 + rand()%5;
+	int spawnCount = 0 + rand()%spawnPool->maxCreatures;
 	// TODO: location->creatureTypeFilter (bitmask of spawnPool variants)
 	for(int i=0; i<spawnCount; i++)
 	{
@@ -102,8 +102,38 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, int timePassed)
 	// nothing to spawn, then also no dropship
 	if( spawnCount == 0 )
 		return true;
-	// create dropship
-	dynamicObject_createBaneDropship(mapChannel, location->x, location->y, location->z, spawnCount, spawnTypeList, spawnPool);
+	//---type==0; spawn without animation
+	if(spawnPool->spawnAnimationType == 0)
+	{
+		if( spawnPool )
+		{
+			spawnPool_increaseQueueCount(mapChannel, spawnPool);
+			spawnPool_increaseQueuedCreatureCount(mapChannel, spawnPool, spawnCount);
+		}
+		//__debugbreak();	
+		// spawn creatures 
+		srand(GetTickCount());
+		for(int i=0; i< spawnCount;i++)
+		{
+			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool,1);
+			if( creature == NULL )
+				continue;
+			
+			creature_setLocation(creature, location->x+(float)(rand() % 5 +1), location->y, location->z+(float)(rand() % 5 +1), 0.0f, 0.0f);
+			cellMgr_addToWorld(mapChannel, creature);
+			
+		}
+		if( spawnPool )
+		spawnPool_decreaseQueuedCreatureCount(mapChannel, spawnPool, spawnCount);
+		if( spawnPool )
+			spawnPool_decreaseQueueCount(mapChannel,spawnPool);
+	}
+	//---type==2; bane dropship animation
+	if(spawnPool->spawnAnimationType == 2)
+	{
+         // create dropship
+	    dynamicObject_createBaneDropship(mapChannel, location->x, location->y, location->z, spawnCount, spawnTypeList, spawnPool);
+	}
 	return true;
 }
 
@@ -152,6 +182,49 @@ void spawnPool_decreaseQueuedCreatureCount(mapChannel_t *mapChannel, spawnPool_t
 	spawnPool->queuedCreatures-=count;
 }
 
+//###################################### init spawnpool #####################################
+void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnTypeW2_t *jobData)
+{
+	//__debugbreak();
+	mapChannel_t *mapChannel = (mapChannel_t*)param;
+	//---allocate spawnpools
+	spawnPool_t *spawnPool = (spawnPool_t*)malloc(sizeof(spawnPool_t) * jobData->scount);	
+	memset(spawnPool, 0x00, sizeof(spawnPool_t) * jobData->scount);
+
+	
+	for(int i=0; i<jobData->scount; i++)
+	{
+		di_spawnTypeW2_t *npcData = jobData->spawnType+i;
+		if(npcData->locationlist == NULL || npcData->spawnlocCount <=0) continue;
+		spawnPool_t *tPool = spawnPool+i;
+		tPool->maxQueueLength = npcData->activeSpawnCount; //simultaneously used spawns
+		tPool->spawnLocationLockTime = npcData->locktime;
+		tPool->spawnAnimationType = npcData->anim_type;
+		tPool->faction = npcData->faction;
+		spawnPool_setCriteriaCellCreatureCount(tPool,npcData->maxcreatures);
+		char tname[70];
+		sprintf(tname,"TEST%s",npcData->creatures);
+		spawnPool_setCreatureVariant(tPool, 0, tname);
+		spawnPool_initSpawnLocations(tPool,npcData->spawnlocCount);
+		int tspawncount = npcData->spawnlocCount;
+		//---allocate spawn locations
+		di_spawnDataW2_t *locationlist = (di_spawnDataW2_t*)malloc(sizeof(di_spawnDataW2_t) * tspawncount);	
+		locationlist = npcData->locationlist;
+		//memcpy(locationlist,npcData->locationlist,sizeof(di_spawnDataW2_t) * tspawncount);
+		for( int sc = 0; sc < tspawncount; sc ++)
+		{
+            float tx = (locationlist+sc)->posX;
+			float ty = (locationlist+sc)->posY;
+			float tz = (locationlist+sc)->posZ;
+			spawnPool_setSpawnLocation(tPool,sc,tx,ty,tz, 0xFFFF);
+
+		}		
+
+        spawnPool_activate(mapChannel,tPool);
+	}
+
+	mapChannel->loadState = 1; // loading is done
+}
 
 
 /*
@@ -160,24 +233,22 @@ void spawnPool_decreaseQueuedCreatureCount(mapChannel_t *mapChannel, spawnPool_t
  */
 void spawnPool_initForMapChannel(mapChannel_t *mapChannel)
 {
-	if( mapChannel->mapInfo->contextId != 0x7C1 )
-		return; 
-	// only init the test pool for the bootcamp map
-	// test pool
+
 	/*
-	-200 95 -24
-	-197 96 -44
-	-217 99 -54
+	  1) load spawndata/type from db
+	     +cellcreaturecount,creaturevariant,spawntype_id
+		 +for each db-entry: spawnPool_create() 
+		                     setCriteriaCellCreatureCount(db-value)
+							 loop(cntcreatures):setCreatureVariant(token)
+							 cnt = number of spawnloc with ID=spawntype;initSpawnLocations(cnt)
+							 finally:spawnPool_activate() after set location
+	  2) load spawnlocations from db
+	     +for each db-entry with ID = spawntype: spawnPool_setSpawnLocation()
+	
 	*/
-
-	spawnPool_t *spawnPool = spawnPool_create();
-	spawnPool_setCriteriaCellCreatureCount(spawnPool, 5);
-	spawnPool_setCreatureVariant(spawnPool, 0, "TEST25580");
-	spawnPool_setCreatureVariant(spawnPool, 1, "TEST25581");
-	spawnPool_initSpawnLocations(spawnPool, 3);
-	spawnPool_setSpawnLocation(spawnPool, 0, -200.0f, 95.0f, -24.0f, 0xFFFF);
-	spawnPool_setSpawnLocation(spawnPool, 1, -197.0f, 96.0f, -44.0f, 0xFFFF);
-	spawnPool_setSpawnLocation(spawnPool, 2, -217.0f, 99.0f, -54.0f, 0xFFFF);
-
-	spawnPool_activate(mapChannel, spawnPool);
+	//__debugbreak();	
+	mapChannel->loadState = 0;
+	dataInterface_Spawn_getSpawnpool(mapChannel->mapInfo->contextId,_cb_spawnPool_initForMapChannel, mapChannel);
+	while( mapChannel->loadState == 0 ) Sleep(100);
+	
 }

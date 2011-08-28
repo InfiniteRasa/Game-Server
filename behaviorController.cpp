@@ -33,39 +33,179 @@ float calcAngle(float a_x, float a_y)
 	return acos((a_x*b_x+a_y*b_y)/sqrt(dif));
 }
 
+void updateEntityMovementW2 (float difX,float difY,float difZ,creature_t *creature,mapChannel_t *mapChannel,float speeddiv)
+{
+
+	float length = 1.0f / sqrt(difX*difX + difY*difY + difZ*difZ);
+	difX *= length;
+	difY *= length;
+	difZ *= length;
+
+	float vX = atan2(-difX, -difZ);
+	// multiplicate with speed
+	float velocity = creature->velocity * speeddiv;
+	float speed = velocity * (250.0f / 1000.0f);
+	float rspeed = creature->rotspeed * (250.0f / 1000.0f);
+	difX *= speed;
+	difY *= speed;
+	difZ *= speed;
+	// move unit
+	creature->actor.posX += difX;
+	creature->actor.posY += difY;
+	creature->actor.posZ += difZ;
+	// send movement update
+	netCompressedMovement_t movement;
+	movement.entityId = creature->actor.entityId;
+	movement.posX24b = (int)(creature->actor.posX*256.0f);
+	movement.posY24b = (int)(creature->actor.posY*256.0f);
+	movement.posZ24b = (int)(creature->actor.posZ*256.0f);
+	movement.flag = 0x08;
+	movement.viewX = (unsigned short)(short)(vX*10240.0f);
+	movement.viewY = 0;//(unsigned short)(short)(vX*10240.0f);//(int)(calcAngle(difX, difZ)*1024.0f);
+	movement.velocity = (int)(velocity * 1024.0f);
+	netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
+				
+
+}
+
+
+void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCell_t *mapCell,int type)
+{
+  
+	int tCount =0;
+	int minimumRange = 15;
+	int difX = 0;
+	int difY = 0;
+	int difZ = 0;
+	int dist = 0;
+	minimumRange *= minimumRange;
+	int mPosX = creature->actor.posX;
+	int mPosZ = creature->actor.posZ;
+	mapChannelClient_t **playerList = NULL;
+	creature_t  **creatureList      = NULL;
+
+	if (type == 0) 
+	{
+		tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
+		playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+	   
+	}
+	else
+	{
+		tCount = hashTable_getCount(&mapCell->ht_creatureList);
+		creatureList = (creature_t **)hashTable_getValueArray(&mapCell->ht_creatureList);
+	
+	}	
+
+	// check players in range
+	for(int i=0; i<tCount; i++)
+	{
+		if( playerList == NULL) break; //no player found
+		mapChannelClient_t *player = playerList[i];
+		if(player->player->actor->stats.healthCurrent<=0) break;
+		difX = (int)(player->player->actor->posX) - mPosX;
+		difY = (int)(player->player->actor->posZ) - mPosZ;
+		dist = difX*difX + difY*difY;
+		if( dist <= minimumRange && creature->currentHealth >0 )
+		{
+			//printf("Found player to attack\n");
+			// set target and change state
+			//friendly creatures dont attack player
+			if(creature->faction != 1  )
+			{
+			creature->controller.targetEntityId = player->clientEntityId;
+			creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
+			break;
+			}
+			//break;
+		}
+	}//---for: playercount
+	
+	// check other creatures in range
+	//printf("creaturecount: %d\n",creatureCount);
+	for(int i2=0; i2<tCount; i2++)
+	{
+		if(creatureList == NULL) break; // no creatures found
+		creature_t  *crea = creatureList[i2];	
+		if(crea->currentHealth<=0) break;
+		if(crea->actor.entityId == creature->actor.entityId) continue; //skip if same creature
+		difX = (int)(crea->actor.posX) - mPosX;
+		difY = (int)(crea->actor.posY) - mPosZ;
+		dist = difX*difX + difY*difY;
+	
+		if( dist <= minimumRange && creature->currentHealth >0 )
+		{
+	           //__debugbreak();
+			
+			// attack only other factional creatures
+			if( (creature->faction - crea->faction) != 0 )
+			{
+				printf("found enemy creature entity-id: %d \n",crea->actor.entityId);
+				creature->controller.targetEntityId = crea->actor.entityId;
+				creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
+				break;
+			}
+			//break;
+		}//---if
+	}//---for:creatureCount
+}
+
 /*
  * Called every 250 milliseconds for every creature on the map
  */
+
+//todo: make walkingspeed, rotationspeed variable(fromd or textfile) 
 void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 {
-	if( creature->controller.currentAction == BEHAVIOR_ACTION_IDLE )
+	
+	if(creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
 	{
-		mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
-		int mPosX = creature->actor.posX;
-		int mPosZ = creature->actor.posZ;
-		if( mapCell )
-		{
-			// check players in range
-			int playerCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
-			mapChannelClient_t **playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
-			int minimumRange = 15;
-			minimumRange *= minimumRange;
-			for(int i=0; i<playerCount; i++)
-			{
-				mapChannelClient_t *player = playerList[i];
-				int difX = (int)(player->player->actor->posX) - mPosX;
-				int difY = (int)(player->player->actor->posZ) - mPosZ;
-				int dist = difX*difX + difY*difY;
-				if( dist <= minimumRange && creature->currentHealth >0 )
+	   //__debugbreak();
+           //calc new target location
+	       if(creature->wanderstate == 0)
+		   {		    
+				 //################search player while wandering
+			    mapCell_t *mapCell2 = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
+				if( mapCell2 )
 				{
-					//printf("Found player to attack\n");
-					// set target and change state
-					creature->controller.targetEntityId = player->clientEntityId;
-					creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
-					break;
+			    //calc target
+			    checkForEntityInRange(mapChannel,creature,mapCell2,0); //player
+				checkForEntityInRange(mapChannel,creature,mapCell2,1); //creature
 				}
-			}
-		}
+				srand(GetTickCount());
+				int srnd = rand() % (int)creature->wander_dist;
+		        creature->wx = creature->homePos.x + (float)srnd;
+				creature->wy = creature->homePos.y;
+				creature->wz = creature->homePos.z + (float)srnd;			
+				//next step approaching
+				creature->wanderstate = 1;
+		   }	
+		  if(creature->wanderstate == 1)
+		  {
+		        //################search player while wandering
+			    mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
+				if( mapCell )
+				{
+					//__debugbreak();
+									
+		            checkForEntityInRange(mapChannel,creature,mapCell,0); //player
+					checkForEntityInRange(mapChannel,creature,mapCell,1); //creature
+					
+				}//--cellwide search
+			    
+				
+			    // get distance
+				float difX = creature->wx - creature->actor.posX;
+				float difY = creature->wy - creature->actor.posY;
+				float difZ = creature->wz - creature->actor.posZ;
+				float dist = difX*difX + difZ*difZ;
+			    
+				//wander targetlocation reached
+				if(dist < 2.0f) creature->wanderstate = 0;
+			    
+		        updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.33f);
+		  }
+
 	}
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
 	{
@@ -73,6 +213,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			return;
 		// get target
 		void *target = entityMgr_get(creature->controller.targetEntityId);
+		
 		if( target )
 		{
 			// get poisition of target
@@ -82,9 +223,28 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			if( entityMgr_getEntityType(creature->controller.targetEntityId) == ENTITYTYPE_CLIENT )
 			{
 				mapChannelClient_t *client = (mapChannelClient_t*)target;
+	            //if target dead, set wander state
+				if( client->player->actor->stats.healthCurrent<= 0 )
+				{
+				   creature->wanderstate = 0;
+                   creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+				}
 				targetX = client->player->actor->posX;
 				targetY = client->player->actor->posY;
 				targetZ = client->player->actor->posZ;
+
+			}
+			else if( entityMgr_getEntityType(creature->controller.targetEntityId) == ENTITYTYPE_CREATURE )
+			{  
+				creature_t  *creat = (creature_t*)target;
+				if( (creat->currentHealth <= 0) )
+				{
+				   creature->wanderstate = 0;
+                   creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+				}
+				targetX = creat->actor.posX;
+				targetY = creat->actor.posY;
+				targetZ = creat->actor.posZ;
 			}
 			else
 				__debugbreak(); // todo
@@ -97,46 +257,47 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			meeleRange *= meeleRange;
 			if( dist < meeleRange )
 			{
-				// can do meele attack
-			}
-			else
-			{
-				// to far away, move
-				// movefactor is 250 / 1000 * 6
-				// normalize difference vector
-				float length = 1.0f / sqrt(difX*difX + difY*difY + difZ*difZ);
-				difX *= length;
-				difY *= length;
-				difZ *= length;
+				//rangeattack (every 2 sec)
+				unsigned int time2 = GetTickCount();
+				if( (time2-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
+				{
+					//__debugbreak();
+				    creature->lastattack = time2;
+					//if( creature->controller.targetEntityId )
+					
 
-				float vX = atan2(-difX, -difZ);
-				// multiplicate with speed
-				float velocity = 6.0f;
-				float speed = velocity * (250.0f / 1000.0f);
-				difX *= speed;
-				difY *= speed;
-				difZ *= speed;
-				// move unit
-				creature->actor.posX += difX;
-				creature->actor.posY += difY;
-				creature->actor.posZ += difZ;
-				// send movement update
-				netCompressedMovement_t movement;
-				movement.entityId = creature->actor.entityId;
-				movement.posX24b = (int)(creature->actor.posX*256.0f);
-				movement.posY24b = (int)(creature->actor.posY*256.0f);
-				movement.posZ24b = (int)(creature->actor.posZ*256.0f);
-				movement.flag = 0x08;
-				movement.viewX = (unsigned short)(short)(vX*10240.0f);
-				movement.viewY = 0;//(unsigned short)(short)(vX*10240.0f);//(int)(calcAngle(difX, difZ)*1024.0f);
-				movement.velocity = (int)(velocity * 1024.0f);
-				netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
+					missile_launch(mapChannel, 
+				                  &creature->actor, 
+								  creature->controller.targetEntityId, 
+								  MISSILE_PISTOL, 
+								  1);
+				}
+			}
+			else if ( (dist > meeleRange) && (creature->attack_habbit == 2) )
+			{
+				updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f);
+				
+				//rangeattack (every 2 sec)
+				unsigned int time = GetTickCount();
+				if( (time-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
+				{
+					//__debugbreak();
+				    creature->lastattack = time;
+					//if( creature->controller.targetEntityId )
+					
+
+					missile_launch(mapChannel, 
+				                  &creature->actor, 
+								  creature->controller.targetEntityId, 
+								  MISSILE_PISTOL, 
+								  1);
+				}
 			}
 		}
 		else
 		{
 			// target disappeared, leave combat mode (todo: immideatly search for new target)
-			creature->controller.currentAction = BEHAVIOR_ACTION_IDLE;
+			creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
 		}
 	}
 }

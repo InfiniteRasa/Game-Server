@@ -46,7 +46,7 @@ void creatureType_setMaxHealth(creatureType_t *creatureType, int maxHealth)
 
 /* creature */
 
-creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool)
+creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool, int faction)
 {
 	// allocate and init creature
 	creature_t *creature = (creature_t*)malloc(sizeof(creature_t));
@@ -56,7 +56,18 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	creature->actor.entityId = entityMgr_getFreeEntityIdForCreature();
 	creature->spawnPool = spawnPool;
 	// other settings
+	creature->velocity = 5.0f;
+	creature->attackspeed = 2000;
+	creature->rotspeed = 1.8f;
+	creature->attack_habbit = 2; //2=range fighter (test)
+	creature->range = 22.40f;
+	//if(faction <= 0) creature->faction = 0;
+	creature->faction = faction; //hostile
 	creature->currentHealth = creatureType->maxHealth;
+	creature->controller.currentAction = 3;
+	creature->wanderstate = 0; //wanderstate: calc new position
+	//set wander boundaries 
+	creature->wander_dist = 13.12f;
 	// update spawnpool
 	if( creature->spawnPool )
 	{
@@ -71,17 +82,26 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, char *typeName, sp
 	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeName);
 	if( creatureType == NULL )
 		return NULL; // type not found
-	return creature_createCreature(mapChannel, creatureType, spawnPool);
+	return creature_createCreature(mapChannel, creatureType, spawnPool,0);
 }
 
 void creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY)
 {
+	//set spawnlocation
 	creature->actor.posX = x;
 	creature->actor.posY = y;
 	creature->actor.posZ = z;
+	//set homelocation
+	creature->homePos.x = x;
+	creature->homePos.y = y;
+	creature->homePos.z = z;
+	//allocate pathnodes
+	creature->pathnodes = (baseBehavior_baseNode*) malloc(sizeof(baseBehavior_baseNode));
+	memset(creature->pathnodes, 0x00, sizeof(baseBehavior_baseNode));
+	creature->lastattack = GetTickCount();
 }
 
-
+/* update function*/
 void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *creature)
 {
 	if( !creature )
@@ -205,7 +225,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// target category
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 0); // 'HOSTILE'
+	pym_addInt(&pms, creature->faction); // 'HOSTILE'
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 211, pym_getData(&pms), pym_getLen(&pms));
 	// is targetable
@@ -231,6 +251,28 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	{
 		creature_updateAppearance(client->cgm, creature->actor.entityId, 3878);
 	}
+	if (creature->actor.entityClassId == 6163) // staff
+	{
+		 creature_updateAppearance(client->cgm, creature->actor.entityId, 6164);
+	}
+	if (creature->actor.entityClassId == 6043) // spear
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 6042);
+	}
+
+	
+	//rangeattack (every 2 sec)
+	/*srand(GetTickCount());
+    int rnd1 = rand() % 200;
+	unsigned int time = GetTickCount();
+	if( (time-creature->lastattack) > creature->attackspeed )
+	{
+		//__debugbreak();
+		creature->lastattack = time;
+		//if( creature->controller.targetEntityId )
+		
+
+	}*/
 }
 
 void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId)

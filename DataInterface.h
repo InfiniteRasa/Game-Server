@@ -136,6 +136,71 @@ typedef struct
 	}appearanceData[SWAPSET_SIZE];
 }di_npcData_t;
 
+/* TEST:entitydata */
+
+typedef struct  
+{
+	unsigned long long npcID;
+	char unicodeName[NPC_NAMELIMIT];
+	int entityClassID;
+	float posX;
+	float posY;
+	float posZ;
+	float rotation;
+	int currentContextId;
+	struct  
+	{
+		int classId;		// entityClassId
+		unsigned int hue;	// 0xAABBGGRR
+	}appearanceData[SWAPSET_SIZE];
+}di_entityDataW_t;
+
+/*TEST entity queue job*/
+typedef struct  
+{
+	di_entityDataW_t *entityData;
+}diJob_updateEntityW_t;
+
+/* TEST 2*/
+
+typedef struct  
+{
+	
+	int spawntype;
+	float posX;
+	float posY;
+	float posZ;
+	int currentContextId;
+	
+}di_spawnDataW2_t;
+
+typedef struct  
+{	
+	int spawntype; 
+	int maxcreatures; //---max creatures per cell
+	char label[50]; //--- short description
+	char creatures[70]; //---class ids tokens
+	int faction;
+    di_spawnDataW2_t *locationlist;
+	int spawnlocCount;
+	int anim_type; //---spawnanimation: drophip,beam,none
+	int activeSpawnCount; //--maximun simultaneously delivered spawnpoints
+	int locktime;//---time to be passed before location can used again
+}di_spawnTypeW2_t;
+
+typedef struct  
+{
+	unsigned int mapContextId;
+	di_spawnTypeW2_t *spawnType;
+	int scount; //number of spawntypes in list
+}diJob_spawnTypeW2_t;
+
+/*TEST entity queue job*/
+typedef struct  
+{
+	di_spawnDataW2_t *spawnData;
+}diJob_updateSpawnW2_t;
+
 /* mission */
 
 typedef struct  
@@ -226,3 +291,8 @@ void dataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionL
 void dataInterface_registerServerForAuth();
 unsigned int dataInterface_getMyIP();
 int dataInterface_QuerySession(unsigned int ID1, unsigned int ID2, authSessionInfo_t *asiOut);
+
+void dataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
+void dataInterface_Spawnpool_updateSpawnW2(di_spawnDataW2_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
+
+void dataInterface_Spawn_getSpawnpool(unsigned int mapContextId, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param);

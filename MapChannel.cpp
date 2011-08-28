@@ -223,6 +223,7 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
 	case 522: // RequestSetAbilitySlot
+		printf("RequestSetAbilitySlot\n");
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
 	case 530: // RequestWeaponDraw
@@ -552,14 +553,16 @@ void mapChannel_readData(mapChannelClient_t *mc)
 
 int mapChannel_worker(mapChannelList_t *channelList)
 {
-	global_channelList = channelList; //20110827 @dennton
+	
 	FD_SET fd;
 	timeval sTimeout;
 	sTimeout.tv_sec = 0;
 	sTimeout.tv_usec = 10000;
+	global_channelList = channelList; //20110827 @dennton
 
 	// init mapchannel
 	//
+	printf("init mapchannels..\n");
 	for(int chan=0; chan<channelList->mapChannelCount; chan++)
 	{
 		mapChannel_t *mapChannel = channelList->mapChannelArray+chan;
@@ -571,10 +574,11 @@ int mapChannel_worker(mapChannelList_t *channelList)
 		}
 		dynamicObject_init(mapChannel);
 		mission_initForChannel(mapChannel);
-		npc_initForMapChannel(mapChannel);
+		npc_initForMapChannel(mapChannel); //---db use
 		missile_initForMapchannel(mapChannel);
-		spawnPool_initForMapChannel(mapChannel);
+		spawnPool_initForMapChannel(mapChannel); //---todo:db use
 		controller_initForMapChannel(mapChannel);
+		printf("Map: [%s]\n",mapChannel->mapInfo->name);
 	}
 
 

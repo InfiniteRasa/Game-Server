@@ -424,6 +424,7 @@ void charMgr_updateCharacterSelection(clientGamemain_t *cgm)
 	dataInterface_Character_getCharacterPreviewInfo(cgm->userID, -1, _cb_charMgr_initCharacterSelection, cgm);
 }
 
+/*selects the current character*/
 void _cb_charMgr_recv_requestSwitchToCharacterInSlot(void *param, diJob_getCharacterPreviewInfo_t *jobData)
 {
 	clientGamemain_t *cgm = (clientGamemain_t*)param;

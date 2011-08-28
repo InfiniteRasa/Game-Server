@@ -672,7 +672,8 @@ void npc_cellDiscardNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *c
 		netMgr_pythonAddMethodCallRaw(client->cgm, 5, 56, pym_getData(&pms), pym_getLen(&pms));
 	}
 }
-
+//---jobdata->outNpcList: contains a list with all npc specific data like position,contextid,entityid,classid and appereance
+//---jobdata->outNpcList: contains data AND locations
 void _cb_npc_initForMapChannel(void *param, diJob_npcListData_t *jobData)
 {
 	mapChannel_t *mapChannel = (mapChannel_t*)param;
