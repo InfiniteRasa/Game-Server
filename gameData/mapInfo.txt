@@ -1,6 +1,6 @@
 #(contextId, 'mapName', version, baseRegionId)  
 #Foreas
-(1985, 'adv_bootcamp', 792, 2) #Planet Foreas - Bootcamp 
+(1985, 'adv_bootcamp', 783, 2) #Planet Foreas - Bootcamp 
 ##Foreas Concordia
 ###Foreas Concordia Divide
 (1148, 'adv_foreas_concordia_divide', 1520, 0) #Planet Foreas: Concordia - Divide
@@ -9,7 +9,7 @@
 (1349, 'adv_foreas_concordia_divide_torcastraprison', 465, 0) #Planet Foreas: Concordia - Divide (Torcastra Prison)
 (1806, 'adv_foreas_concordia_divide_purgasstation2', 293, 0) #Planet Foreas: Concordia - Divide (Purgas Station)
 ###Foreas Concordia Wilderness
-(1220, 'adv_foreas_concordia_wilderness', 1492, 0) #Concordia Wilderness - 791,295,383
+(1220, 'adv_foreas_concordia_wilderness', 1556, 0) #Concordia Wilderness - 791,295,383
 (1721, 'adv_foreas_concordia_wilderness_clrf', 276, 0) #Planet Foreas: Concordia - Wilderness (Crater Lake Research Facility)
 (1416, 'adv_foreas_concordia_wilderness_guardianprom', 225, 0) #Planet Foreas: Concordia - Wilderness (Guardian Prominence)
 (1430, 'adv_foreas_concordia_wilderness_pravusresearch', 549, 0) #Planet Foreas: Concordia - Wilderness (Pravus Research)
