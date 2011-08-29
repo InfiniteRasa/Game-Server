@@ -225,13 +225,21 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
 		// hue
-		pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
+		// test .16
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_end(&pms);
+		// end test .16
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -338,14 +346,20 @@ void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int
 			continue;
 		pym_addInt(&pms, i+1);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
-		// hue
-		pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
-		pym_tuple_end(&pms);
+			pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
+			// hue
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);

@@ -450,6 +450,7 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 			pym_addInt(&pms, item->itemTemplate->toolType);				// toolType ( PISTOL = 8 )
 			pym_addBool(&pms, item->itemTemplate->isJammed);			// isJammed
 			pym_addInt(&pms, item->itemTemplate->ammoPerShot);			// ammoPerShot
+			pym_addString(&pms, "");									// cameraProfile
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 237, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
 

@@ -250,6 +250,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 	case METHODID_REQUESTTOOLTIPFORITEMTEMPLATEID: // RequestTooltipForItemTemplateId
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
 		return;
+	case 753: // RequestVisualCombatMode
+		manifestation_recv_RequestVisualCombatMode(cm, pyString, pyStringLen);
+		return;
 	case 759: // RequestActionInterrupt
 		dynamicObject_recv_RequestActionInterrupt(cm, pyString, pyStringLen);
 		return;
@@ -620,65 +623,69 @@ int mapChannel_worker(mapChannelList_t *channelList)
 					}
 				}
 			}
-			// do other work
-			cellMgr_doWork(mapChannel);
-			// check timers
-			unsigned int currentTime = GetTickCount();
-			if( (currentTime - mapChannel->timer_clientEffectUpdate) >= 500 )
+			
+			if (mapChannel->playerCount > 0)
 			{
-				gameEffect_checkForPlayers(mapChannel->playerList, mapChannel->playerCount, 500);
-				mapChannel->timer_clientEffectUpdate += 500;
-			}
-			if (mapChannel->cp_trigger.cb != NULL)
-			{
-				if ((currentTime - mapChannel->cp_trigger.period) >= 100)
+				// do other work
+				cellMgr_doWork(mapChannel);
+				// check timers
+				unsigned int currentTime = GetTickCount();
+				if( (currentTime - mapChannel->timer_clientEffectUpdate) >= 500 )
 				{
-					mapChannel->cp_trigger.timeLeft -= 100;
-					mapChannel->cp_trigger.period = currentTime;
-					if (mapChannel->cp_trigger.timeLeft <= 0)
+					gameEffect_checkForPlayers(mapChannel->playerList, mapChannel->playerCount, 500);
+					mapChannel->timer_clientEffectUpdate += 500;
+				}
+				if (mapChannel->cp_trigger.cb != NULL)
+				{
+					if ((currentTime - mapChannel->cp_trigger.period) >= 100)
 					{
-						mapChannel->cp_trigger.cb(mapChannel, mapChannel->cp_trigger.param, 1);
-						mapChannel->cp_trigger.cb = NULL;
+						mapChannel->cp_trigger.timeLeft -= 100;
+						mapChannel->cp_trigger.period = currentTime;
+						if (mapChannel->cp_trigger.timeLeft <= 0)
+						{
+							mapChannel->cp_trigger.cb(mapChannel, mapChannel->cp_trigger.param, 1);
+							mapChannel->cp_trigger.cb = NULL;
+						}
 					}
 				}
-			}
-			if( (currentTime - mapChannel->timer_missileUpdate) >= 100 )
-			{
-				missile_check(mapChannel, 100);
-				mapChannel->timer_missileUpdate += 100;
-			}
-			if( (currentTime - mapChannel->timer_dynObjUpdate) >= 100 )
-			{
-				dynamicObject_check(mapChannel, 100);
-				mapChannel->timer_dynObjUpdate += 100;
-			}
-			if( (currentTime - mapChannel->timer_controller) >= 250 )
-			{
-				controller_mapChannelThink(mapChannel);
-				mapChannel->timer_controller += 250;
-			}
-			if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
-			{
-				int timePassed = 100;
-				// parse through all timers
-				int count = hashTable_getCount(&mapChannel->ht_timerList);
-				mapChannelTimer_t **timerList = (mapChannelTimer_t**)hashTable_getValueArray(&mapChannel->ht_timerList);
-				for(int i=0; i<count; i++)
+				if( (currentTime - mapChannel->timer_missileUpdate) >= 100 )
 				{
-					mapChannelTimer_t *entry = timerList[i];
-					entry->timeLeft -= timePassed;
-					if( entry->timeLeft <= 0 )
-					{
-						int objTimePassed = entry->period - entry->timeLeft;
-						entry->timeLeft += entry->period;
-						// trigger object
-						bool remove = entry->cb(mapChannel, entry->param, objTimePassed);//dynamicObject_process(mapChannel, dynObjectWorkEntry->object, objTimePassed);
-						if( remove == false )
-							__debugbreak(); // todo!
-					}
+					missile_check(mapChannel, 100);
+					mapChannel->timer_missileUpdate += 100;
 				}
-				mapChannel->timer_generalTimer += 100;
-			}
+				if( (currentTime - mapChannel->timer_dynObjUpdate) >= 100 )
+				{
+					dynamicObject_check(mapChannel, 100);
+					mapChannel->timer_dynObjUpdate += 100;
+				}
+				if( (currentTime - mapChannel->timer_controller) >= 250 )
+				{
+					controller_mapChannelThink(mapChannel);
+					mapChannel->timer_controller += 250;
+				}
+				if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
+				{
+					int timePassed = 100;
+					// parse through all timers
+					int count = hashTable_getCount(&mapChannel->ht_timerList);
+					mapChannelTimer_t **timerList = (mapChannelTimer_t**)hashTable_getValueArray(&mapChannel->ht_timerList);
+					for(int i=0; i<count; i++)
+					{
+						mapChannelTimer_t *entry = timerList[i];
+						entry->timeLeft -= timePassed;
+						if( entry->timeLeft <= 0 )
+						{
+							int objTimePassed = entry->period - entry->timeLeft;
+							entry->timeLeft += entry->period;
+							// trigger object
+							bool remove = entry->cb(mapChannel, entry->param, objTimePassed);//dynamicObject_process(mapChannel, dynObjectWorkEntry->object, objTimePassed);
+							if( remove == false )
+								__debugbreak(); // todo!
+						}
+					}
+					mapChannel->timer_generalTimer += 100;
+				}
+			} // (mapChannel->playerCount > 0)
 		}
 		Sleep(1); // eventually remove/replace this (dont sleep when too busy)
 	}

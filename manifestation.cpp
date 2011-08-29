@@ -62,14 +62,20 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 			continue;
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
-		// hue
-		pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
-		pym_tuple_end(&pms);
+			pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
+			// hue
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -109,6 +115,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->classId = 2; // soldier
 	manifestation->level = 15;
 	manifestation->actor->isRunning = true;
+	manifestation->actor->inCombatMode = false;
 	manifestation->targetEntityId = 0;
 	manifestation->actor->stats.healthBonus = 110;
 	manifestation->actor->stats.healthMax = 100;
@@ -241,13 +248,21 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 			pym_addInt(&pms, i+1); // index(equipmentSlotId)
 			pym_tuple_begin(&pms);
 			pym_addInt(&pms, tempClient->player->actor->appearanceData[i].classId); // classId
-			pym_tuple_begin(&pms);
 			// hue
-			pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
+			// test .16
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			// end test .16
 			pym_tuple_end(&pms);
 		}
 		pym_dict_end(&pms);
@@ -447,13 +462,21 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, client->player->actor->appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
 		// hue
-		pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
+		// test .16
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_end(&pms);
+		// end test .16
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -803,6 +826,37 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 
 /* weapon stats and combat handling */
 
+void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+
+	bool setting = pym_unpackBool(&pums);
+
+	pyMarshalString_t pms;
+	
+	if (setting == true) // Enter combat mode
+	{
+		client->player->actor->inCombatMode = true;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+	}
+	else // Exit combat mode
+	{
+		client->player->actor->inCombatMode = false;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, false);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+	}
+}
+
 void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
@@ -835,11 +889,11 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	// Recv_PerformRecovery(actionId, actionArgId, *args) 125
 	// Recv_ActionInterrupt 245
 	printf("TODO: "); puts(__FUNCTION__);
-	pyMarshalString_t pms;
+	/*pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_addInt(&pms, 149);
 	pym_addInt(&pms, 1);
-	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 245, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 245, pym_getData(&pms), pym_getLen(&pms));*/
 }
 
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)

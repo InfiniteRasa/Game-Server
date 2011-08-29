@@ -33,6 +33,7 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 
 void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 
+void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);

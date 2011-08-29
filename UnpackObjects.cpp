@@ -279,6 +279,31 @@ float pym_unpackFloat(pyUnmarshalString_t *pms)
 	return 0;
 }
 
+bool pym_unpackBool(pyUnmarshalString_t *pms)
+{
+	unsigned char p = pms->buffer[pms->idx];
+	bool ret = false;
+	if (p == 'T')
+	{ ret = true; }
+	else if (p == 'F')
+	{ ret = false; }
+	else 
+	{ printf("Error unpacking bool\n"); }
+
+	pms->idx++;
+
+	// reduce parent
+	if( pms->stackIndex )
+	{
+		while( pms->stackIndex && pms->containerStack[pms->stackIndex-1].subelementsLeft == 1 )
+		{
+			pms->containerStack[pms->stackIndex-1].subelementsLeft = 0;
+			pms->stackIndex--;
+		}
+	}
+	return ret;
+}
+
 bool pym_unpack_isNoneStruct(pyUnmarshalString_t *pms)
 {
 	unsigned char p = pms->buffer[pms->idx];

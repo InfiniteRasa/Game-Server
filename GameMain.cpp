@@ -367,7 +367,12 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		}
 		pIdx += versionLen;
 		
-		if( wrongVersion ) { printf("Client version missmatch\n"); }
+		if( wrongVersion ) 
+		{ 
+			printf("Client version missmatch\n"); 
+			closesocket(cgm->socket);
+			return 0;
+		}
 			// return 0;//__debugbreak(); // shit has wrong version
 		
 		unsigned char ukn02_4 = *(unsigned char*)(data+pIdx); pIdx++;

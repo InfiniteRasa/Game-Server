@@ -115,6 +115,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addNoneStruct(&pms); // entityData (dunno)
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+
 	// set attributes - Recv_AttributeInfo (29)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -179,18 +180,14 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 29, pym_getData(&pms), pym_getLen(&pms));
+
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 1); // level
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 103, pym_getData(&pms), pym_getLen(&pms));
-	// set actor name
-	//pym_init(&pms);
-	//pym_tuple_begin(&pms);
-	//pym_addUnicode(&pms, creature->actor.name); // name
-	//pym_tuple_end(&pms);
-	//netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 16, pym_getData(&pms), pym_getLen(&pms));
+
 	// set creature info (439)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -201,66 +198,14 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_tuple_end(&pms);	// creatureflag.pyo
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 439, pym_getData(&pms), pym_getLen(&pms));
+	
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 96, pym_getData(&pms), pym_getLen(&pms));
-	// Recv_WorldLocationDescriptor (243)
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_tuple_begin(&pms); // position
-	pym_addInt(&pms, creature->actor.posX); // x 
-	pym_addInt(&pms, creature->actor.posY); // y 
-	pym_addInt(&pms, creature->actor.posZ); // z 
-	pym_tuple_end(&pms); 
-	pym_tuple_begin(&pms); // rotation quaterninion
-	pym_addFloat(&pms, 0.0f);
-	pym_addFloat(&pms, 0.0f);
-	pym_addFloat(&pms, 0.0f);
-	pym_addFloat(&pms, 1.0f);
-	pym_tuple_end(&pms);
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
-	// target category
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->faction); // 'HOSTILE'
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 211, pym_getData(&pms), pym_getLen(&pms));
-	// is targetable
-	// Recv_IsTargetable
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addBool(&pms, true);
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 594, pym_getData(&pms), pym_getLen(&pms));
-	// set default state
-	//pym_init(&pms);
-	//pym_tuple_begin(&pms);
-	//pym_list_begin(&pms);
-	//pym_addInt(&pms, 11); // normal
-	//pym_list_end(&pms);
-	//pym_tuple_end(&pms);
-	//netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
-	if (creature->actor.entityClassId == 25580) // pistol
-	{
-		 creature_updateAppearance(client->cgm, creature->actor.entityId, 3782);
-	}
-	if (creature->actor.entityClassId == 25581) // rifle
-	{
-		creature_updateAppearance(client->cgm, creature->actor.entityId, 3878);
-	}
-	if (creature->actor.entityClassId == 6163) // staff
-	{
-		 creature_updateAppearance(client->cgm, creature->actor.entityId, 6164);
-	}
-	if (creature->actor.entityClassId == 6043) // spear
-	{
-		creature_updateAppearance(client->cgm, creature->actor.entityId, 6042);
-	}
-
+	
 	// Recv_WorldLocationDescriptor (243)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -277,6 +222,44 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->mapChannel, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, creature->faction); // 'HOSTILE'
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 211, pym_getData(&pms), pym_getLen(&pms));
+
+	// Recv_IsTargetable
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 594, pym_getData(&pms), pym_getLen(&pms));
+	
+	// set default state
+	//pym_init(&pms);
+	//pym_tuple_begin(&pms);
+	//pym_list_begin(&pms);
+	//pym_addInt(&pms, 11); // normal
+	//pym_list_end(&pms);
+	//pym_tuple_end(&pms);
+	//netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
+	
+	if (creature->actor.entityClassId == 25580) // pistol
+	{
+		 creature_updateAppearance(client->cgm, creature->actor.entityId, 3782);
+	}
+	if (creature->actor.entityClassId == 25581) // rifle
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 3878);
+	}
+	if (creature->actor.entityClassId == 6163) // staff
+	{
+		 creature_updateAppearance(client->cgm, creature->actor.entityId, 6164);
+	}
+	if (creature->actor.entityClassId == 6043) // spear
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 6042);
+	}
 	
 	netCompressedMovement_t netMovement = {0};
 	netMovement.entityId = creature->actor.entityId;
@@ -311,11 +294,20 @@ void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int
 			pym_addInt(&pms, weaponId); // classId
 			pym_tuple_begin(&pms);
 				// hue
-				pym_addInt(&pms, (int)(0xFF808080&0xFF));
-				pym_addInt(&pms, (int)((0xFF808080>>8)&0xFF));
-				pym_addInt(&pms, (int)((0xFF808080>>16)&0xFF));
-				pym_addInt(&pms, (int)((0xFF808080>>24)&0xFF));
+				pym_addInt(&pms, (int)( 0xFF808080			& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 16)	& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 24)	& 0xFF));
 			pym_tuple_end(&pms);
+			// test for .16
+			pym_tuple_begin(&pms);
+				// hue
+				pym_addInt(&pms, (int)( 0xFF808080			& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 16)	& 0xFF));
+				pym_addInt(&pms, (int)((0xFF808080 >> 24)	& 0xFF));
+			pym_tuple_end(&pms);
+			// end test for .16
 		pym_tuple_end(&pms);
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);

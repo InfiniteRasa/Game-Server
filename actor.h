@@ -28,6 +28,7 @@ typedef struct _actor_t
 	float posZ;
 	float rotation;
 	bool isRunning;
+	bool inCombatMode;
 	mapCellLocation_t cellLocation;
 	gameEffect_t *activeEffects;
 	char state;
