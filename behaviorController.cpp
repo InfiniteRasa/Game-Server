@@ -222,9 +222,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 		        updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.29f);
 				if(dist < 2.0f) 
 				{
-					creature->actor.posX = creature->wx;
-					creature->actor.posY = creature->wy;
-					creature->actor.posZ = creature->wz;
+					
 					creature->wanderstate = 0;
 				}
 		  }
@@ -279,9 +277,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			float difZ = targetZ - creature->actor.posZ;
 			float dist = difX*difX + difZ*difZ;
 			
-			//---move entity
-			//if(creature->actor.isRooted != 1) //next release
-			updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f);
+		
 
 			float meeleRange = 1.5f;
 			meeleRange *= meeleRange;
@@ -303,12 +299,14 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 								  1);
 				}
 			}
-			else if ( creature->attack_habbit == 2 )
+			else
 			{
 								
+                //if(creature->actor.isRooted != 1) //next release
+			    updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f);
 				//rangeattack (every 2 sec)
 				unsigned int time = GetTickCount();
-				if( (time-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
+				if( ((time-creature->lastattack) > creature->attackspeed) && (dist < creature-> range) && (creature->attack_habbit == 2) )
 				{
 					//__debugbreak();
 				    creature->lastattack = time;
