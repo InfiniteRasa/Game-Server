@@ -29,14 +29,14 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
 	// Recv_UpdateRegions (568)
-	/*pym_init(&pms);
+	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
 	pym_addInt(&pms, owner->mapChannel->mapInfo->baseRegionId); //map with region support
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));*/
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB)
@@ -520,7 +520,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	//pym_addInt(&pms, 23); //power
+	pym_addInt(&pms, 23); //power
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -718,13 +718,13 @@ void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)
 	pym_dict_begin(&pms);
 	int start = cm->player->currentAbilityDrawer;
 	int end = start + 4;
-	printf("Sending Drawer\n");
-	printf("Start: %i - End: %i\n", start, end);
+	//printf("Sending Drawer\n");
+	//printf("Start: %i - End: %i\n", start, end);
 	for (int i = start; i <= end; i++)
 	{
 		if (cm->player->abilityDrawer[i] != 0)
 		{
-			printf("Slot %i -> ability id %i\n", i, cm->player->abilityDrawer[i]);
+			//printf("Slot %i -> ability id %i\n", i, cm->player->abilityDrawer[i]);
 			pym_addInt(&pms, i);								// slotIdx
 			pym_tuple_begin(&pms);
 			pym_addInt(&pms, cm->player->abilityDrawer[i]);		// abilityId
@@ -781,7 +781,7 @@ void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char 
 
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
-	printf("requesting set ability slot\n");
+	//printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )

@@ -208,6 +208,7 @@ void missile_check(mapChannel_t *mapChannel, int passedTime)
 	{
 		printf("Size of missile list: %i\n", missileList->size());
 	}
+	int removedMissiles = 0;
 	for (int i = 0; i < missileList->size(); i++) 
 	{
 		printf("checking missile\n");
@@ -219,7 +220,8 @@ void missile_check(mapChannel_t *mapChannel, int passedTime)
 			// do missile action
 			_missile_trigger(mapChannel, missile);
 			// remove missile
-			missileList->erase(missileList->begin() + i);
+			missileList->erase(missileList->begin() + i - removedMissiles);
+			++removedMissiles;
 		}
 	}
 }
