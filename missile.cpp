@@ -84,7 +84,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		if( creature->actor.state == ACTOR_STATE_DEAD )
 			return;
 	
-		gameEffect_attachW2(mapChannel, &creature->actor, 102, 1,500);										
+		gameEffect_attach(mapChannel, &creature->actor, 102, 1,500);										
 		creature->currentHealth -= missile->damageA;
 		if( creature->currentHealth <= 0 )
 		{
@@ -158,7 +158,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 	
-		gameEffect_attachW2(mapChannel, player->player->actor, 102, 1,500);										
+		gameEffect_attach(mapChannel, player->player->actor, 102, 1,500);										
 		player->player->actor->stats.healthCurrent -= missile->damageA;
 		 //send death notification when health <= zero
 		if( player->player->actor->stats.healthCurrent <= 0 )

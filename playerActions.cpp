@@ -32,10 +32,10 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned c
 	case 194: // Lightning
 		printf("Lightning: Target %u\n", (unsigned int)targetEntityId);
 		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 20);
-		gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
+		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
 	case 401: // Sprint
-		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId);
+		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId, 5000);
 		return;
 	default:
 		printf("Unknown Ability: ID %i ArgID %i Target %u64\n", actionId, actionArgId, targetEntityId);
