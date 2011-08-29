@@ -106,16 +106,16 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 		difX = (int)(player->player->actor->posX) - mPosX;
 		difZ = (int)(player->player->actor->posZ) - mPosZ;
 		dist = difX*difX + difZ*difZ;
-		if( dist <= minimumRange && creature->currentHealth >0 )
+		if( dist <= minimumRange && creature->currentHealth > 0 )
 		{
 			//printf("Found player to attack\n");
 			// set target and change state
 			//friendly creatures dont attack player
-			if(creature->faction == 0  )
+			if (creature->faction == 0)
 			{
-			creature->controller.targetEntityId = player->clientEntityId;
-			creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
-			break;
+				creature->controller.targetEntityId = player->clientEntityId;
+				creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
+				break;
 			}
 			//break;
 		}
@@ -140,7 +140,7 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 			if( crea->faction != creature->faction )
 			{
 				printf("found enemy creature entity: %d  class: %d \n",
-					crea->actor.entityId,crea->actor.entityClassId);
+					crea->actor.entityId, crea->actor.entityClassId);
 				creature->controller.targetEntityId = crea->actor.entityId;
 				creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
 				break;

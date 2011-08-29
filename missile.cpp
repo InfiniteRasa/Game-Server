@@ -226,6 +226,7 @@ void missile_check(mapChannel_t *mapChannel, int passedTime)
 			++removedMissiles;
 		}
 		i -= removedMissiles;
+		if( i < 0 ) { i = 0; }
 		totalMissiles -= removedMissiles;
 	}
 }

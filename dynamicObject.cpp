@@ -100,7 +100,7 @@ void dynamicObject_setPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyna
 	workEntry->entityId = dynamicObject->entityId;
 	// register (TODO: check if a previous entry has already been registered)
 	hashTable_set(&mapChannel->ht_updateObjectList, workEntry->entityId, workEntry);
-	printf("ADD : %08X\n", workEntry);
+	//printf("ADD : %08X\n", workEntry);
 }
 
 dynObject_t *dynamicObject_createFootlocker(float x, float y, float z, float rotX, float rotY, float rotZ)
@@ -368,7 +368,7 @@ void dynamicObject_check(mapChannel_t *mapChannel, int timePassed)
 	for(int i=0; i<removeQueueCount; i++)
 	{
 		dynObject_workEntry_t *dynObjectWorkEntry = removeQueue[i];
-		printf("FREE: %08X (eid %d)\n", dynObjectWorkEntry, dynObjectWorkEntry->entityId);
+		//printf("FREE: %08X (eid %d)\n", dynObjectWorkEntry, dynObjectWorkEntry->entityId);
 		//hashTable_set(&mapChannel->ht_updateObjectList, dynObjectWorkEntry->entityId, NULL);
 		bool test = hashTable_set(&mapChannel->ht_updateObjectList, dynObjectWorkEntry->entityId, NULL);
 		if( test == false )
