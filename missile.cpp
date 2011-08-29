@@ -7,7 +7,7 @@ void missile_initForMapchannel(mapChannel_t *mapChannel)
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage)
 {
-	printf("launching missile\n");
+	//printf("launching missile\n");
 	missile_t missile;
 	missile.type = type;
 	missile.damageA = damage;
@@ -29,12 +29,12 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		printf("Can't shoot NPCs yet\n");
 		return;
 	case ENTITYTYPE_CREATURE:
-		printf("target is a creature\n");
+		//printf("target is a creature\n");
 		{ creature_t *creature = (creature_t*)entity;
 		targetActor = &creature->actor; }
 		break;
 		case ENTITYTYPE_CLIENT:
-         printf("target is a player\n");
+         //printf("target is a player\n");
             { 
 				mapChannelClient_t *player = (mapChannelClient_t*)entity;            
 				targetActor = player->player->actor; 
@@ -64,13 +64,13 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	};
 
 	// append to list
-	printf("Añadiendo misil a la lista\n");
+	//printf("Añadiendo misil a la lista\n");
 	mapChannel->missileInfo.list.push_back(missile);
 }
 
 void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 {
-	printf("missile exploding\n");
+	//printf("missile exploding\n");
 	pyMarshalString_t pms;
 	// do work
 	int targetType = entityMgr_getEntityType(missile->targetEntityId);
@@ -138,7 +138,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		*/
 		// TODO: Also do use Recv_MadeDead for killing on load
 		// update health (Recv_UpdateHealth 380)
-		printf("updating creature health\n");
+		//printf("updating creature health\n");
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, creature->currentHealth); // current
@@ -204,14 +204,16 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 void missile_check(mapChannel_t *mapChannel, int passedTime)
 {
 	std::vector<missile_t>* missileList = &mapChannel->missileInfo.list;
-	if (missileList->size() > 0)
-	{
-		printf("Size of missile list: %i\n", missileList->size());
-	}
+	//if (missileList->size() > 0)
+	//{
+	//	printf("Size of missile list: %i\n", missileList->size());
+	//}
 	int removedMissiles = 0;
-	for (int i = 0; i < missileList->size(); i++) 
+	int totalMissiles = missileList->size();
+	int i = 0;
+	while(i < totalMissiles)
 	{
-		printf("checking missile\n");
+		//printf("checking missile\n");
 		missile_t* missile = &missileList->at(i);
 		missile->triggerTime -= passedTime;
 
@@ -220,8 +222,10 @@ void missile_check(mapChannel_t *mapChannel, int passedTime)
 			// do missile action
 			_missile_trigger(mapChannel, missile);
 			// remove missile
-			missileList->erase(missileList->begin() + i - removedMissiles);
+			missileList->erase(missileList->begin() + i);
 			++removedMissiles;
 		}
+		i -= removedMissiles;
+		totalMissiles -= removedMissiles;
 	}
 }
