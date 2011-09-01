@@ -283,9 +283,9 @@ bool pym_unpackBool(pyUnmarshalString_t *pms)
 {
 	unsigned char p = pms->buffer[pms->idx];
 	bool ret = false;
-	if (p == 'T')
+	if (p == 0x11)
 	{ ret = true; }
-	else if (p == 'F')
+	else if (p == 0x10)
 	{ ret = false; }
 	else 
 	{ printf("Error unpacking bool\n"); }

@@ -223,7 +223,6 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
 	case 522: // RequestSetAbilitySlot
-		printf("RequestSetAbilitySlot\n");
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
 	case 530: // RequestWeaponDraw
@@ -251,6 +250,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
 		return;
 	case 753: // RequestVisualCombatMode
+		printf("VisualCombatMode:\n");
+		HexOut(pyString, pyStringLen);
+		printf("\n\n");
 		manifestation_recv_RequestVisualCombatMode(cm, pyString, pyStringLen);
 		return;
 	case 759: // RequestActionInterrupt
