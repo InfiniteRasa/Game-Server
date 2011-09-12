@@ -58,6 +58,8 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	// other settings
 	creature->velocity = 5.0f;
 	creature->attackspeed = 2000;
+	creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
+	creature->lastagression = 0;
 	creature->rotspeed = 1.8f;
 	creature->attack_habbit = 2; //2=range fighter (test)
 	creature->range = 22.40f;

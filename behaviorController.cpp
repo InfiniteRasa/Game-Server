@@ -174,7 +174,10 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 					checkForEntityInRange(mapChannel,creature,mapCell,0); //player
 					//---skip wandering if enemy found
 	                if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING)
+					{
+						creature->lastagression = GetTickCount();
 						return;
+					}
 				}//--cellwide search
 			   
 			    //--- idle for short time before get new wander position
@@ -207,7 +210,11 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 					checkForEntityInRange(mapChannel,creature,mapCell,0); //player
 					//---skip wandering if enemy found
 					if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING)
+					{
+						creature->lastagression = GetTickCount();
 						return;
+					}
+
 					
 				}//--cellwide search
 			  
@@ -239,6 +246,17 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 		
 		if( target )
 		{
+			
+			//--get out of combat
+			int aggtime = GetTickCount();
+			if(aggtime - creature->lastagression > creature->agression)
+			{
+				creature->controller.currentAction =  BEHAVIOR_ACTION_WANDER;
+				creature->wanderstate = 0;
+			}
+
+			
+			
 			// get poisition of target
 			float targetX = 0.0f;
 			float targetY = 0.0f;
@@ -281,6 +299,12 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 
 			float meeleRange = 1.5f;
 			meeleRange *= meeleRange;
+
+			//---if player inside attack range update aggressiontimer
+			if( (dist < meeleRange) || (dist < creature -> range) )
+				creature->lastagression = GetTickCount();
+			
+
 			if( dist < meeleRange )
 			{
 				//rangeattack (every 2 sec)
@@ -303,6 +327,8 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			{
 								
                 //if(creature->actor.isRooted != 1) //next release
+
+				if(creature->currentHealth > 0)
 			    updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f);
 				//rangeattack (every 2 sec)
 				unsigned int time = GetTickCount();
@@ -319,14 +345,14 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 								  MISSILE_PISTOL, 
 								  1);
 				}
-			}
+			}//---range attack and movement
 		}
 		else
 		{
 			// target disappeared, leave combat mode (todo: immideatly search for new target)
 			creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
-		}
-	}
+		}//---nor target: -> wandering
+	}//---fighting
 }
 
 

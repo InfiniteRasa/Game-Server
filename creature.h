@@ -36,7 +36,8 @@ typedef struct _creature_t
 	float rotspeed;
 	float range; //attackrange
 	int attack_habbit; //meelee or range fighter 
-	int agression; // probability of attacking 
+	int agression; // hunting timer for enemys
+	int lastagression;
 	int faction; // hostile /friendly
 	int wanderstate; 
 	float wx,wy,wz; 
