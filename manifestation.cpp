@@ -864,15 +864,34 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
 	float yaw = pym_unpackFloat(&pums);
-	
+
+	pyMarshalString_t pms;
+	client->player->actor->inCombatMode = true;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
 
 	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
 	// TODO!
 
 	printf("TODO: "); puts(__FUNCTION__);
 	printf("target: %u\n", client->player->targetEntityId);
+
 	if( client->player->targetEntityId )
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
+	{
+		if (inventory_CurrentWeapon(client)->itemTemplate->toolType == 7) // rifle
+		{ 
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_RIFLE, 10); 
+			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_RIFLE);
+		}
+		else
+		{ 
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10); 
+			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_PISTOL);
+		}
+	}
 }
 
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -881,19 +900,17 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	// param: keepAliveDelay
-	// TODO!
-	// Used to tell the server how long to continue shooting
-	// 
-	// Recv_PerformWindup @param actionId - actionArgId 126
-	// Recv_PerformRecovery(actionId, actionArgId, *args) 125
-	// Recv_ActionInterrupt 245
-	printf("TODO: "); puts(__FUNCTION__);
-	/*pyMarshalString_t pms;
+
+	pyMarshalString_t pms;
+	client->player->actor->inCombatMode = false;
 	pym_init(&pms);
-	pym_addInt(&pms, 149);
-	pym_addInt(&pms, 1);
-	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 245, pym_getData(&pms), pym_getLen(&pms));*/
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+
+	mapChannel_removeAutoFireTimer(client->mapChannel, client->player);
+	printf("TODO: "); puts(__FUNCTION__);
 }
 
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -902,14 +919,12 @@ void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned c
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	float yaw = pym_unpackFloat(&pums);
-	
-	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
-	// TODO!
+	int keepAliveDelay = pym_unpackInt(&pums);
 
 	printf("TODO: "); puts(__FUNCTION__);
-	if( client->player->targetEntityId )
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
+	printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
+	//if( client->player->targetEntityId )
+	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
 
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client)

@@ -256,6 +256,7 @@ void spawnPool_initForMapChannel(mapChannel_t *mapChannel)
 	//__debugbreak();	
 	mapChannel->loadState = 0;
 	dataInterface_Spawn_getSpawnpool(mapChannel->mapInfo->contextId,_cb_spawnPool_initForMapChannel, mapChannel);
+	printf("loading spawn pools from the database\r\n");
 	while( mapChannel->loadState == 0 ) Sleep(100);
 	
 }

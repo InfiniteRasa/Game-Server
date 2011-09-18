@@ -11,6 +11,13 @@
 00000F81     5A - STORE_NAME          'RequestTooltipForItemTemplateId
 */
 
+item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
+{
+	item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+		if( !item )
+		{ return NULL; }
+		return item;
+}
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
@@ -77,7 +84,11 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsig
 			pym_addInt(&pms, itemTemplate->reloadTime);			//kWeaponIdx_ReloadTime		= 9
 			pym_addInt(&pms, itemTemplate->range);				//kWeaponIdx_Range			= 10
 			pym_addInt(&pms, itemTemplate->aeRadius);			//kWeaponIdx_AERadius		= 11
-			pym_addInt(&pms, itemTemplate->aeType);				//kWeaponIdx_AEType			= 12
+			if (itemTemplate->aeType == 0)
+			{ pym_addNoneStruct(&pms); }
+			else
+			{ pym_addInt(&pms, itemTemplate->aeType); }				//kWeaponIdx_AEType			= 12
+			
 			//kWeaponIdx_AltFire		= 13
 			pym_tuple_begin(&pms);		
 			if (itemTemplate->altActionId != 0)
@@ -211,7 +222,6 @@ void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, unsigned ch
 
 void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
-	printf("RequestEquipArmor pl0x\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -610,7 +620,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	{
 		item_sendEquippedInfo(testA, client);
 	}
-	testB = item_createFromTemplate("Weapon_Avatar_MachineGun_Physical_ELT_08_to_12");
+	testB = item_createFromTemplate("Weapon_Avatar_Rifle_Physical_UNC_01_to_05");
 	if( testB )
 	{
 		item_setLocationHomeinventory(testB, client);

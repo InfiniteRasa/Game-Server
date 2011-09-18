@@ -110,6 +110,46 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param,
 	hashTable_set(&mapChannel->ht_timerList, (unsigned int)timer, timer);
 }
 
+void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, int delay, manifestation_t* origin, int type)
+{
+	mapChannelAutoFireTimer_t timer;
+	timer.delay = delay;
+	timer.timeLeft = delay;
+	timer.origin = origin;
+	timer.type = type;
+	mapChannel->autoFire_timers.push_back(timer);
+}
+
+void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin)
+{
+	std::vector<mapChannelAutoFireTimer_t>::iterator timer = mapChannel->autoFire_timers.begin();
+	while (timer != mapChannel->autoFire_timers.end())
+	{
+		if (timer->origin == origin)
+		{
+			timer = mapChannel->autoFire_timers.erase(timer);
+		}
+		else { ++timer; }
+	}
+}
+
+void mapChannel_check_AutoFireTimers(mapChannel_t* mapChannel)
+{
+	std::vector<mapChannelAutoFireTimer_t>::iterator timer;
+	for(timer = mapChannel->autoFire_timers.begin(); timer < mapChannel->autoFire_timers.end(); timer++)
+	{
+		timer->timeLeft -= 100;
+		if (timer->timeLeft <= 0)
+		{
+			if (timer->origin->actor->inCombatMode == false)
+			{ continue; /* TODO: delete timer here */ }
+			if (timer->origin->targetEntityId)
+			{ missile_launch(mapChannel, timer->origin->actor, timer->origin->targetEntityId, timer->type, 10); }
+			timer->timeLeft = timer->delay;
+		}
+	}
+}
+
 //20110827 @dennton
 bool CheckTempCharacter(di_characterData_t *tcd)
 {
@@ -250,9 +290,6 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
 		return;
 	case 753: // RequestVisualCombatMode
-		printf("VisualCombatMode:\n");
-		HexOut(pyString, pyStringLen);
-		printf("\n\n");
 		manifestation_recv_RequestVisualCombatMode(cm, pyString, pyStringLen);
 		return;
 	case 759: // RequestActionInterrupt
@@ -587,7 +624,7 @@ int mapChannel_worker(mapChannelList_t *channelList)
 	}
 
 
-	printf("MapChannel started...\n");
+	printf("MapChannels started...\n");
 
 	while( true )
 	{
@@ -668,6 +705,8 @@ int mapChannel_worker(mapChannelList_t *channelList)
 				if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
 				{
 					int timePassed = 100;
+					
+					mapChannel_check_AutoFireTimers(mapChannel);
 					// parse through all timers
 					int count = hashTable_getCount(&mapChannel->ht_timerList);
 					mapChannelTimer_t **timerList = (mapChannelTimer_t**)hashTable_getValueArray(&mapChannel->ht_timerList);

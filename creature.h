@@ -8,6 +8,8 @@ typedef struct _creatureType_t
 	int entityClassId;
 	// stats info
 	int maxHealth;
+	int RangeMissile;
+	int MeleeMissile;
 }creatureType_t;
 
 creatureType_t*		creatureType_createCreatureType(int entityClassId, int nameId);

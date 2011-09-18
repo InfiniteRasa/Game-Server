@@ -161,6 +161,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 
 	if(creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
 	{
+		
 	   //__debugbreak();
            //calc new target location
 	       if(creature->wanderstate == 0)
@@ -237,7 +238,6 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 	}
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
 	{
-		
     	//__debugbreak();
 		if ( creature->currentHealth <=0)
 			return;
@@ -309,18 +309,13 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			{
 				//rangeattack (every 2 sec)
 				unsigned int time2 = GetTickCount();
-				if( (time2-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
+				if( (time2-creature->lastattack) > creature->attackspeed && (dist < creature->range) )
 				{
 					//__debugbreak();
 				    creature->lastattack = time2;
 					//if( creature->controller.targetEntityId )
 					
-
-					missile_launch(mapChannel, 
-				                  &creature->actor, 
-								  creature->controller.targetEntityId, 
-								  MISSILE_PISTOL, 
-								  1);
+					missile_launch(mapChannel, &creature->actor, creature->controller.targetEntityId, creature->type->MeleeMissile, 1);
 				}
 			}
 			else
@@ -332,18 +327,13 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			    updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f);
 				//rangeattack (every 2 sec)
 				unsigned int time = GetTickCount();
-				if( ((time-creature->lastattack) > creature->attackspeed) && (dist < creature-> range) && (creature->attack_habbit == 2) )
+				if( ((time-creature->lastattack) > creature->attackspeed) && (dist < creature->range) && (creature->attack_habbit == 2) )
 				{
 					//__debugbreak();
 				    creature->lastattack = time;
 					//if( creature->controller.targetEntityId )
 					
-
-					missile_launch(mapChannel, 
-				                  &creature->actor, 
-								  creature->controller.targetEntityId, 
-								  MISSILE_PISTOL, 
-								  1);
+					missile_launch(mapChannel, &creature->actor, creature->controller.targetEntityId, creature->type->RangeMissile, 1);
 				}
 			}//---range attack and movement
 		}

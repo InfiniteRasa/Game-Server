@@ -5,11 +5,11 @@ typedef struct _missile_t
 	int type;
 	int damageA;
 	int damageB;
+	int actionId;
+	int argId;
 	unsigned long long targetEntityId; // the entityId of the destination (it is possible that the object does no more exist on arrival)
 	actor_t* source;
 	int triggerTime; // amount of milliseconds left before the missile is triggered, is decreased on every tick
-	_missile_t *previous;
-	_missile_t *next;
 }missile_t;
 
 /*
@@ -26,5 +26,12 @@ void missile_check(mapChannel_t *mapChannel, int passedTime);
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage);
 
-#define MISSILE_PISTOL	1
-#define MISSILE_LIGHTNING 2
+#define MISSILE_PISTOL			1
+#define MISSILE_RIFLE			2
+#define MISSILE_THRAX_PISTOL	3
+#define MISSILE_THRAX_RIFLE		4
+#define MELEE_THRAX				5 
+#define MELEE_BOARGAR			6
+#define THRAX_KICK				7
+#define MISSILE_LIGHTNING		8
+#define MELEE_PISTOL			9

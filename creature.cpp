@@ -383,11 +383,26 @@ void creature_init()
 		int n, a=5, b=3;
 		n=sprintf (buffer, "TEST%d", i);
 
-		
-
 		creatureType_t* ct = creatureType_createCreatureType(i, 1337);
 		creatureType_setMaxHealth(ct, 150);
-
+		ct->RangeMissile = MISSILE_PISTOL;
+		ct->MeleeMissile = MISSILE_PISTOL;
+		if (ct->entityClassId == 25580) // bane pistol
+		{
+			ct->RangeMissile = MISSILE_THRAX_PISTOL;
+			ct->MeleeMissile = MELEE_THRAX;
+		}
+		if (ct->entityClassId == 6031) // boargar
+		{
+			ct->RangeMissile = MELEE_BOARGAR;
+			ct->MeleeMissile = MELEE_BOARGAR;
+		}
+		if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
+		{
+			ct->RangeMissile = MISSILE_PISTOL;
+			ct->MeleeMissile = MELEE_PISTOL;
+		}
+		
 		creatureType_registerCreatureType(ct, buffer);
 	}
 }
