@@ -157,9 +157,10 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 //todo: make walkingspeed, rotationspeed variable(fromd or textfile) 
 void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 {
-	 	
+	if (creature->currentHealth <= 0)
+	{ return; }
 
-	if(creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
+	if (creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
 	{
 		
 	   //__debugbreak();
