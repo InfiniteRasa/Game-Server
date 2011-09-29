@@ -5,7 +5,7 @@ typedef union
 	struct 
 	{
 		unsigned long long homeInventory[50*5]; // 250 slots
-		unsigned long long equippedInventory[16]; // armor
+		unsigned long long equippedInventory[17]; // armor
 		unsigned long long weaponDrawer[5];
 	};
 	struct  
