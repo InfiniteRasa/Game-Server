@@ -7,6 +7,11 @@ void missile_initForMapchannel(mapChannel_t *mapChannel)
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage)
 {
+	missile_launch(mapChannel, origin, targetEntityId, type, damage, -1);
+}
+
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage, float maxRange)
+{
 	missile_t missile;
 	missile.type = type;
 	missile.damageA = damage;
@@ -47,6 +52,14 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	float dy = targetActor->posY - origin->posY;
 	float dz = targetActor->posZ - origin->posZ;
 	float distance = sqrt(dx*dx+dy*dy+dz*dz);
+
+	//check range
+	if(maxRange >= 0){
+		if(distance > maxRange){
+			return;
+		}
+	}
+
 	switch( type )
 	{
 	case MISSILE_PISTOL:

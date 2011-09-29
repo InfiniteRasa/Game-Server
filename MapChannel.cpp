@@ -304,6 +304,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 	case METHODID_CHARACTERLOGOUT: // CharacterLogout
 		mapChannel_recv_CharacterLogout(cm, pyString, pyStringLen);
 		return;
+	case METHODID_REQUESTWEAPONATTACK://player melee
+		missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
+		return;
 	default:
 		printf("MapChannel_UnknownMethodID: %d\n", methodID);
 		printf("MapChannel_RPCPacket - Size: %d\n", pyStringLen);

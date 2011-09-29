@@ -25,6 +25,7 @@ void missile_initForMapchannel(mapChannel_t *mapChannel);
 void missile_check(mapChannel_t *mapChannel, int passedTime);
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage);
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage, float maxRange);
 
 #define MISSILE_PISTOL			1
 #define MISSILE_RIFLE			2
