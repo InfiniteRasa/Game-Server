@@ -318,6 +318,3 @@ notTradable = 0
 notPlaceableInLockbox = 0
 inventoryCategory = 1
 buybackPrice = 1000
-
-
-
