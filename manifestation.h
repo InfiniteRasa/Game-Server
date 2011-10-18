@@ -20,6 +20,7 @@ typedef struct _manifestation_t
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData);
 void manifestation_removePlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner);
 
+void manifestation_removeAppearanceItem(manifestation_t *manifestation, int itemClassId);
 void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB);
 void manifestation_updateAppearance(mapChannelClient_t *owner);
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client);

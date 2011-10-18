@@ -257,9 +257,13 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pySt
 
 	pyMarshalString_t pms;
 	item_t *item = (item_t*)entityMgr_get(client->inventory.equippedInventory[dstSlot]);
-	if( !item )
-		return;
-	manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+	if( !item ){
+		//remove item graphic if dequipped
+		item = (item_t*)entityMgr_get(swapId);
+		manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
+	}else{
+		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+	}
 	manifestation_updateAppearance(client);
 }
 
@@ -320,9 +324,13 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyS
 	{
 		inventory_notifyEquipmentUpdate(client);
 		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
-		if( !item )
-			return;
-		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+		if( !item ){
+			//remove item graphic if dequipped
+			item = (item_t*)entityMgr_get(swapId);
+			manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
+		}else{
+			manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+		}
 		manifestation_updateAppearance(client);
 	}
 }
@@ -615,36 +623,32 @@ void inventory_initForClient(mapChannelClient_t *client)
 	{
 		item_sendEquippedInfo(testA, client);
 		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
 	}
 	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Vest_05_to_08");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
 		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
 	}
 	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Gloves_05_to_08");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
 		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
 	}
 	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Legs_05_to_08");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
 		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
 	}
 	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Boots_05_to_08");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
 		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
 	}
+	manifestation_updateAppearance(client);
 	testB = item_createFromTemplate("Weapon_Avatar_Rifle_Physical_UNC_01_to_05");
 	if( testB )
 	{

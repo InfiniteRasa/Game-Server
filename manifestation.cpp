@@ -39,6 +39,14 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
 }
 
+void manifestation_removeAppearanceItem(manifestation_t *manifestation, int itemClassId)
+{
+	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
+	if( equipmentSlotId == 0 )
+		return;
+	manifestation->actor->appearanceData[equipmentSlotId-1].classId = 0;
+}
+
 void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB)
 {
 	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
