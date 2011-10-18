@@ -1,3 +1,4 @@
+#define _HAS_ITERATOR_DEBUGGING 0
 #include <vector>
 
 typedef struct _missile_t

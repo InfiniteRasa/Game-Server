@@ -1,3 +1,4 @@
+#define _HAS_ITERATOR_DEBUGGING 0
 #include <Winsock2.h>
 #include <Windows.h>
 #include <stdio.h>
