@@ -307,6 +307,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 	case METHODID_REQUESTWEAPONATTACK://player melee
 		missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
 		return;
+case METHODID_REVIVEME: // dead player wish to go to the hospital
+		printf("Revive me requested- Size: %d\n", pyStringLen);
+		return;
 	default:
 		printf("MapChannel_UnknownMethodID: %d\n", methodID);
 		printf("MapChannel_RPCPacket - Size: %d\n", pyStringLen);
