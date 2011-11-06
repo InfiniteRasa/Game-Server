@@ -326,10 +326,24 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
 				                                    client->player->actor, 
 													client->player->actor->entityId, 
-													206, 
+													METHODID_STATECHANGE, 
 													pym_getData(&pms), pym_getLen(&pms));
 			// fix health
 			client->player->actor->stats.healthCurrent = 0;
+
+			// send method id 595 "PlayerDead"
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addBool(&pms, true); // canRevive
+			pym_list_begin(&pms); // graveyardList (empty for now)
+			pym_list_end(&pms);
+			pym_addInt(&pms, client->player->actor->entityId); // ActorKilled
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
+				                                    client->player->actor, 
+													client->player->actor->entityId, 
+													METHODID_PLAYERDEAD, 
+													pym_getData(&pms), pym_getLen(&pms));
 			
 		}
 
