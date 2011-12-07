@@ -5,7 +5,7 @@ void charMgr_beginCharacterSelection(clientGamemain_t *cgm)
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addUnicode(&pms, "Change Me"); // familyName // this should be null if hasCharacters is 0
+	pym_addUnicode(&pms, "Name"); // familyName // this should be null if hasCharacters is 0
 	pym_addInt(&pms, 0); // hasCharacters
 	pym_addInt(&pms, cgm->userID); // userId
 	//pym_addInt(&pms, 5); // enabledRaceList
@@ -223,8 +223,8 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, int slotId, di_characterPr
 	//ClanData
 	pym_dict_addKey(&pms, "ClanData");
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 0);		// 0	clanID (0 marks no-clan)
-	pym_addUnicode(&pms, "");	// 1	clanName
+	pym_addInt(&pms, 123);		// 0	clanID (0 marks no-clan)
+	pym_addUnicode(&pms, "Infinite Salsa");	// 1	clanName
 	pym_tuple_end(&pms);
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
@@ -341,10 +341,10 @@ int charMgr_recv_requestCreateCharacterInSlot(clientGamemain_t *cgm, unsigned ch
 	characterData->raceID = raceId;
 	characterData->classId = 1; // recruit
 	// setup starting location
-	characterData->currentContextId = 1985 ; // bootcamp
-	characterData->posX = -218.328125f;
-	characterData->posY = 100.023438f;
-	characterData->posZ = -58.453125f;
+	characterData->currentContextId = 1220 ; // wilderness (alia das)
+	characterData->posX = 894.9f;
+	characterData->posY = 307.9f;
+	characterData->posZ = 347.1f;
 	// check name for valid letters
 	bool validName = true;
 	int nameLength = strlen(characterData->unicodeName);

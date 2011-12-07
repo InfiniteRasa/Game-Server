@@ -163,6 +163,15 @@ typedef struct
 
 /* TEST 2*/
 
+typedef struct baseBehavior_baseNode
+{
+	float x;
+	float y;
+	float z;
+	int contextid;
+	int pindex; //-- postition of pathnode
+}cbaseNode;
+
 typedef struct  
 {
 	
@@ -171,6 +180,8 @@ typedef struct
 	float posY;
 	float posZ;
 	int currentContextId;
+	baseBehavior_baseNode *pathnodes;
+	int nodeCount;
 	
 }di_spawnDataW2_t;
 
@@ -186,6 +197,14 @@ typedef struct
 	int anim_type; //---spawnanimation: drophip,beam,none
 	int activeSpawnCount; //--maximun simultaneously delivered spawnpoints
 	int locktime;//---time to be passed before location can used again
+	int attackspeed; //--attackspeed
+	int attackaction; //---attack animation
+	float velocity; //---movement speed
+	int attackstyle; //---range or melee
+	int actionid;
+	int dmg_melee;
+	int dmg_range;
+	int hitpoints;
 }di_spawnTypeW2_t;
 
 typedef struct  
@@ -200,6 +219,49 @@ typedef struct
 {
 	di_spawnDataW2_t *spawnData;
 }diJob_updateSpawnW2_t;
+
+typedef struct  
+{
+	
+	int spawntype;
+	float posX;
+	float posY;
+	float posZ;
+	int pathindex;
+	int currentContextId;
+	
+}di_pathNodeDataW2_t;
+
+typedef struct  
+{
+	di_pathNodeDataW2_t *pnodedata;
+}diJob_updatePathNodeW2_t;
+
+typedef struct
+{
+  unsigned int id;
+  unsigned int contextid;
+  unsigned int type;   //--- twostate teleporter, waypoint, wormhole,etc
+  unsigned int modelid; //---appereance
+  char label[50];
+  float sx; //---current location
+  float sy;
+  float sz;
+  float dx; //---destination
+  float dy;
+  float dz;
+  float bx; //---activation area
+  float bz;
+
+}di_teleporterData;
+
+
+typedef struct
+{
+    unsigned int mapContextId;
+	unsigned int scount;
+	di_teleporterData *tdata;
+}diJob_teleporterData;
 
 /* mission */
 
@@ -296,3 +358,6 @@ void dataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)
 void dataInterface_Spawnpool_updateSpawnW2(di_spawnDataW2_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
 void dataInterface_Spawn_getSpawnpool(unsigned int mapContextId, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param);
+void dataInterface_PathNode_setPathnode(di_pathNodeDataW2_t *pnodedata, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param);
+void dataInterface_teleporter_getList(unsigned int mapContextId, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);
+void dataInterface_teleporter_updateList( di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);

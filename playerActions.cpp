@@ -31,7 +31,7 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, unsigned c
 	{
 	case 194: // Lightning
 		printf("Lightning: Target %u\n", (unsigned int)targetEntityId);
-		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 20);
+		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 40);
 		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
 	case 401: // Sprint

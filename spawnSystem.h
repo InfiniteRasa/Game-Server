@@ -34,6 +34,12 @@ typedef struct _spawnPool_t
 	int deadCreatures; // number of spawned creatures that are dead (either killed or spawned dead)
 	int spawnAnimationType; //which type of animation introduces creatures
 	int faction;
+	baseBehavior_baseNode *pathnodes;
+	int attackspeed;
+	int attackanim;
+	float velocity;
+	int attackstyle;
+	int actionid;
 	// default action assignment
 	// nothing here until 
 }spawnPool_t;

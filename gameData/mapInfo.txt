@@ -3,7 +3,7 @@
 (1985, 'adv_bootcamp', 783, 2) #Planet Foreas - Bootcamp 
 ##Foreas Concordia
 ###Foreas Concordia Divide
-(1148, 'adv_foreas_concordia_divide', 1520, 0) #Planet Foreas: Concordia - Divide
+(1148, 'adv_foreas_concordia_divide', 1584, 0) #Planet Foreas: Concordia - Divide
 (1347, 'adv_foreas_concordia_divide_minoscaverns', 209, 0) #Planet Foreas: Concordia - Divide (Minos Caverns)
 (1348, 'adv_foreas_concordia_divide_timoramines', 286, 0) #Planet Foreas: Concordia - Divide (Timora Mines)
 (1349, 'adv_foreas_concordia_divide_torcastraprison', 465, 0) #Planet Foreas: Concordia - Divide (Torcastra Prison)

@@ -6,18 +6,20 @@
 #define ITEM		 6
 #define WEAPON		 2
 
+
+item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
+{
+item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+if( !item )
+
+  { return NULL; }
+return item;
+}
+
 /*
 578
 00000F81     5A - STORE_NAME          'RequestTooltipForItemTemplateId
 */
-
-item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
-{
-	item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
-		if( !item )
-		{ return NULL; }
-		return item;
-}
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
@@ -84,11 +86,12 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsig
 			pym_addInt(&pms, itemTemplate->reloadTime);			//kWeaponIdx_ReloadTime		= 9
 			pym_addInt(&pms, itemTemplate->range);				//kWeaponIdx_Range			= 10
 			pym_addInt(&pms, itemTemplate->aeRadius);			//kWeaponIdx_AERadius		= 11
-			if (itemTemplate->aeType == 0)
+			//pym_addInt(&pms, itemTemplate->aeType);				//kWeaponIdx_AEType			= 12
+			 if (itemTemplate->aeType == 0)
 			{ pym_addNoneStruct(&pms); }
 			else
-			{ pym_addInt(&pms, itemTemplate->aeType); }				//kWeaponIdx_AEType			= 12
-			
+			{ pym_addInt(&pms, itemTemplate->aeType); }        //kWeaponIdx_AEType      = 12
+
 			//kWeaponIdx_AltFire		= 13
 			pym_tuple_begin(&pms);		
 			if (itemTemplate->altActionId != 0)
@@ -222,6 +225,7 @@ void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, unsigned ch
 
 void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
+	printf("RequestEquipArmor pl0x\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -257,11 +261,13 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pySt
 
 	pyMarshalString_t pms;
 	item_t *item = (item_t*)entityMgr_get(client->inventory.equippedInventory[dstSlot]);
-	if( !item ){
+	if( !item )
+	{
 		//remove item graphic if dequipped
 		item = (item_t*)entityMgr_get(swapId);
 		manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
-	}else{
+	}else
+	{
 		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
 	}
 	manifestation_updateAppearance(client);
@@ -309,30 +315,28 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyS
 	//pym_addInt(&pms, dstSlot); // slotId
 	//pym_addBool(&pms, false); // requested
 	//pym_tuple_end(&pms);
-	//netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
 	
+	
+	//netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
 	//if( dstSlot == 0 && client->inventory.weaponDrawer[0] )
-	//{
-	//	item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
-	//	if( !item )
-	//		return;
-	//	manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
-	//	manifestation_updateAppearance(client);
-	//}// i dont think we need this
-
-	if( dstSlot == client->inventory.activeWeaponDrawer )
+	if( dstSlot == client->inventory.activeWeaponDrawer ) //---@ 4ae9585968 Disastorm
 	{
 		inventory_notifyEquipmentUpdate(client);
 		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
-		if( !item ){
+		if( !item )
+		{
 			//remove item graphic if dequipped
 			item = (item_t*)entityMgr_get(swapId);
 			manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
-		}else{
+		}
+		else
+		{
 			manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
 		}
 		manifestation_updateAppearance(client);
 	}
+	
+
 }
 
 /*
@@ -355,13 +359,12 @@ void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString,
 	pym_addBool(&pms, true);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
-
-	//tell client to change weapon appearance
-	inventory_notifyEquipmentUpdate(cm);
+	//tell client to change weapon appearance //---@ 4ae9585968 Disastorm
+ 	inventory_notifyEquipmentUpdate(cm);
 	item_t *item = (item_t*)entityMgr_get(cm->inventory.weaponDrawer[cm->inventory.activeWeaponDrawer]);
 	if( !item )
-		return;
-	manifestation_setAppearanceItem(cm->player, item->itemTemplate->classId, 0xFF808080);
+  		return;
+	 manifestation_setAppearanceItem(cm->player, item->itemTemplate->classId, 0xFF808080);
 	manifestation_updateAppearance(cm);
 }
  
@@ -618,35 +621,41 @@ void inventory_initForClient(mapChannelClient_t *client)
 	item_t *testA;
 	item_t *testB;
 
-	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Helmet_05_to_08");
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Vest_15_to_19");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		//---@ 4ae9585968 Disastorm
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
 	}
-	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Vest_05_to_08");
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Legs_15_to_19");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
 	}
-	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Gloves_05_to_08");
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Helmet_15_to_19");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
 	}
-	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Legs_05_to_08");
+	testA = item_createFromTemplate("[_Graviton_V01_CMN_Boots_15_to_19");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	  
 	}
-	testA = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Boots_05_to_08");
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Gloves_15_to_19");
 	if( testA )
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	    
 	}
 	manifestation_updateAppearance(client);
 	testB = item_createFromTemplate("Weapon_Avatar_Rifle_Physical_UNC_01_to_05");
@@ -656,6 +665,72 @@ void inventory_initForClient(mapChannelClient_t *client)
 		item_sendInfo(testB);
 	}
 	testB = item_createFromTemplate("Weapon_Avatar_Pistol_Physical_UNC_01_to_04");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_MachineGun_Physical_ELT_08_to_12");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v1_Physical_UNC_07_to_11");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Helmet_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Vest_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Gloves_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Legs_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Boots_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_PropellantGun_Ice_CMN_32_to_36");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_GrenadeLauncher_Physical_CMN_35_to_39");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v3_Fire_CMN_34_to_38");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Test_Weapon_Avatar_Machinegun_V3");
 	if( testB )
 	{
 		item_setLocationHomeinventory(testB, client);

@@ -8,7 +8,222 @@
 
 HashTable_uint32_t ht_mapChannelsByContextId;
 mapChannelList_t *global_channelList; //20110827 @dennton
+int gridL1;
+int gridL2;
+int gridCount;
+int** entityPosGrid;
+int** forcefieldMap;
 
+void mapteleporter_teleportEntity(int destX,int destY, int destZ, int mapContextId, mapChannelClient_t *player)
+{
+    destY += 700;
+	printf("teleport to: x y z map - %d %d %d %d \n",destX,destY,destZ,mapContextId);
+	
+	//remove entity from old map - remove client from all channels
+			communicator_playerExitMap(player);
+			//unregister player
+			//communicator_unregisterPlayer(cm);
+			//remove visible entity
+			EnterCriticalSection(&player->cgm->cs_general);
+			cellMgr_removeFromWorld(player);
+			// remove from list
+			for(int i=0; i<player->mapChannel->playerCount; i++)
+			{
+				if( player == player->mapChannel->playerList[i] )
+				{
+					if( i == player->mapChannel->playerCount-1 )
+					{
+						player->mapChannel->playerCount--;
+					}
+					else
+					{
+						player->mapChannel->playerList[i] = player->mapChannel->playerList[player->mapChannel->playerCount-1];
+						player->mapChannel->playerCount--;
+					}
+					break;
+				}
+			}
+			LeaveCriticalSection(&player->cgm->cs_general);
+				
+			//############## map loading stuff ##############
+			// send PreWonkavate (clientMethod.134)
+			pyMarshalString_t pms;
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, 0); // wonkType - actually not used by the game
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(player->cgm, 5, 134, pym_getData(&pms), pym_getLen(&pms));
+			// send Wonkavate (inputstateRouter.242)
+			player->cgm->mapLoadContextId = mapContextId;
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, mapContextId);	// gameContextId (alias mapId)
+			pym_addInt(&pms, 0);	// instanceId ( not important for now )
+			// find map version
+			int mapVersion = 0; // default = 0;
+			for(int i=0; i<mapInfoCount; i++)
+			{
+				if( mapInfoArray[i].contextId == mapContextId )
+				{
+					mapVersion = mapInfoArray[i].version;
+					break;
+				}
+			}
+			pym_addInt(&pms, mapVersion);	// templateVersion ( from the map file? )
+			pym_tuple_begin(&pms);  // startPosition
+			pym_addFloat(&pms, destX); // x (todo: send as float)
+			pym_addFloat(&pms, destY); // y (todo: send as float)
+			pym_addFloat(&pms, destZ); // z (todo: send as float)
+			pym_tuple_end(&pms);
+			pym_addInt(&pms, 0);	// startRotation (todo, read from db and send as float)
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(player->cgm, 6, METHODID_WONKAVATE, pym_getData(&pms), pym_getLen(&pms));
+			
+			//################## player assigning ###############
+			communicator_loginOk(player->mapChannel, player);
+			communicator_playerEnterMap(player);
+			//add entity to new map
+			player->player->actor->posX = destX; 
+			player->player->actor->posY = destY;
+			player->player->actor->posZ = destZ;
+			//cm->mapChannel->mapInfo->contextId = telepos.mapContextId;
+		  
+			
+			player->player->controllerUser->inventory = player->inventory;
+			player->player->controllerUser->mission = player->mission;
+			player->tempCharacterData = player->player->controllerUser->tempCharacterData;
+
+				
+			//---search new mapchannel
+			for(int chan=0; chan < global_channelList->mapChannelCount; chan++)
+			{
+               mapChannel_t *mapChannel = global_channelList->mapChannelArray+chan;
+			   if(mapChannel->mapInfo->contextId == mapContextId)
+			   {
+				   player->mapChannel = mapChannel;
+				   break;
+			   }
+			}
+
+			mapChannel_t *mapChannel = player->mapChannel;
+			EnterCriticalSection(&player->mapChannel->criticalSection);
+			mapChannel->playerList[mapChannel->playerCount] = player;
+			mapChannel->playerCount++;
+			hashTable_set(&mapChannel->ht_socketToClient, (unsigned int)player->cgm->socket, player);
+			LeaveCriticalSection(&mapChannel->criticalSection);
+			
+			player->player->actor->posX = destX; 
+			player->player->actor->posY = destY;
+			player->player->actor->posZ = destZ;
+			cellMgr_addToWorld(player); //cellintroducing to player /from players
+			// setCurrentContextId (clientMethod.362)
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, player->mapChannel->mapInfo->contextId);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(player->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
+
+}
+
+void mapteleporter_checkForEntityInRange(mapChannel_t *mapChannel)
+{
+    
+	pyMarshalString_t pms;
+
+	int tCount =0;
+	float minimumRange = 1.8f;
+	float difX = 0.0f;
+	float difY = 0.0f;
+	float difZ = 0.0f;
+	float dist = 0.0f;
+	minimumRange *= minimumRange;
+	//test zoneteleporters map. should be builded from db
+	int **porting_locs = new int*[4];
+	// values 0-9: source-contextid, source xyz ,dest xyz , dest-contextid, cell-x, cell-z
+	porting_locs[0] = new int [10]; // zone teleporter #1: wilderness -> divide
+	porting_locs[0][0] = 1220;
+	porting_locs[0][1] = 300;
+	porting_locs[0][2] = 142;
+	porting_locs[0][3] = -580;
+	porting_locs[0][4] = -965;
+	porting_locs[0][5] = 176;
+	porting_locs[0][6] = 634;
+	porting_locs[0][7] = 1148;
+	porting_locs[0][8] = (unsigned int)((porting_locs[0][1] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[0][9] = (unsigned int)((porting_locs[0][3] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[1] = new int [10]; // zone teleporter #1: divide -> wilderness
+	porting_locs[1][0] = 1148;
+	porting_locs[1][1] = -1008;
+	porting_locs[1][2] = 180;
+	porting_locs[1][3] = 671;
+	porting_locs[1][4] = 280;
+	porting_locs[1][5] = 152;
+	porting_locs[1][6] = -538;
+	porting_locs[1][7] = 1220;
+	porting_locs[1][8] = (unsigned int)((porting_locs[1][1] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[1][9] = (unsigned int)((porting_locs[1][3] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[2] = new int [10]; //zone zeleporter #2: wilderness -> divide
+	porting_locs[2][0] = 1220;
+	porting_locs[2][1] = 891;
+	porting_locs[2][2] = 268;
+	porting_locs[2][3] = 32;
+	porting_locs[2][4] = 436;
+	porting_locs[2][5] = 173;
+	porting_locs[2][6] = 1193;
+	porting_locs[2][7] = 1148;
+	porting_locs[2][8] = (unsigned int)((porting_locs[2][1] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[2][9] = (unsigned int)((porting_locs[2][3] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[3] = new int [10]; //zone teleporter #2: divide -> wilderness
+	porting_locs[3][0] = 1148;
+	porting_locs[3][1] = 499;
+	porting_locs[3][2] = 184;
+	porting_locs[3][3] = 1202;
+	porting_locs[3][4] = 905;
+	porting_locs[3][5] = 273;
+	porting_locs[3][6] = 65;
+	porting_locs[3][7] = 1220;
+	porting_locs[3][8] = (unsigned int)((porting_locs[3][1] / CELL_SIZE) + CELL_BIAS);
+	porting_locs[3][9] = (unsigned int)((porting_locs[3][3] / CELL_SIZE) + CELL_BIAS);
+ 
+	//---search through the whole teleporter list
+	for (int x =0; x < 4; x++)
+	{
+		
+	    float mPosX = porting_locs[x][1]; //teleporter x-pos 
+		float mPosZ = porting_locs[x][3]; //		   z-pos
+		//############ get teleporter mapcell ###################################
+		mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, 
+			                                    porting_locs[x][8], 
+												porting_locs[x][9]);
+		if(mapCell == NULL) continue;
+		//############ get all players in current celllocation ###################
+		mapChannelClient_t **playerList = NULL;
+		tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
+		playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+
+		// check players in range
+		for(int i=0; i<tCount; i++)
+		{
+			if( playerList == NULL) break; //no player found
+			mapChannelClient_t *player = playerList[i];
+			if(player->player->actor->stats.healthCurrent<=0) break;
+			difX = (int)(player->player->actor->posX) - mPosX;
+			difZ = (int)(player->player->actor->posZ) - mPosZ;
+			dist = difX*difX + difZ*difZ;
+			//player(s) in range: do teleporting
+			if( (dist <= minimumRange) &&   (porting_locs[x][0] == player->mapChannel->mapInfo->contextId))
+			{
+			    
+				 mapteleporter_teleportEntity( porting_locs[x][4],
+											   porting_locs[x][5],
+											   porting_locs[x][6],
+											   porting_locs[x][7],
+											   player);
+					
+			}
+		}//---for: playercount
+	}//---for: all teleporter locations       				
+}
 
 void _cb_mapChannel_addNewPlayer(void *param, diJob_characterData_t *jobData)
 {
@@ -110,44 +325,45 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param,
 	hashTable_set(&mapChannel->ht_timerList, (unsigned int)timer, timer);
 }
 
+//---dahrkael @ 190f2fc86c 
 void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, int delay, manifestation_t* origin, int type)
 {
-	mapChannelAutoFireTimer_t timer;
-	timer.delay = delay;
-	timer.timeLeft = delay;
-	timer.origin = origin;
-	timer.type = type;
-	mapChannel->autoFire_timers.push_back(timer);
+mapChannelAutoFireTimer_t timer;
+timer.delay = delay;
+timer.timeLeft = delay;
+timer.origin = origin;
+timer.type = type;
+mapChannel->autoFire_timers.push_back(timer);
 }
 
 void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin)
 {
-	std::vector<mapChannelAutoFireTimer_t>::iterator timer = mapChannel->autoFire_timers.begin();
-	while (timer != mapChannel->autoFire_timers.end())
-	{
-		if (timer->origin == origin)
-		{
-			timer = mapChannel->autoFire_timers.erase(timer);
-		}
-		else { ++timer; }
-	}
+std::vector<mapChannelAutoFireTimer_t>::iterator timer = mapChannel->autoFire_timers.begin();
+while (timer != mapChannel->autoFire_timers.end())
+{
+if (timer->origin == origin)
+{
+timer = mapChannel->autoFire_timers.erase(timer);
+}
+else { ++timer; }
+}
 }
 
 void mapChannel_check_AutoFireTimers(mapChannel_t* mapChannel)
 {
-	std::vector<mapChannelAutoFireTimer_t>::iterator timer;
-	for(timer = mapChannel->autoFire_timers.begin(); timer < mapChannel->autoFire_timers.end(); timer++)
-	{
-		timer->timeLeft -= 100;
-		if (timer->timeLeft <= 0)
-		{
-			if (timer->origin->actor->inCombatMode == false)
-			{ continue; /* TODO: delete timer here */ }
-			if (timer->origin->targetEntityId)
-			{ missile_launch(mapChannel, timer->origin->actor, timer->origin->targetEntityId, timer->type, 10); }
-			timer->timeLeft = timer->delay;
-		}
-	}
+std::vector<mapChannelAutoFireTimer_t>::iterator timer;
+for(timer = mapChannel->autoFire_timers.begin(); timer < mapChannel->autoFire_timers.end(); timer++)
+{
+timer->timeLeft -= 100;
+if (timer->timeLeft <= 0)
+{
+if (timer->origin->actor->inCombatMode == false)
+{ continue; /* TODO: delete timer here */ }
+if (timer->origin->targetEntityId)
+{ missile_launch(mapChannel, timer->origin->actor, timer->origin->targetEntityId, timer->type, 10); }
+timer->timeLeft = timer->delay;
+}
+}
 }
 
 //20110827 @dennton
@@ -290,6 +506,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
 		return;
 	case 753: // RequestVisualCombatMode
+		printf("VisualCombatMode:\n");
+		HexOut(pyString, pyStringLen);
+		printf("\n\n");
 		manifestation_recv_RequestVisualCombatMode(cm, pyString, pyStringLen);
 		return;
 	case 759: // RequestActionInterrupt
@@ -305,9 +524,16 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, unsigned int methodID, 
 		mapChannel_recv_CharacterLogout(cm, pyString, pyStringLen);
 		return;
 	case METHODID_REQUESTWEAPONATTACK://player melee
-		missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
+		if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27220)
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_RIFLE, 20, 2);
+		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27320)
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_SHOTGUN, 20, 2);
+		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 28066)
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_MACHINEGUN, 20, 2);
+		else
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
 		return;
-case METHODID_REVIVEME: // dead player wish to go to the hospital
+	case METHODID_REVIVEME: // dead player wish to go to the hospital
 		printf("Revive me requested- Size: %d\n", pyStringLen);
 		return;
 	default:
@@ -624,13 +850,22 @@ int mapChannel_worker(mapChannelList_t *channelList)
 		mission_initForChannel(mapChannel);
 		npc_initForMapChannel(mapChannel); //---db use
 		missile_initForMapchannel(mapChannel);
-		spawnPool_initForMapChannel(mapChannel); //---todo:db use
+		spawnPool_initForMapChannel(mapChannel); //---todo:db use -done
 		controller_initForMapChannel(mapChannel);
+		teleporter_initForMapChannel(mapChannel); //---load teleporters
 		printf("Map: [%s]\n",mapChannel->mapInfo->name);
 	}
 
+	//---init entity position grid
+	gridL1 = 50000; //stores 50.000 entity positions
+    gridL2 = 5; //stores: mapid,entityid,x,z,faction
+	gridCount = 0; //actual count of position values
+    entityPosGrid = new int*[gridL1]; 
 
-	printf("MapChannels started...\n");
+	forcefieldMap = new int*[100]; //stores 100 forcefieldstates globally
+	
+
+	printf("MapChannel started...\n");
 
 	while( true )
 	{
@@ -702,18 +937,19 @@ int mapChannel_worker(mapChannelList_t *channelList)
 				{
 					dynamicObject_check(mapChannel, 100);
 					mapChannel->timer_dynObjUpdate += 100;
+
 				}
 				if( (currentTime - mapChannel->timer_controller) >= 250 )
 				{
+					mapteleporter_checkForEntityInRange(mapChannel);
 					controller_mapChannelThink(mapChannel);
 					mapChannel->timer_controller += 250;
 				}
 				if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
 				{
 					int timePassed = 100;
-					
-					mapChannel_check_AutoFireTimers(mapChannel);
 					// parse through all timers
+					mapChannel_check_AutoFireTimers(mapChannel);
 					int count = hashTable_getCount(&mapChannel->ht_timerList);
 					mapChannelTimer_t **timerList = (mapChannelTimer_t**)hashTable_getValueArray(&mapChannel->ht_timerList);
 					for(int i=0; i<count; i++)

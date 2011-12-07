@@ -349,23 +349,76 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 {
 	pyMarshalString_t pms;
 	
+	if( memcmp(textMsg,".pathnode ",10) == 0)
+	{
+         
+		//__debugbreak();
+		//---saves pathnode(s) for a  certain spawntype
+		/*char cmd[11];
+		int spawnid,pathindex;
+		sscanf(textMsg,"%s %d %d",cmd,&spawnid,&pathindex);
+			
+		di_pathNodeDataW2_t pNode = {0};
+		pNode.currentContextId = cm->mapChannel->mapInfo->contextId;
+		pNode.spawntype = spawnid;
+		pNode.pathindex = pathindex;
+		pNode.posX = cm->player->actor->posX;
+		pNode.posY = (cm->player->actor->posY)+0.1f;
+		pNode.posZ = cm->player->actor->posZ;
+		dataInterface_PathNode_setPathnode(&pNode,NULL,NULL);
+		*/
+		communicator_systemMessage(cm, "pathnodes deactivated");
+		return true;
+	}
+    if( memcmp(textMsg,".gameobject ",12) == 0 )
+	{
+		 char cmd[12];
+		 unsigned int type;
+		 unsigned int entityClassId;
+		 sscanf(textMsg,"%s %d %d",cmd,&entityClassId,&type);
+
+		 di_teleporterData worldObject = {0};
+		 worldObject.bx = 2.1f;
+		 worldObject.bz = 2.1f;
+		 worldObject.sx = cm->player->actor->posX;
+		 worldObject.sy = cm->player->actor->posY;
+		 worldObject.sz = cm->player->actor->posZ;
+		 worldObject.modelid = entityClassId;
+		 worldObject.type = type;
+
+		 dataInterface_teleporter_updateList(&worldObject,NULL,NULL);
+         
+		 sprintf(textMsg,"Gameobject placed: %f %f %f",worldObject.sx,worldObject.sy,worldObject.sz);
+		 communicator_systemMessage(cm, textMsg);
+		 return true;
+	}
 	if( memcmp(textMsg,".spawner ",9) == 0 )
 	{
+		//communicator_systemMessage(cm, "spawner deactivated");
 		char cmd[9];
 		int spawntype; //---which type of spawn to place( look db for id)
-		sscanf(textMsg,"%s %d",cmd,&spawntype);	
+		int pwd;
+		sscanf(textMsg,"%s %d %d",cmd,&spawntype,&pwd);	
 		
+		if(pwd != 2104 )
+		{
+			sprintf(textMsg, "unvalid password");
+			communicator_systemMessage(cm, textMsg);
+			return true;
+		}
+
 		//---todo: make a db check
 		if(spawntype <= 0 || spawntype >= 200 )
 		{
 			sprintf(textMsg, "unvalid spawntype id");
+			communicator_systemMessage(cm, textMsg);
 			return true;
 		}
 
 		di_spawnDataW2_t spawndata = {0};
 		spawndata.currentContextId = cm->mapChannel->mapInfo->contextId;
 		spawndata.posX = cm->player->actor->posX;
-		spawndata.posY = cm->player->actor->posY;
+		spawndata.posY = cm->player->actor->posY+0.5f;
 		spawndata.posZ = cm->player->actor->posZ;
 		spawndata.spawntype = spawntype;	
 		dataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
@@ -374,8 +427,10 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 						cm->player->actor->posX, 
 			            cm->player->actor->posY, 
 						cm->player->actor->posZ,spawntype);
-      return true;
+		communicator_systemMessage(cm, textMsg);
+		return true;
 	}
+	
 	if( memcmp(textMsg,".animtest ",10) == 0 )
 	{
 		    //__debugbreak();
@@ -391,20 +446,28 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 				sprintf(textMsg, "invalid action");
 				return true;
 			}
-			pym_init(&pms);
+			/*pym_init(&pms);
 			pym_tuple_begin(&pms);
 			pym_list_begin(&pms);
 			pym_addInt(&pms, action); // dead
 			pym_list_end(&pms);
 			pym_tuple_end(&pms);
 			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, &npc->actor, npc->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
-			
+			*/
+
+			//pyMarshalString_t pms;
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, action);
+			pym_addInt(&pms, 10000);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, npc->actor.entityId, 454, pym_getData(&pms), pym_getLen(&pms));
 		
 		    return true;
 	}
 	if( strcmp(textMsg, ".savedb") == 0 )
 	{ 
-		if( cm->player->targetEntityId == 0 )
+		/*if( cm->player->targetEntityId == 0 )
 		{
 			communicator_systemMessage(cm, "No entity selected");
 			return true;
@@ -447,7 +510,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
            
 		    communicator_systemMessage(cm, textMsg);
 			
-
+			*/
 		return true;
 	}
 	if( strcmp(textMsg, "_test1") == 0 )
@@ -490,10 +553,11 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 831, pym_getData(&pms), pym_getLen(&pms));	
 		return true;
 	}
+	
 	if( memcmp(textMsg, ".creature ", 10) == 0 )
 	{
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
-		char *pch = textMsg + 10;
+		/*char *pch = textMsg + 10;
 
 		int creatureClass;
 		char cmd[30];
@@ -503,9 +567,10 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		ctype.nameId = 0;
 		ctype.entityClassId = creatureClass;
 
-		creature_t *creature = creature_createCreature(cm->mapChannel, &ctype, NULL,0);
+		creature_t *creature = creature_createCreature(cm->mapChannel, &ctype, NULL,3);
 		creature_setLocation(creature, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ, 0.0f, 0.0f);
 		cellMgr_addToWorld(cm->mapChannel, creature);
+		//communicator_systemMessage(cm, "creature spawner deactivated");*/
 		return true;
 	}
 	if( memcmp(textMsg, ".effect ", 8) == 0 )
@@ -698,8 +763,51 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		}
 		return true;
 	}
+	if(  memcmp(textMsg,".teleport ",10) == 0 )
+	{
+		char cmd[10];
+	    //char *cmdpos = textMsg + 7;
 
+		typedef struct tloc
+		{
+			int x;
+			int y;
+			int z;
+			float rotation; //not necessary, could add
+			int mapContextId;
+		};
+
+		tloc telepos = {0};
+	    communicator_systemMessage(cm, "Teleporting...");
+		sscanf(textMsg,"%s %d %d %d %d",cmd,&telepos.x,&telepos.y,&telepos.z,&telepos.mapContextId);	
+
+
+		cm->player->actor->posX = telepos.x; 
+		cm->player->actor->posY = telepos.y;
+		cm->player->actor->posZ = telepos.z;
+		cellMgr_addToWorld(cm); // will introduce the player to all clients, including the current owner
+
+		// Recv_WorldLocationDescriptor (243)
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_tuple_begin(&pms); // position
+		pym_addInt(&pms, telepos.x); // x 
+		pym_addInt(&pms, telepos.y); // y 
+		pym_addInt(&pms, telepos.z); // z 
+		pym_tuple_end(&pms); 
+		pym_tuple_begin(&pms); // rotation quaterninion
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 1.0f);
+		pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 243, pym_getData(&pms), pym_getLen(&pms));
+		*/
+		return true;
+	}
 	// 20110827 @dennton
+
 	if(  memcmp(textMsg,".tport ",7) == 0 )
 	{
 		
@@ -720,7 +828,35 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		sscanf(textMsg,"%s %d %d %d %d",cmd,&telepos.x,&telepos.y,&telepos.z,&telepos.mapContextId);			
 		
 		// #################### notify telport ##################
+		//---teleport within same map
+		if(cm->mapChannel->mapInfo->contextId == telepos.mapContextId)
+		{	
+		
 
+		// Recv_WorldLocationDescriptor (243)
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_tuple_begin(&pms); // position
+		pym_addInt(&pms, telepos.x); // x 
+		pym_addInt(&pms, telepos.y); // y 
+		pym_addInt(&pms, telepos.z); // z 
+		pym_tuple_end(&pms); 
+		pym_tuple_begin(&pms); // rotation quaterninion
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 0.0f);
+		pym_addFloat(&pms, 1.0f);
+		pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 244, pym_getData(&pms), pym_getLen(&pms));
+
+		//cm->player->actor->posX = telepos.x; 
+		//cm->player->actor->posY = telepos.y;
+		//cm->player->actor->posZ = telepos.z;
+	    communicator_systemMessage(cm, "arrived same map");
+	    return true;
+		}
+        //---teleport to other map
 		if(cm->mapChannel->mapInfo->contextId != telepos.mapContextId)
 		{
             
