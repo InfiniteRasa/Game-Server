@@ -1,16 +1,16 @@
 [Game Server Database]
 dbHost = localhost
 dbPort = 3306
-dbName = trasa
-dbUser = root
-dbPass = den17
+dbName = tabularasadb
+dbUser = user
+dbPass = pwd
 
 [Auth Server Database]
 dbHost = localhost
 dbPort = 3306
-dbName = trasa
-dbUser = root
-dbPass = den17
+dbName = tabularasadb
+dbUser = user
+dbPass = pwd
 
 [Game Server]
 #IPAddress = 102.96.159.79
