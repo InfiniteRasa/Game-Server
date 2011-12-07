@@ -36,6 +36,7 @@ typedef struct _clientGamemain_t
 void GameMain_PassClient(SOCKET s, TABULACRYPT2 *tbc2);
 void GameMain_PassClientToCharacterSelection(clientGamemain_t *cgm);
 
+int findSubsize(int current, unsigned char *data);
 
 clientGamemain_t* GameMain_isolate(clientGamemain_t *cgm);
 int findSubsize(int current, unsigned char *data);

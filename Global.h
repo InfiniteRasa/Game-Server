@@ -1,14 +1,19 @@
+#if(_MSC_VER>=1600)
+ #define _HAS_ITERATOR_DEBUGGING 0	
+#endif
+
 #include <Winsock2.h>
 #include <Windows.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "fileMgr.h"
 #include "hashTable.h"
 
 #include "DataInterface.h"
 
-#include "AuthServerUtil.h"
+//#include "AuthServerUtil.h"
 #include "main.h"
 #include "Bignum.h"
 #include "TabulaCrypt.h"

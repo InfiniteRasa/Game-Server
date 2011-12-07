@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="TabulaGameServer">
+</Property><Property Name="Projektmappendatei" Value="E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\TabulaGameServer.sln">
+</Property><Property Name="Date" Value="Freitag, 2. September 2011">
+</Property><Property Name="Time" Value="16:33">
+</Property></Properties><Event ErrorLevel="0" Project="TabulaGameServer" Source="TabulaGameServer.vcproj" Description="Converting project file 'E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\TabulaGameServer.vcproj'.">
+</Event><Event ErrorLevel="1" Project="TabulaGameServer" Source="TabulaGameServer.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="TabulaGameServer" Source="TabulaGameServer.vcproj" Description="Done converting to new project file 'E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\TabulaGameServer.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="TabulaGameServer" Source="TabulaGameServer.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="TabulaGameServer.sln" Description="Die Projektmappe wurde erfolgreich konvertiert.">
+</Event><Event ErrorLevel="3" Project="" Source="TabulaGameServer.sln" Description="Converted">
+</Event></UpgradeLog>

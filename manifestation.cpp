@@ -19,7 +19,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	// set gameMap timeOfDay (Recv_SetSkyTime 198)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, GetTickCount()); // number of seconds the map has been up
+	pym_addInt(&pms, 6666666); // number of seconds the map has been up
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 7, 198, pym_getData(&pms), pym_getLen(&pms));
 	// setCurrentContextId (clientMethod.362)
@@ -32,11 +32,19 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	pym_addInt(&pms, 1);
+	pym_addInt(&pms, owner->mapChannel->mapInfo->baseRegionId); //map with region support
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_removeAppearanceItem(manifestation_t *manifestation, int itemClassId)
+{
+	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
+	if( equipmentSlotId == 0 )
+	return;
+	manifestation->actor->appearanceData[equipmentSlotId-1].classId = 0;
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB)
@@ -62,14 +70,20 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 			continue;
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
-		// hue
-		pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
-		pym_tuple_end(&pms);
+			pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
+			// hue
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -79,6 +93,13 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData)
 {
+	// 20110827 @dennton
+	if( owner ->player != NULL)
+	{
+		manifestation_assignPlayer(mapChannel, owner, owner->player);
+        return;	
+	}
+
 	manifestation_t *manifestation = (manifestation_t*)malloc(sizeof(manifestation_t));
 	manifestation->actor = (actor_t*)malloc(sizeof(actor_t));
 	for(int i=0; i<SWAPSET_SIZE; i++)
@@ -89,7 +110,10 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->controllerUser = owner;
 	manifestation->actor->entityId = entityMgr_getFreeEntityIdForPlayer(); // generate an entityId
 	// todo: should globally register entity
+	
+
 	strcpy(manifestation->actor->name, characterData->unicodeName);
+	strcpy(manifestation->actor->family, characterData->unicodeFamily);
 	manifestation->actor->posX = characterData->posX;
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
@@ -98,10 +122,16 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
-	manifestation->classId = 1;
-	manifestation->level = 1;
+	manifestation->classId = 8; // Grenadier
+	manifestation->level = 50;
 	manifestation->actor->isRunning = true;
+	manifestation->actor->inCombatMode = false;
 	manifestation->targetEntityId = 0;
+	manifestation->actor->stats.healthBonus = 21100;
+	manifestation->actor->stats.healthMax = 22800;
+	manifestation->actor->stats.healthCurrent = 22800;
+	manifestation->currentAbilityDrawer = 0;
+	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
 	// introduce player to myself
 	//manifestation_introducteEntity(mapChannel, manifestation, owner);
@@ -115,6 +145,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	//}
 	//LeaveCriticalSection(&mapChannel->criticalSection);
 	// set controller and other local player information
+
+	
 	communicator_loginOk(mapChannel, owner);
 	cellMgr_addToWorld(owner); // will introduce the player to all clients, including the current owner
 	manifestation_assignPlayer(mapChannel, owner, manifestation);
@@ -163,8 +195,8 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 2);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 0); // currentMax
-		pym_addInt(&pms, 0); // normalMax
+		pym_addInt(&pms, 10); // currentMax
+		pym_addInt(&pms, 15); // normalMax
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
@@ -172,18 +204,18 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 3);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 0); // currentMax
-		pym_addInt(&pms, 0); // normalMax
+		pym_addInt(&pms, 15); // currentMax
+		pym_addInt(&pms, 10); // normalMax
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 		// health
 		pym_addInt(&pms, 4);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 100); // current (current Max, base)
-		pym_addInt(&pms, 100); // currentMax (modfierTarget?)
-		pym_addInt(&pms, 2); // normalMax (current Value)
-		pym_addInt(&pms, 8); // refreshIncrement
+		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
+	    pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
+		pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
+		pym_addInt(&pms, 35); // refreshIncrement
 		pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 		pym_tuple_end(&pms);
 		// chi
@@ -200,11 +232,11 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		{
 			pym_addInt(&pms, i);
 			pym_tuple_begin(&pms);
-			pym_addInt(&pms, 10); // current
-			pym_addInt(&pms, 50); // currentMax
-			pym_addInt(&pms, 100); // normalMax
-			pym_addInt(&pms, 0); // refreshIncrement
-			pym_addInt(&pms, 0); // refreshPeriod
+			pym_addInt(&pms, 22800); // current
+			pym_addInt(&pms, 22800); // currentMax
+			pym_addInt(&pms, 22800); // normalMax
+			pym_addInt(&pms, 335); // refreshIncrement
+			pym_addInt(&pms, 3); // refreshPeriod
 			pym_tuple_end(&pms);
 		}
 		pym_dict_end(&pms);
@@ -214,7 +246,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, 0); // weaponId
-		pym_addInt(&pms, 0); // abilities
+		pym_addInt(&pms, 25); // abilities
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
 		// Recv_AppearanceData (27)
@@ -228,13 +260,21 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 			pym_addInt(&pms, i+1); // index(equipmentSlotId)
 			pym_tuple_begin(&pms);
 			pym_addInt(&pms, tempClient->player->actor->appearanceData[i].classId); // classId
-			pym_tuple_begin(&pms);
 			// hue
-			pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
+			// test .16
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			// end test .16
 			pym_tuple_end(&pms);
 		}
 		pym_dict_end(&pms);
@@ -267,7 +307,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set actor name
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addUnicode(&pms, tempClient->cgm->Accountname); // lastName
+		pym_addUnicode(&pms, tempClient->player->actor->family); // lastName
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 16, pym_getData(&pms), pym_getLen(&pms));
 		// set running
@@ -283,7 +323,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// skill firearms
 			pym_tuple_begin(&pms);
 				pym_addInt(&pms, 1);  // id
-				pym_addInt(&pms, 1);// level
+				pym_addInt(&pms, 5);// level
 			pym_tuple_end(&pms);
 		pym_list_end(&pms);
 		pym_tuple_end(&pms);
@@ -307,7 +347,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set target category
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 1); // 'FRIENDLY'
+		pym_addInt(&pms, 0); // 'FRIENDLY'
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 211, pym_getData(&pms), pym_getLen(&pms));
 		// send inital movement packet
@@ -350,28 +390,28 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// mind
 	pym_addInt(&pms, 2);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 0); // currentMax
-	pym_addInt(&pms, 0); // normalMax
+	pym_addInt(&pms, 15); // current
+	pym_addInt(&pms, 15); // currentMax
+	pym_addInt(&pms, 15); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// spirit
 	pym_addInt(&pms, 3);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 0); // currentMax
-	pym_addInt(&pms, 0); // normalMax
+	pym_addInt(&pms, 15); // current
+	pym_addInt(&pms, 15); // currentMax
+	pym_addInt(&pms, 15); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// health
 	pym_addInt(&pms, 4);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 100); // current (current Max, base)
-	pym_addInt(&pms, 100); // currentMax (modfierTarget?)
-	pym_addInt(&pms, 2); // normalMax (current Value)
-	pym_addInt(&pms, 8); // refreshIncrement
+	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
+	pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
+	pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
+	pym_addInt(&pms, 35); // refreshIncrement
 	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
 	// chi
@@ -389,11 +429,11 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 50); // currentMax
-		pym_addInt(&pms, 100); // normalMax
-		pym_addInt(&pms, 0); // refreshIncrement
-		pym_addInt(&pms, 0); // refreshPeriod
+		pym_addInt(&pms, 22800); // current
+		pym_addInt(&pms, 22800); // currentMax
+		pym_addInt(&pms, 22800); // normalMax
+		pym_addInt(&pms, 335); // refreshIncrement
+		pym_addInt(&pms, 3); // refreshPeriod
 		pym_tuple_end(&pms);
 	}
 	/*
@@ -434,13 +474,21 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, client->player->actor->appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
 		// hue
-		pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
+		// test .16
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_end(&pms);
+		// end test .16
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -488,7 +536,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// set actor name
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addUnicode(&pms, client->cgm->Accountname); // lastName
+	pym_addUnicode(&pms, client->player->actor->family); // lastName
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
 	{
@@ -503,31 +551,81 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	}
+	// set logos tabula
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	pym_addInt(&pms, 23); //power
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	for(int i=0; i<playerCount; i++)
+	{
+		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 477, pym_getData(&pms), pym_getLen(&pms));
+	}
 	// set skills (see skillData.pyo)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
+		// skill firearms
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 4);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
 	// skill firearms
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);  // id
-	pym_addInt(&pms, 1);	// level
-	pym_tuple_end(&pms);
+		pym_addInt(&pms, 1);  // id
+	pym_addInt(&pms, 5);	// level
+		pym_tuple_end(&pms);
 	// skill hand to hand
 	pym_tuple_begin(&pms);
-			pym_addInt(&pms, 8);  // id
-			pym_addInt(&pms, 1);	// level
-		pym_tuple_end(&pms);
-	// skill sprint (165)
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 165);  // id
-		pym_addInt(&pms, 1);	// level
-		pym_tuple_end(&pms);
-		// also, sprint (401)
-		//pym_tuple_begin(&pms);
-		//pym_addInt(&pms, 401);  // id
-		//pym_addInt(&pms, 1);	// level
-		//pym_tuple_end(&pms);
+		pym_addInt(&pms, 8);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//	T1_RECRUIT_MOTOR_ASSIST_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 19);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//T2_SOLDIER_REFLECTIVE_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 21);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//T2_SOLDIER_RAGE
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 147);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	// T2_SOLDIER_MACHINE_GUN
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 22);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	// T3_COMMANDO_LAUNCHER
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 24);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	// T4_GRENADIER_PROPELLANT
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 40);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//	T3_COMMANDO_GRAVITON_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 39);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//T1_SPRINT
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRINT
+	pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
 
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
+	pym_addInt(&pms, 1);// level
+	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -541,17 +639,14 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_list_begin(&pms);
 	// ability sprint
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 401);  // id
-	pym_addInt(&pms, 1);	// level
+	pym_addInt(&pms, 401); // id
+	pym_addInt(&pms, 5); // level
 	pym_tuple_end(&pms);
-	// ???
+	// ability lightning
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);  // id
-	pym_addInt(&pms, 1);	// level
+	pym_addInt(&pms, 194); // id
+	pym_addInt(&pms, 1); // level
 	pym_tuple_end(&pms);
-
-
-
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
@@ -580,7 +675,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// set target category
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1); // 'FRIENDLY'
+	pym_addInt(&pms, 0); // 'FRIENDLY'
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
 	{
@@ -672,8 +767,78 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, unsigned char *pyS
 	cm->player->targetEntityId = 0;
 }
 
+void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	int start = cm->player->currentAbilityDrawer;
+	int end = start + 4;
+	//printf("Sending Drawer\n");
+	//printf("Start: %i - End: %i\n", start, end);
+	for (int i = start; i <= end; i++)
+	{
+		if (cm->player->abilityDrawer[i] != 0)
+		{
+			//printf("Slot %i -> ability id %i\n", i, cm->player->abilityDrawer[i]);
+			pym_addInt(&pms, i);								// slotIdx
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->player->abilityDrawer[i]);		// abilityId
+			pym_addInt(&pms, cm->player->abilityLvDrawer[i]);	// level
+			pym_addNoneStruct(&pms);							// itemId ( unknown purpose )
+			pym_tuple_end(&pms);
+		}
+	}
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_SendAbilityDrawerFull(mapChannelClient_t *cm)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	for (int i = 0; i <= 24; i++)
+	{
+		if (cm->player->abilityDrawer[i] != 0)
+		{
+			pym_addInt(&pms, i);								// slotIdx
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->player->abilityDrawer[i]);		// abilityId
+			pym_addInt(&pms, cm->player->abilityLvDrawer[i]);	// level
+			pym_addNoneStruct(&pms);							// itemId ( unknown purpose )
+			pym_tuple_end(&pms);
+		}
+	}
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int slot = pym_unpackInt(&pums);
+	cm->player->currentAbilityDrawer = (char)slot;
+	// Recv_AbilityDrawerSlot(self, slotNum, bRequested = True): 394
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, slot);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 394, pym_getData(&pms), pym_getLen(&pms));
+}
+
 void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
 {
+	//printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -683,32 +848,48 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 	unsigned int abilityLevel = (unsigned int)pym_unpackLongLong(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
-	// todo: safe in player manifest struct..
 	// todo: check if ability is available
-	// set new ability ( TODO: there is a better function that only updates one single slot, not all )
-	pyMarshalString_t pms;
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_dict_begin(&pms);
-	// slot data
-	if( abilityId != 0 ) // if abilityID is zero, then we should remove the ability
-	{
-		pym_addInt(&pms, slot); // slotIdx
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, (int)abilityId); // abilityId
-		pym_addInt(&pms, (int)abilityLevel); // level
-		pym_addNoneStruct(&pms); // itemId ( unknown purpose )
-		pym_tuple_end(&pms);
-	}
-	pym_dict_end(&pms);
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
+	cm->player->abilityDrawer[slot] = (int)abilityId;
+	cm->player->abilityLvDrawer[slot] = (int)abilityLevel;
+	
+	manifestation_SendAbilityDrawerFull(cm);
 }
 // 
 
 
 
 /* weapon stats and combat handling */
+
+void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+
+	bool setting = pym_unpackBool(&pums);
+
+	pyMarshalString_t pms;
+	
+	if (setting == true) // Enter combat mode
+	{
+		client->player->actor->inCombatMode = true;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+	}
+	else // Exit combat mode
+	{
+		client->player->actor->inCombatMode = false;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, false);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+	}
+}
 
 void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
@@ -718,13 +899,113 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 		return;
 	float yaw = pym_unpackFloat(&pums);
 	
+	pyMarshalString_t pms;
+	client->player->actor->inCombatMode = true;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+
+
+ 
 
 	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
 	// TODO!
 
-	//printf("TODO: "); puts(__FUNCTION__);
+	printf("TODO: "); puts(__FUNCTION__);
+	printf("target: %u\n", client->player->targetEntityId);
+
+	//##################### Begin: if target is Mapchannel Client #################
+	//desc: have to use mapchannel-client id instead of player-entity-id because
+	//player-entity-id isnt registered, when new player is created(enter world)
+	
+	int targetType = entityMgr_getEntityType(client->player->targetEntityId);
+	int newTargetEntityId = 0;
+	if(targetType == 0) //1:client-type,0=player-type
+	{
+        mapCell_t *mapCell = cellMgr_tryGetCell(client->mapChannel, 
+												client->player->actor->cellLocation.x, 
+			                                    client->player->actor->cellLocation.z);	
+		if(mapCell)
+		{
+             mapChannelClient_t **playerList = NULL;
+			 int tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
+			 playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+			 for(int i=0; i < tCount; i++)
+			 {
+
+				 mapChannelClient_t *targetPlayer = playerList[i];
+				 if(targetPlayer->player->actor->entityId == client->player->targetEntityId)
+				 {
+					 client->player->targetEntityId = targetPlayer->clientEntityId;
+					 break; //player-entity-id found, now use client-entity-id for missile trigger
+				 }
+			 }
+			 //void *entity = entityMgr_get();
+		}
+		
+	}
+	//##################### End: if target is Mapchannel Client #################
+
 	if( client->player->targetEntityId )
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
+	{
+		
+		switch(inventory_CurrentWeapon(client)->itemTemplate->toolType)
+		{
+
+		case 9:
+			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29395)
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN_V3, 120); 
+				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN_V3);
+			
+			}
+			else
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN, 40); 
+				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN);
+			}
+		break;
+		case 10:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_GRENADE, 90); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_NETGUN);
+			//gameEffect_attach(client->mapChannel, client->player->targetEntityId, 258, 5, 3000);
+			break;
+
+		case 8:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 15); 
+			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_PISTOL);
+			break;
+
+		case 7:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_RIFLE, 25); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_RIFLE);
+			break;
+		case 15:
+			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29757)
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN_V3, 20); 
+  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN_V3);
+			}
+			else
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN, 15); 
+  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
+			}
+			break;
+		case 22:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PROPELLANT_ICE, 20); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
+			break;
+         
+		default:
+			printf("unknown weapontype \n");
+			return;
+
+		}
+		
+	}//--if: targed id	
 }
 
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -733,11 +1014,18 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	// param: keepAliveDelay
-	// TODO!
-	// Used to tell the server how long to continue shooting
-	// 
+	
+	pyMarshalString_t pms;
+	client->player->actor->inCombatMode = false;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+  	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+  	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+
+  	mapChannel_removeAutoFireTimer(client->mapChannel, client->player);
 	printf("TODO: "); puts(__FUNCTION__);
+	
 }
 
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -746,8 +1034,13 @@ void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned c
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	// TODO!
+
+	int keepAliveDelay = pym_unpackInt(&pums);
+
 	printf("TODO: "); puts(__FUNCTION__);
+	printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
+	//if( client->player->targetEntityId )
+	//missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
 
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
@@ -762,11 +1055,11 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 
 	// test enter combat state
-	pym_init(&pms);
+	/*pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 718, pym_getData(&pms), pym_getLen(&pms));
-
+*/
 
 	// set state (206)
 	// StateChange

@@ -1,3 +1,7 @@
+#define SPAWNTYPE_ANIMATION_NONE 0
+#define SPAWNTYPE_ANIMATION_BEAM 1
+#define SPAWNTYPE_ANIMATION_DROPSHIP 2
+ 
 
 typedef struct  
 {
@@ -28,6 +32,14 @@ typedef struct _spawnPool_t
 	int queuedCreatures; // number of creatures that are spawning right now (i.e. delivered via dropship)
 	int aliveCreatures; // number of spawned creatures that are alive
 	int deadCreatures; // number of spawned creatures that are dead (either killed or spawned dead)
+	int spawnAnimationType; //which type of animation introduces creatures
+	int faction;
+	baseBehavior_baseNode *pathnodes;
+	int attackspeed;
+	int attackanim;
+	float velocity;
+	int attackstyle;
+	int actionid;
 	// default action assignment
 	// nothing here until 
 }spawnPool_t;

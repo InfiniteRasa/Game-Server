@@ -1,176 +1,115 @@
 #include "global.h"
 
+#define ARMOR		 51
+#define DECORATION	 36
+#define EQUIPABLE	 4
+#define ITEM		 6
+#define WEAPON		 2
+
+
+item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
+{
+item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+if( !item )
+
+  { return NULL; }
+return item;
+}
 
 /*
 578
 00000F81     5A - STORE_NAME          'RequestTooltipForItemTemplateId
 */
-
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
-	if( !pym_unpackTuple_begin(&pums) )
-		return;
+	if( !pym_unpackTuple_begin(&pums) ) { return; }
+
 	unsigned int itemTemplateId = pym_unpackInt(&pums);
-
-	/*
-	000008E2     64 - LOAD_CONST          579
-	000008E5     5A - STORE_NAME          'ItemTemplateTooltipInfo'
-	*/
-	// itemTemplateId
-	pyMarshalString_t pms;
-	// create item entity
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-
-
 	itemTemplate_t *itemTemplate = gameData_getItemTemplateById(itemTemplateId);
 	if( itemTemplate == NULL )
 		return; // todo: even answer on a unknown template, else the client will continue to spam us with requests
-	/*
-	itemTemplateId' (0E 02 00 00),
-	0000A3E6                         STR: 'itemClassId' (1A 02 00 00),
-	0000A3EB                         STR: 'info' (18 02 00 00)
-	*/
 
-	//pym_addNoneStruct(&pms);
-	//pym_addInt(&pms, -1); // 15444
-	pym_addInt(&pms, itemTemplateId); // templateId
-	pym_addInt(&pms, itemTemplate->classId); // itemClass
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, itemTemplateId);			// templateId
+	pym_addInt(&pms, itemTemplate->classId);	// itemClass
 	pym_dict_begin(&pms); // Info is a dict of { AugId : AugData }
-	// ARMOR
-	/*pym_addInt(&pms, 51);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10);
-	pym_tuple_end(&pms);*/
-	// EQUIPABLE 4
-	/*	pym_addInt(&pms, 4); 
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);
-	pym_tuple_end(&pms);*/
-	// DECORATION 36
 
-	// ITEM 6
-	//pym_addInt(&pms, 6); 
-	//pym_tuple_begin(&pms);
-	//pym_addInt(&pms, 1); // tradeAble
-	//pym_addInt(&pms, 2); // maxHps
-	//pym_addInt(&pms, 3); // buybackPrice
-	//pym_list_begin(&pms); // requirements (check File "python/client\ui\tooltipwindow.py", ptr0x743, in _FormatIndividualItemTooltip)
-	//pym_tuple_begin(&pms);
-	//	pym_addInt(&pms, 1); // id = 1, level
-	//	pym_addInt(&pms, 1); // constant
-	//pym_tuple_end(&pms);
-	//pym_list_end(&pms); 
-	//pym_list_begin(&pms); // moduleIds
-	//	pym_addInt(&pms, 37);
-	//pym_list_end(&pms); 
-
-	////pym_addInt(&pms, 0); // moduleIds
-	//pym_addNoneStruct(&pms); // raceIds
-	//pym_tuple_end(&pms);
-
-
+	if( itemTemplate->type == ITEMTYPE_ARMOR )
+	{
+		//printf("RequestTooltipForItemTemplateId for Armor\n");
+	}
 	if( itemTemplate->type == ITEMTYPE_WEAPON )
 	{
-		pym_addInt(&pms, 2); 
+		printf("RequestTooltipForItemTemplateId for Weapon\n");
+		// Item start
+		pym_addInt(&pms, ITEM);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10);		// kWeaponIdx_MinDamage
-		pym_addInt(&pms, 20);		// kWeaponIdx_MaxDamage
-		pym_addInt(&pms, 3147);		// kWeaponIdx_AmmoClassId
-		pym_addInt(&pms, 1);		// kWeaponIdx_ClipSize
-		pym_addInt(&pms, 1);		// kWeaponIdx_AmmoPerShot
-		pym_addInt(&pms, 1);		// kWeaponIdx_DamageType
-		pym_addInt(&pms, 1);		// kWeaponIdx_WindupTime
-		pym_addInt(&pms, 1);		// kWeaponIdx_RecoveryTime
-		pym_addInt(&pms, 1);		// kWeaponIdx_RefireTime
-		pym_addInt(&pms, 1);		// kWeaponIdx_ReloadTime
-		pym_addInt(&pms, 10);		// kWeaponIdx_Range
-		pym_addInt(&pms, 1);		// kWeaponIdx_AERadius
-		pym_addInt(&pms, 1);		// kWeaponIdx_AEType
-		pym_tuple_begin(&pms);		// kWeaponIdx_AltFire
-		pym_addInt(&pms, 25);	// kWeaponAltIdx_MaxDamage
-		pym_addInt(&pms, 1);	// kWeaponAltIdx_DamageType
-		pym_addInt(&pms, 15);	// kWeaponAltIdx_Range
-		pym_addInt(&pms, 1);	// kWeaponAltIdx_AERadius
-		pym_addInt(&pms, 1);	// kWeaponAltIdx_AEType
+			pym_addBool(&pms, !itemTemplate->notTradable);		// kItemIdx_Tradable		= 0
+			pym_addInt(&pms, itemTemplate->maxHitPoints);		// kItemIdx_MaxHPs			= 1
+			pym_addInt(&pms, 1000);								// kItemIdx_BuybackPrice	= 2
+			pym_addNoneStruct(&pms);							// kItemIdx_Requirements	= 3
+			//pym_tuple_begin(&pms);
+				pym_addNoneStruct(&pms);						// kItemIdx_ModuleIds		= 4
+			//pym_tuple_end(&pms);
+			pym_addNoneStruct(&pms);							// kItemIdx_RaceIds			= 5
 		pym_tuple_end(&pms);
-		pym_addInt(&pms, 1);		// kWeaponIdx_AttackType
-		pym_addInt(&pms, 1);		// kWeaponIdx_ToolType
-
-
+		//Item end
+		// Equipable start
+		pym_addInt(&pms, EQUIPABLE);
+		pym_tuple_begin(&pms);
+			// kEquipableIdx_SkillInfo = 0 (SkillId, MinSkillLvl)
+			pym_tuple_begin(&pms);
+				pym_addNoneStruct(&pms); // Skill ID
+				pym_addNoneStruct(&pms); // Skill Level
+			pym_tuple_end(&pms);
+			// kEquipableIdx_ResistList = 1 (damageType, resistValue)
+			pym_tuple_begin(&pms);
+			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
+		// Equipable end
+		// Weapon start
+		pym_addInt(&pms, WEAPON);
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, itemTemplate->minDamage);			//kWeaponIdx_MinDamage		= 0
+			pym_addInt(&pms, itemTemplate->maxDamage);			//kWeaponIdx_MaxDamage		= 1
+			pym_addInt(&pms, itemTemplate->ammoClassId);		//kWeaponIdx_AmmoClassId	= 2 // standard grade cartridge
+			pym_addInt(&pms, itemTemplate->clipSize);			//kWeaponIdx_ClipSize		= 3
+			pym_addInt(&pms, itemTemplate->ammoPerShot);		//kWeaponIdx_AmmoPerShot	= 4
+			pym_addInt(&pms, itemTemplate->damageType);			//kWeaponIdx_DamageType		= 5 // normal
+			pym_addInt(&pms, itemTemplate->windupTime);			//kWeaponIdx_WindupTime		= 6 // autofire
+			pym_addInt(&pms, itemTemplate->recoveryTime);		//kWeaponIdx_RecoveryTime   = 7
+			pym_addInt(&pms, itemTemplate->refireTime);			//kWeaponIdx_RefireTime		= 8
+			pym_addInt(&pms, itemTemplate->reloadTime);			//kWeaponIdx_ReloadTime		= 9
+			pym_addInt(&pms, itemTemplate->range);				//kWeaponIdx_Range			= 10
+			pym_addInt(&pms, itemTemplate->aeRadius);			//kWeaponIdx_AERadius		= 11
+			//pym_addInt(&pms, itemTemplate->aeType);				//kWeaponIdx_AEType			= 12
+			 if (itemTemplate->aeType == 0)
+			{ pym_addNoneStruct(&pms); }
+			else
+			{ pym_addInt(&pms, itemTemplate->aeType); }        //kWeaponIdx_AEType      = 12
+
+			//kWeaponIdx_AltFire		= 13
+			pym_tuple_begin(&pms);		
+			if (itemTemplate->altActionId != 0)
+			{
+				pym_addInt(&pms, itemTemplate->altMaxDamage);	// kWeaponAltIdx_MaxDamage	= 0
+				pym_addInt(&pms, itemTemplate->altDamageType);	// kWeaponAltIdx_DamageType = 1
+				pym_addInt(&pms, itemTemplate->altRange);		// kWeaponAltIdx_Range		= 2
+				pym_addInt(&pms, itemTemplate->altAERadius);	// kWeaponAltIdx_AERadius	= 3
+				pym_addInt(&pms, itemTemplate->altAEType);		// kWeaponAltIdx_AEType		= 4
+			} else { pym_addNoneStruct(&pms); }
+			pym_tuple_end(&pms);
+			pym_addInt(&pms, itemTemplate->attackType);			//kWeaponIdx_AttackType		= 14 // ranged
+			pym_addInt(&pms, itemTemplate->toolType);			//kWeaponIdx_ToolType		= 15 // rifle
+		pym_tuple_end(&pms);
+		// Weapon end
 	}
 
-	/*
-	0000074F     64 - LOAD_CONST          0
-	00000752     5A - STORE_NAME          'kItemIdx_Tradable'
-	00000755     64 - LOAD_CONST          1
-	00000758     5A - STORE_NAME          'kItemIdx_MaxHPs'
-	0000075B     64 - LOAD_CONST          2
-	0000075E     5A - STORE_NAME          'kItemIdx_BuybackPrice'
-	00000761     64 - LOAD_CONST          3
-	00000764     5A - STORE_NAME          'kItemIdx_Requirements'
-	00000767     64 - LOAD_CONST          4
-	0000076A     5A - STORE_NAME          'kItemIdx_ModuleIds'
-	0000076D     64 - LOAD_CONST          5
-	00000770     5A - STORE_NAME          'kItemIdx_RaceIds'
-	00000773     64 - LOAD_CONST          0
-	00000776     5A - STORE_NAME          'kEquipableIdx_SkillInfo'
-	00000779     64 - LOAD_CONST          1
-	0000077C     5A - STORE_NAME          'kEquipableIdx_ResistList'
-	0000077F     64 - LOAD_CONST          0
-	00000782     5A - STORE_NAME          'kArmorIdx_RegenRate'
-	00000785     64 - LOAD_CONST          0
-	00000788     5A - STORE_NAME          'kWeaponIdx_MinDamage'
-	0000078B     64 - LOAD_CONST          1
-	0000078E     5A - STORE_NAME          'kWeaponIdx_MaxDamage'
-	00000791     64 - LOAD_CONST          2
-	00000794     5A - STORE_NAME          'kWeaponIdx_AmmoClassId'
-	00000797     64 - LOAD_CONST          3
-	0000079A     5A - STORE_NAME          'kWeaponIdx_ClipSize'
-	0000079D     64 - LOAD_CONST          4
-	000007A0     5A - STORE_NAME          'kWeaponIdx_AmmoPerShot'
-	000007A3     64 - LOAD_CONST          5
-	000007A6     5A - STORE_NAME          'kWeaponIdx_DamageType'
-	000007A9     64 - LOAD_CONST          6
-	000007AC     5A - STORE_NAME          'kWeaponIdx_WindupTime'
-	000007AF     64 - LOAD_CONST          7
-	000007B2     5A - STORE_NAME          'kWeaponIdx_RecoveryTime'
-	000007B5     64 - LOAD_CONST          8
-	000007B8     5A - STORE_NAME          'kWeaponIdx_RefireTime'
-	000007BB     64 - LOAD_CONST          9
-	000007BE     5A - STORE_NAME          'kWeaponIdx_ReloadTime'
-	000007C1     64 - LOAD_CONST          10
-	000007C4     5A - STORE_NAME          'kWeaponIdx_Range'
-	000007C7     64 - LOAD_CONST          11
-	000007CA     5A - STORE_NAME          'kWeaponIdx_AERadius'
-	000007CD     64 - LOAD_CONST          12
-	000007D0     5A - STORE_NAME          'kWeaponIdx_AEType'
-	000007D3     64 - LOAD_CONST          13
-	000007D6     5A - STORE_NAME          'kWeaponIdx_AltFire'
-	000007D9     64 - LOAD_CONST          14
-	000007DC     5A - STORE_NAME          'kWeaponIdx_AttackType'
-	000007DF     64 - LOAD_CONST          15
-	000007E2     5A - STORE_NAME          'kWeaponIdx_ToolType'
-	000007E5     64 - LOAD_CONST          0
-	000007E8     5A - STORE_NAME          'kWeaponAltIdx_MaxDamage'
-	000007EB     64 - LOAD_CONST          1
-	000007EE     5A - STORE_NAME          'kWeaponAltIdx_DamageType'
-	000007F1     64 - LOAD_CONST          2
-	000007F4     5A - STORE_NAME          'kWeaponAltIdx_Range'
-	000007F7     64 - LOAD_CONST          3
-	000007FA     5A - STORE_NAME          'kWeaponAltIdx_AERadius'
-	000007FD     64 - LOAD_CONST          4
-	00000800     5A - STORE_NAME          'kWeaponAltIdx_AEType'
-	*/
-
-
 	pym_dict_end(&pms);
-	//pym_addUnicode(&pms, "tooltip info"); // info
-	//pym_addInt(&pms, itemTemplateId); // itemTemplateId
-	//pym_addInt(&pms, 15444); // itemClassId
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 12, 579, pym_getData(&pms), pym_getLen(&pms));
 }
@@ -220,7 +159,7 @@ void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
 	if( item->itemTemplate->type == ITEMTYPE_WEAPON )
 		catIndex = 0;
 	else if( item->itemTemplate->type == ITEMTYPE_ARMOR )
-		catIndex = 50;
+		catIndex = 0; // 50
 	else
 		__debugbreak();
 	for(int i=0; i<50; i++)
@@ -232,6 +171,14 @@ void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
 		}
 	}
 }
+
+void item_setLocationEquippedinventory(item_t *item, mapChannelClient_t *owner)
+{
+	item->locationEntityId = owner->clientEntityId;
+	item->locationSlotIndex = gameData_getEquipmentClassIdSlot(item->itemTemplate->classId);
+}
+
+
 
 int item_findFreePlayerinventorySpace(mapChannelClient_t *owner, int itemType)
 {
@@ -276,6 +223,56 @@ void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, unsigned ch
 	// send response
 }
 
+void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+{
+	printf("RequestEquipArmor pl0x\n");
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int srcSlot = pym_unpackInt(&pums); // Source Slot
+	int srcInventory = pym_unpackInt(&pums); // Source Inventory
+	int dstSlot = pym_unpackInt(&pums); // Destination Slot
+	if( pums.unpackErrorEncountered )
+		return;
+	if( srcInventory != 1 )
+	{
+		printf("Unsupported inventory\n");
+		return;
+	}
+	printf("Src: %i ", srcSlot);
+	printf("Dst: %i ", dstSlot);
+	printf("Inv: %i\n", srcInventory);
+	if( srcSlot < 0 || srcSlot > 50 )
+		return;
+	//if( dstSlot < 0 || dstSlot >= 5 )
+	//	return;
+	unsigned long long swapId = client->inventory.equippedInventory[dstSlot];
+	if( client->inventory.homeInventory[srcSlot] )
+		inventory_removeItem(client, INVENTORY_PERSONAL, client->inventory.homeInventory[srcSlot]);
+	if( client->inventory.equippedInventory[dstSlot] )
+		inventory_removeItem(client, INVENTORY_EQUIPPEDINVENTORY, client->inventory.equippedInventory[dstSlot]);
+	if( client->inventory.equippedInventory[dstSlot] )
+		inventory_addItem(client, INVENTORY_PERSONAL, client->inventory.equippedInventory[dstSlot], srcSlot);
+	if( client->inventory.homeInventory[srcSlot] )
+		inventory_addItem(client, INVENTORY_EQUIPPEDINVENTORY, client->inventory.homeInventory[srcSlot], dstSlot);
+	client->inventory.equippedInventory[dstSlot] = client->inventory.homeInventory[srcSlot];
+	client->inventory.homeInventory[srcSlot] = swapId;
+
+	pyMarshalString_t pms;
+	item_t *item = (item_t*)entityMgr_get(client->inventory.equippedInventory[dstSlot]);
+	if( !item )
+	{
+		//remove item graphic if dequipped
+		item = (item_t*)entityMgr_get(swapId);
+		manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
+	}else
+	{
+		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+	}
+	manifestation_updateAppearance(client);
+}
+
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
@@ -318,24 +315,59 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyS
 	//pym_addInt(&pms, dstSlot); // slotId
 	//pym_addBool(&pms, false); // requested
 	//pym_tuple_end(&pms);
+	
+	
 	//netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
-	if( dstSlot == 0 && client->inventory.weaponDrawer[0] )
-	{
-		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
-		if( !item )
-			return;
-		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
-		manifestation_updateAppearance(client);
-	}
-	if( dstSlot == client->inventory.activeWeaponDrawer )
+	//if( dstSlot == 0 && client->inventory.weaponDrawer[0] )
+	if( dstSlot == client->inventory.activeWeaponDrawer ) //---@ 4ae9585968 Disastorm
 	{
 		inventory_notifyEquipmentUpdate(client);
+		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
+		if( !item )
+		{
+			//remove item graphic if dequipped
+			item = (item_t*)entityMgr_get(swapId);
+			manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
+		}
+		else
+		{
+			manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+		}
+		manifestation_updateAppearance(client);
 	}
+	
+
 }
 
 /*
-	maybe move the weapon related entries to manifestation?
+	maybe move the weapon related entries to manifestation? // i agree
 */
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+{
+	// RequestArmWeapon : 507
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int slot = pym_unpackInt(&pums);
+	cm->inventory.activeWeaponDrawer = (char)slot;
+	// 574 Recv_WeaponDrawerSlot(self, slotNum, bRequested = True):
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, slot);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
+	//tell client to change weapon appearance //---@ 4ae9585968 Disastorm
+ 	inventory_notifyEquipmentUpdate(cm);
+	item_t *item = (item_t*)entityMgr_get(cm->inventory.weaponDrawer[cm->inventory.activeWeaponDrawer]);
+	if( !item )
+  		return;
+	 manifestation_setAppearanceItem(cm->player, item->itemTemplate->classId, 0xFF808080);
+	manifestation_updateAppearance(cm);
+}
+ 
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
 {
 	pyUnmarshalString_t pums;
@@ -345,6 +377,13 @@ void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pySt
 	// TODO!
 	//manifestation_updateWeaponReadyState(client); ?
 	printf("TODO: "); puts(__FUNCTION__);
+	// weapon ready
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -356,6 +395,13 @@ void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pySt
 	// TODO!
 	//manifestation_updateWeaponReadyState(client); ?
 	printf("TODO: "); puts(__FUNCTION__);
+	// weapon ready
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -366,6 +412,17 @@ void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *py
 		return;
 	// TODO!
 	printf("TODO: "); puts(__FUNCTION__);
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, 
+											 client->player->actor, 
+											 client->player->actor->entityId,
+											 METHODID_REQUESTWEAPONRELOAD, 
+											 pym_getData(&pms), 
+											 pym_getLen(&pms));
 }
 
 void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
@@ -374,49 +431,37 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 	// create item entity
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, item->entityId); // entityID
-	pym_addInt(&pms, item->itemTemplate->classId); // classID
-	pym_addNoneStruct(&pms); // entityData (dunno)
+	pym_addInt(&pms, item->entityId);									// entityID
+	pym_addInt(&pms, item->itemTemplate->classId);						// classID
+	pym_addNoneStruct(&pms);											// entityData (dunno)
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
 	// send item info
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 100); // 'currentHitPoints'
-	pym_addInt(&pms, 100); // 'maxHitPoints'
-	pym_addUnicode(&pms, "Any name"); // 'crafterName'
-	pym_addInt(&pms, item->itemTemplate->templateId);//15276); // 'itemTemplateId'
-	//pym_addNoneStruct(&pms);
-	pym_addBool(&pms, true); // 'hasSellableFlag'
-	pym_addBool(&pms, false); // 'hasCharacterUniqueFlag'
-	pym_addBool(&pms, false); // 'hasAccountUniqueFlag'
-	pym_addBool(&pms, false); // 'hasBoEFlag'
-	// 'classModuleIds' (classLootModuleIds)
-	pym_list_begin(&pms);
-	pym_list_end(&pms);
-	// 'lootModuleIds'
-	pym_list_begin(&pms);
-	pym_list_end(&pms);
-	pym_addInt(&pms, 2); // 'qualityId'
-	/*
-	QualitiIds:
-	MISSION = 1
-	NORMAL = 2
-	UNCOMMON = 3
-	RARE = 4
-	EPIC = 5
-	LEGENDARY = 6
-	JUNK = 7
-	*/
-	pym_addInt(&pms, 0); // 'boundToCharacter'
-	pym_addInt(&pms, 0); // 'notTradable'
-	pym_addInt(&pms, 0); // 'notPlaceableInLockbox'
-	if( item->itemTemplate->type == ITEMTYPE_WEAPON )
-		pym_addInt(&pms, 1); // 'inventoryCategory' (Weapon/Armor)
-	else if( item->itemTemplate->type == ITEMTYPE_ARMOR )
-		pym_addInt(&pms, 1); // 'inventoryCategory' (Weapon/Armor)
-	else
-		__debugbreak();
+		pym_addInt(&pms, item->itemTemplate->currentHitPoints);			// 'currentHitPoints'
+		pym_addInt(&pms, item->itemTemplate->maxHitPoints);				// 'maxHitPoints'
+		pym_addUnicode(&pms, "Richard Garriott");						// Modified By
+		pym_addInt(&pms, item->itemTemplate->templateId);				// 'itemTemplateId'
+		pym_addBool(&pms, item->itemTemplate->hasSellableFlag);			// 'hasSellableFlag'
+		pym_addBool(&pms, item->itemTemplate->hasCharacterUniqueFlag);	// 'hasCharacterUniqueFlag'
+		pym_addBool(&pms, item->itemTemplate->hasAccountUniqueFlag);	// 'hasAccountUniqueFlag'
+		pym_addBool(&pms, item->itemTemplate->hasBoEFlag);				// 'hasBoEFlag'
+		// 'classModuleIds' (classLootModuleIds)
+		pym_list_begin(&pms);
+		pym_list_end(&pms);
+		// 'lootModuleIds'
+		pym_list_begin(&pms);
+		pym_list_end(&pms);
+		pym_addInt(&pms, item->itemTemplate->qualityId);				// 'qualityId'
+		/*	QualitiIds:
+			MISSION = 1		NORMAL = 2		UNCOMMON = 3	
+			RARE = 4		EPIC = 5		LEGENDARY = 6
+			JUNK = 7	*/
+		pym_addInt(&pms, item->itemTemplate->boundToCharacter);			// 'boundToCharacter'
+		pym_addInt(&pms, item->itemTemplate->notTradable);				// 'notTradable'
+		pym_addInt(&pms, item->itemTemplate->notPlaceableInLockbox);	// 'notPlaceableInLockbox'
+		pym_addInt(&pms, item->itemTemplate->inventoryCategory);		// 'inventoryCategory'
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 469, pym_getData(&pms), pym_getLen(&pms)); // ItemInfo
 
@@ -425,40 +470,23 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		// send weapon data
 		pym_init(&pms);
 		pym_tuple_begin(&pms);	
-		//pym_addUnicode(&pms, "testName"); // '_Weapon__weaponName'
-		//pym_addInt(&pms, 1); // '_Weapon__clipSize'
-		//pym_addInt(&pms, 10); // '_Weapon__currentAmmo'
-		//pym_addInt(&pms, 1); // '_Weapon__aimRate'
-		//pym_addInt(&pms, 1); // '_Weapon__reloadTimeMs'
-		//pym_addInt(&pms, 2); // '_Weapon__aeRadius'
-		////pym_addInt(&pms, 3); // '_Weapon__altActionId' (level)
-		////pym_addInt(&pms, 1); // '_Weapon__altActionArg' (type)
-		//pym_addInt(&pms, 174);
-		//pym_addInt(&pms, 1);
-		//pym_addInt(&pms, 1); // '_Weapon__recoilAmount'
-		//pym_addInt(&pms, 13); // '_Weapon__reuseOverride'
-		//pym_addInt(&pms, 1); // '_Weapon__coolRate'
-		//pym_addInt(&pms, 1); // '_Weapon__heatPerShot'
-		//pym_addInt(&pms, 1); // '_Weapon__toolType'
-		//pym_addBool(&pms, false); // '_Weapon__jammed'
-		//pym_addInt(&pms, 0); // '_Weapon__ammoPerShot'
-		pym_addUnicode(&pms, "testName"); // weaponName
-		pym_addInt(&pms, 20); // clipSize
-		pym_addInt(&pms, 1337); // currentAmmo
-		pym_addFloat(&pms, 1.0f);//pym_addInt(&pms, 1); // aimRate
-		pym_addInt(&pms, 1); // reloadTime
-		pym_addInt(&pms, 1); // altActionId
-		pym_addInt(&pms, 133); // altActionArg
-		pym_addInt(&pms, 2);//pym_addNoneStruct(&pms);//pym_addInt(&pms, 1); // aeType
-		pym_addNoneStruct(&pms);//pym_addInt(&pms, 100); // aeRadius
-		pym_addInt(&pms, 1); // recoilAmount
-		pym_addNoneStruct(&pms);//pym_addInt(&pms, 1); // reuseOverride
-		pym_addInt(&pms, 1); // coolRate
-		pym_addInt(&pms, 1); // heatPerShot
-		pym_addInt(&pms, 8); // toolType ( PISTOL = 8 )
-		pym_addBool(&pms, 0); // isJammed
-		pym_addInt(&pms, 1); // ammoPerShot
-
+			pym_addNoneStruct(&pms);//pym_addUnicode(&pms, "testName"); // weaponName - not used
+			pym_addInt(&pms, item->itemTemplate->clipSize);				// clipSize
+			pym_addInt(&pms, item->itemTemplate->currentAmmo);			// currentAmmo
+			pym_addFloat(&pms, item->itemTemplate->aimRate);			// aimRate
+			pym_addInt(&pms, item->itemTemplate->reloadTime);			// reloadTime
+			pym_addInt(&pms, item->itemTemplate->altActionId);			// altActionId
+			pym_addInt(&pms, item->itemTemplate->altActionArg);			// altActionArg
+			pym_addInt(&pms, item->itemTemplate->aeType);				// aeType
+			pym_addInt(&pms, item->itemTemplate->aeRadius);				//pym_addInt(&pms, 100); // aeRadius
+			pym_addInt(&pms, item->itemTemplate->recoilAmount);			// recoilAmount
+			pym_addNoneStruct(&pms);									// reuseOverride
+			pym_addInt(&pms, item->itemTemplate->coolRate);				// coolRate
+			pym_addFloat(&pms, item->itemTemplate->heatPerShot);		// heatPerShot
+			pym_addInt(&pms, item->itemTemplate->toolType);				// toolType ( PISTOL = 8 )
+			pym_addBool(&pms, item->itemTemplate->isJammed);			// isJammed
+			pym_addInt(&pms, item->itemTemplate->ammoPerShot);			// ammoPerShot
+			pym_addString(&pms, "");									// cameraProfile
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 237, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
 
@@ -468,6 +496,33 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		//pym_addBool(&pms, false); // isJammed
 		//pym_tuple_end(&pms);
 		//netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 585, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
+	}
+	if( item->itemTemplate->type == ITEMTYPE_ARMOR )
+	{
+		// Recv_ArmorInfo
+		pym_init(&pms);
+		pym_tuple_begin(&pms);	
+		pym_addInt(&pms, item->itemTemplate->currentHitPoints); // currentHitPoints
+		pym_addInt(&pms, item->itemTemplate->maxHitPoints); // maxHitPoints
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 406, pym_getData(&pms), pym_getLen(&pms)); //ArmorInfo
+	}
+}
+
+void item_sendEquippedInfo(item_t *item, mapChannelClient_t *owner)
+{
+	item_setLocationEquippedinventory(item, owner);
+	if( item->entityId == 0 )
+		return; 
+
+	mapChannelClient_t *client = (mapChannelClient_t*)entityMgr_get(item->locationEntityId);
+	if( client == NULL )
+		return;
+	if( item->locationSlotIndex >= 0 || item->locationSlotIndex < 16 )
+	{
+		client->inventory.equippedInventory[item->locationSlotIndex] = item->entityId;
+		item_sendItemDataToClient(client, item);
+		inventory_addItem(client, 8, item->entityId, item->locationSlotIndex);
 	}
 }
 
@@ -501,6 +556,7 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 	// tell client that the equipment state has changed
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
+
 	pym_list_begin(&pms); // pairs of (slotId, entityId)
 	// slotIds are the same as for appearance info
 	if( client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer] ) // is a weapon equipped?
@@ -551,18 +607,134 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_addInt(&pms, 5); // maxSize
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 86, pym_getData(&pms), pym_getLen(&pms));
+	// create equipped inventory
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, INVENTORY_EQUIPPEDINVENTORY); // inventoryType
+	pym_list_begin(&pms);
+	/* {itemId, slotIndex} list */
+	pym_list_end(&pms);
+	pym_addInt(&pms, 5); // maxSize
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 86, pym_getData(&pms), pym_getLen(&pms));
 	// test
 	item_t *testA;
+	item_t *testB;
 
-	for(int i=0; i<5; i++)
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Vest_15_to_19");
+	if( testA )
 	{
-
-		testA = item_createFromTemplate("Weapon_Avatar_Pistol_Physical_UNC_01_to_04");
-		if( testA )
-		{
-			item_setLocationHomeinventory(testA, client);
-			item_sendInfo(testA);
-		}
+		item_sendEquippedInfo(testA, client);
+		//---@ 4ae9585968 Disastorm
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
+	}
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Legs_15_to_19");
+	if( testA )
+	{
+		item_sendEquippedInfo(testA, client);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
+	}
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Helmet_15_to_19");
+	if( testA )
+	{
+		item_sendEquippedInfo(testA, client);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	   
+	}
+	testA = item_createFromTemplate("[_Graviton_V01_CMN_Boots_15_to_19");
+	if( testA )
+	{
+		item_sendEquippedInfo(testA, client);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	  
+	}
+	testA = item_createFromTemplate("_Graviton_V01_CMN_Gloves_15_to_19");
+	if( testA )
+	{
+		item_sendEquippedInfo(testA, client);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
+	    
+	}
+	manifestation_updateAppearance(client);
+	testB = item_createFromTemplate("Weapon_Avatar_Rifle_Physical_UNC_01_to_05");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_Pistol_Physical_UNC_01_to_04");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_MachineGun_Physical_ELT_08_to_12");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v1_Physical_UNC_07_to_11");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Helmet_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Vest_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Gloves_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Legs_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Boots_05_to_08");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_PropellantGun_Ice_CMN_32_to_36");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_GrenadeLauncher_Physical_CMN_35_to_39");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v3_Fire_CMN_34_to_38");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
+	}
+	testB = item_createFromTemplate("Test_Weapon_Avatar_Machinegun_V3");
+	if( testB )
+	{
+		item_setLocationHomeinventory(testB, client);
+		item_sendInfo(testB);
 	}
 }
 

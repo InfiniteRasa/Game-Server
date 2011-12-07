@@ -62,7 +62,19 @@ void _gameEffect_removeFromList(actor_t *actor, gameEffect_t *gameEffect)
 /*
 	Attaches a GameEffect (buffs, etc.) to a actor entity.
 */
-void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel)
+void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effectId, int effectLevel, int duration)
+{
+	int entityType = entityMgr_getEntityType(entityId);
+	void *entity = entityMgr_get(entityId);
+	if( entity == NULL ) { return; }
+	creature_t *creature = NULL;
+	if (entityType == ENTITYTYPE_CREATURE)
+	{ creature = (creature_t*)entity; }
+	else { return; }
+	gameEffect_attach(mapChannel, &creature->actor, effectId, effectLevel, duration);
+}
+
+void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel, int duration)
 {
 	// check if a effect with the same ID already exists
 	gameEffect_t *link = actor->activeEffects;
@@ -76,7 +88,7 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	// create effect struct
 	gameEffect_t *gameEffect = (gameEffect_t*)malloc(sizeof(gameEffect_t));
 	// setup struct
-	gameEffect->aliveTime = 1000 * 5; // 5 seconds (test)
+	gameEffect->aliveTime = duration; // 5 seconds (test)
 	gameEffect->time = 0; // reset timer
 	gameEffect->effectId = effectId;
 	gameEffect->effectLevel = effectLevel;
@@ -86,7 +98,6 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-
 	pym_addInt(&pms, (int)gameEffect->effectId);	//typeId
 	pym_addInt(&pms, (int)gameEffect->effectId);	//effectId
 	pym_addInt(&pms, (int)gameEffect->effectLevel);	//level
@@ -103,10 +114,8 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	// 'isNegativeEffect'
 	pym_dict_end(&pms);
 	//args ( variable)
-
 	pym_dict_begin(&pms);
 	pym_dict_end(&pms);
-
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work

@@ -5,11 +5,12 @@ typedef union
 	struct 
 	{
 		unsigned long long homeInventory[50*5]; // 250 slots
+		unsigned long long equippedInventory[17]; // armor
 		unsigned long long weaponDrawer[5];
 	};
 	struct  
 	{
-		unsigned long long slot[250+5];
+		unsigned long long slot[250+16+5];
 		char activeWeaponDrawer;
 	};
 }inventory_t;
@@ -27,18 +28,22 @@ typedef struct
 }item_t;
 
 void inventory_initForClient(mapChannelClient_t *client);
+item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
 
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
+void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 
-#define INVENTORY_SLOTOFFSET_PLAYER		0
-#define INVENTORY_SLOTOFFSET_WEAPONDRAWER	250
+#define INVENTORY_SLOTOFFSET_PLAYER			0
+#define INVENTORY_SLOTOFFSET_EQUIPPED		250
+#define INVENTORY_SLOTOFFSET_WEAPONDRAWER	266
 
 
 #define INVENTORY_PERSONAL				1

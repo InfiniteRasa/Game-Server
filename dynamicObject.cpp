@@ -3,9 +3,25 @@
 #define OBJECTTYPE_FOOTLOCKER		1
 #define OBJECTTYPE_UNDEFINED		2
 #define OBJECTTYPE_BANE_DROPSHIP	3
+#define OBJECTTYPE_CONTROL_POINT	4
+#define OBJECTTYPE_LOGOS			5
+#define OBJECTTYPE_AFS_DROPSHIP		6
+#define OBJECTTYPE_TELEPORTER		7
+#define OBJECTTYPE_WAYPOINT		    8
+#define OBJECTTYPE_DOOR				9
+#define OBJECTTYPE_FORCEFIELD       10
+#define OBJECTTYPE_AFS_TURRET		11
+#define OBJECTTYPE_BASEWORMHOLE		14
+#define OBJECTTYPE_TORIODCANNON		15
+
 
 #define ACTION_USEOBJECT	80
 
+extern int gridL1;
+extern  int gridL2;
+extern int gridCount;
+extern int** entityPosGrid;
+extern int** forcefieldMap;
 
 #include<math.h>
 // Convert from Euler Angles
@@ -46,6 +62,7 @@ dynObject_t *_dynamicObject_create(unsigned int classId, unsigned short objectTy
 {
 	dynObject_t *dynObject = (dynObject_t*)malloc(sizeof(dynObject_t));
 	dynObject->entityId = entityMgr_getFreeEntityIdForObject();
+	
 	dynObject->objectType = objectType;
 	dynObject->objectData = NULL;
 	dynObject->entityClassId = classId;
@@ -97,7 +114,7 @@ void dynamicObject_setPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyna
 	workEntry->entityId = dynamicObject->entityId;
 	// register (TODO: check if a previous entry has already been registered)
 	hashTable_set(&mapChannel->ht_updateObjectList, workEntry->entityId, workEntry);
-	printf("ADD : %08X\n", workEntry);
+	//printf("ADD : %08X\n", workEntry);
 }
 
 dynObject_t *dynamicObject_createFootlocker(float x, float y, float z, float rotX, float rotY, float rotZ)
@@ -177,6 +194,193 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));		
 	}
+	if (dynObject->objectType == OBJECTTYPE_AFS_TURRET)
+	{
+	   
+		
+
+		pym_init(&pms);
+		pym_tuple_begin(&pms); // Packet Start
+		pym_addInt(&pms, 242); // Action ID // 
+		pym_addInt(&pms, 1); // Arg ID // 
+		pym_list_begin(&pms); // Hits Start
+		pym_addInt(&pms, dynObject->entityId); // Each hit creature
+		pym_list_end(&pms); // Hits End
+		pym_list_begin(&pms); // Misses Start
+		pym_list_end(&pms); // Misses End
+		pym_list_begin(&pms); // Misses Data Start
+		pym_list_end(&pms); // Misses Data End
+		pym_list_begin(&pms); // Hits Data Start
+		pym_tuple_begin(&pms); // Each Hit tuple start
+		pym_addInt(&pms, dynObject->entityId); // Creature entity ID
+		pym_tuple_begin(&pms); // rawInfo start
+		pym_addInt(&pms, 1); //self.damageType = normal
+		pym_addInt(&pms, 0); //self.reflected = 0
+		pym_addInt(&pms, 0); //self.filtered = 0
+		pym_addInt(&pms, 0); //self.absorbed = 0
+		pym_addInt(&pms, 0); //self.resisted = 0
+		pym_addInt(&pms, 1); //self.finalAmt = missile->damageA
+		pym_addInt(&pms, 0); //self.isCrit = 0
+		pym_addInt(&pms, 0); //self.deathBlow = 0
+		pym_addInt(&pms, 0); //self.coverModifier = 0
+		pym_addInt(&pms, 0); //self.wasImmune = 0
+		  //targetEffectIds // 131
+		pym_list_begin(&pms);
+		pym_list_end(&pms);
+		//sourceEffectIds
+		pym_list_begin(&pms);
+		pym_list_end(&pms);
+		pym_tuple_end(&pms); // rawInfo end
+		pym_addNoneStruct(&pms); // OnHitData
+		pym_tuple_end(&pms); // Each Hit tuple start
+		pym_list_end(&pms); // Hits Data End
+		pym_tuple_end(&pms); // Packet End
+		// 311
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, dynObject, dynObject->entityId, 125, pym_getData(&pms), pym_getLen(&pms));
+		
+	}
+	if (dynObject->objectType == OBJECTTYPE_TORIODCANNON)
+	{
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 56);
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+	}
+	if (dynObject->objectType == OBJECTTYPE_BASEWORMHOLE)
+	{
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 56);
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+	}
+	if (dynObject->objectType == OBJECTTYPE_TELEPORTER)
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 1);	// enabled
+		pym_addInt(&pms, 80);	// curState
+		pym_addNoneStruct(&pms); // nameOverrideId
+		pym_addInt(&pms, 1000);	// windupTime
+		pym_addInt(&pms, 0);	// missionActivated
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));
+	}
+	if (dynObject->objectType == OBJECTTYPE_WAYPOINT)
+	{
+        
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 172);
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+
+	}
+	if (dynObject->objectType == OBJECTTYPE_DOOR)
+	{
+	
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 91);
+		pym_addInt(&pms, 25000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+	}
+	if (dynObject->objectType == OBJECTTYPE_FORCEFIELD)
+	{		
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 191);
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->mapChannel, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+								
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId);
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->mapChannel, dynObject->entityId, 624, pym_getData(&pms), pym_getLen(&pms));
+
+	}
+	if (dynObject->objectType == OBJECTTYPE_CONTROL_POINT)
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 1);	// enabled
+		pym_addInt(&pms, 176);	// curState 176 owned be afs
+		pym_addNoneStruct(&pms); // nameOverrideId
+		pym_addInt(&pms, 10000);	// windupTime
+		pym_addInt(&pms, 0);	// missionActivated
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));
+		
+		/* Struct('ControlPointStatus', 
+		(Field('controlPointId', types.IntType, None, False),
+		Field('ownerId', types.LongType, None, True),
+		Field('stateId', types.IntType, None, False),
+		Field('endTime', types.IntType, None, False))) */
+/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "ControlPointStatus");
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "controlPointId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "ownerId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "stateId");
+		pym_addInt(&pms, 1);
+		pym_tuple_end(&pms);
+		pym_tuple_begin(&pms);
+		pym_addString(&pms, "endTime");
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 814, pym_getData(&pms), pym_getLen(&pms));
+		*/
+		/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 6); // ownerTypeId FACTION_OWNED = 6
+		pym_addBool(&pms, false); // ownerid true / false
+		pym_addNoneStruct(&pms); // nothing
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 666, pym_getData(&pms), pym_getLen(&pms));
+		*/
+		/*
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 2);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 884, pym_getData(&pms), pym_getLen(&pms));
+		*/
+	}
+	if (dynObject->objectType == OBJECTTYPE_LOGOS)
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 1);	// enabled
+		pym_addInt(&pms, 81);	// curState
+		pym_addNoneStruct(&pms); // nameOverrideId
+		pym_addInt(&pms, 10000);	// windupTime
+		pym_addInt(&pms, 0);	// missionActivated
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));
+	}
 }
 
 bool dynamicObject_process_BaneDropship(mapChannel_t *mapChannel, dynObject_t *dynObject, int timePassed)
@@ -202,11 +406,27 @@ bool dynamicObject_process_BaneDropship(mapChannel_t *mapChannel, dynObject_t *d
 		// spawn creatures ( for some odd reason there is a delay until they appear on the client?)
 		for(int i=0; i<baneDropshipData->spawnCount;i++)
 		{
-			creature_t *creature = creature_createCreature(mapChannel, baneDropshipData->spawnTypeList[i], baneDropshipData->spawnPool);
+			creature_t *creature = creature_createCreature(mapChannel, 
+				                                           baneDropshipData->spawnTypeList[i], 
+														   baneDropshipData->spawnPool,
+														   baneDropshipData->spawnPool->faction);
 			if( creature == NULL )
 				continue;
-			creature_setLocation(creature, dynObject->x, dynObject->y, dynObject->z, 0.0f, 0.0f);
+			srand(GetTickCount());
+			int srnd = rand() % 5;
+			creature_setLocation(creature, dynObject->x+(float)srnd, dynObject->y, dynObject->z+(float)srnd, 0.0f, 0.0f);
+			//--add creature to position grid
+			entityPosGrid[gridCount] = new int[gridL2];
+			entityPosGrid[gridCount][0] = mapChannel->mapInfo->contextId;
+			entityPosGrid[gridCount][1] = creature->actor.entityId;
+			entityPosGrid[gridCount][2] = creature ->actor.posX;
+			entityPosGrid[gridCount][3] = creature ->actor.posZ;	
+			entityPosGrid[gridCount][4] =  baneDropshipData->spawnPool->faction;		
+			gridCount+= 1;
+			if(gridCount >  gridL1) gridCount = gridL1;
+
 			cellMgr_addToWorld(mapChannel, creature);
+
 		}
 		if( baneDropshipData->spawnPool )
 		spawnPool_decreaseQueuedCreatureCount(mapChannel, baneDropshipData->spawnPool, baneDropshipData->spawnCount);
@@ -291,7 +511,7 @@ void dynamicObject_check(mapChannel_t *mapChannel, int timePassed)
 	for(int i=0; i<removeQueueCount; i++)
 	{
 		dynObject_workEntry_t *dynObjectWorkEntry = removeQueue[i];
-		printf("FREE: %08X (eid %d)\n", dynObjectWorkEntry, dynObjectWorkEntry->entityId);
+		//printf("FREE: %08X (eid %d)\n", dynObjectWorkEntry, dynObjectWorkEntry->entityId);
 		//hashTable_set(&mapChannel->ht_updateObjectList, dynObjectWorkEntry->entityId, NULL);
 		bool test = hashTable_set(&mapChannel->ht_updateObjectList, dynObjectWorkEntry->entityId, NULL);
 		if( test == false )
@@ -302,18 +522,30 @@ void dynamicObject_check(mapChannel_t *mapChannel, int timePassed)
 		free(dynObjectWorkEntry);
 	}
 }
-
+//---init all dynamic objects in mapchannel
 void dynamicObject_init(mapChannel_t *mapChannel)
 {
 	hashTable_init(&mapChannel->ht_updateObjectList, 32);
-	dynObject_t *footLocker = dynamicObject_createFootlocker(-231.800781f, 101.050781f, -69.894531f, 0.0f, 0.0f, 0.0f);
-	cellMgr_addToWorld(mapChannel, footLocker);
+	//dynObject_t *footLocker = dynamicObject_createFootlocker(-231.800781f, 101.050781f, -69.894531f, 0.0f, 0.0f, 0.0f);
+	//cellMgr_addToWorld(mapChannel, footLocker);
+	//dynamicObject_createHumanDropship(mapChannel, -231.800781f, 105.0f, -69.894531f);
 }
 
 void dynamicObject_developer_createFootlocker(mapChannel_t *mapChannel, float x, float y, float z)
 {
 	dynObject_t *footLocker = dynamicObject_createFootlocker(x, y, z, 0.0f, 0.0f, 0.0f);
 	cellMgr_addToWorld(mapChannel, footLocker);
+}
+
+void dynamicObject_developer_createControlPoint(mapChannel_t *mapChannel, float x, float y, float z)
+{
+	dynObject_t *dynObject = _dynamicObject_create(3814, OBJECTTYPE_CONTROL_POINT); // 3814
+	if( !dynObject )
+		return;
+	dynamicObject_setPosition(dynObject, x, y, z);
+	// set footlocker data
+	// todo
+	cellMgr_addToWorld(mapChannel, dynObject);
 }
 
 void dynamicObject_developer_createCustom(mapChannel_t *mapChannel, int classId, float x, float y, float z)
@@ -324,7 +556,7 @@ void dynamicObject_developer_createCustom(mapChannel_t *mapChannel, int classId,
 
 void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y, float z, int spawnCount, creatureType_t **spawnTypeList, spawnPool_t *spawnPool)
 {
-	dynObject_t *dynObject = _dynamicObject_create(9268, OBJECTTYPE_BANE_DROPSHIP);
+	dynObject_t *dynObject = _dynamicObject_create(9268, OBJECTTYPE_BANE_DROPSHIP);// 9269
 	if( !dynObject )
 		return;
 	dynObject_baneDropship_t *banedropShipData = (dynObject_baneDropship_t*)malloc(sizeof(dynObject_baneDropship_t));
@@ -365,6 +597,31 @@ void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y
 	dynamicObject_createBaneDropship(mapChannel, x, y, z, spawnCount, spawnTypeList, NULL);
 }
 
+void dynamicObject_teleporter_useObject(mapChannelClient_t *client, int actionId, int actionArgId, dynObject_t *teleporter)
+{
+	if( actionId == ACTION_USEOBJECT )
+	{
+
+		typedef struct tloc
+		{
+			int x;
+			int y;
+			int z;
+			float rotation; //not necessary, could add
+			int mapContextId;
+		};
+
+		tloc telepos = {0};
+		client->player->actor->posX = 200.1f; 
+		client->player->actor->posY = 200.1f;
+		client->player->actor->posZ = 200.1f;
+		cellMgr_addToWorld(client); // will introduce the player to all clients, including the current owner
+		// todo: send inventory
+		//printf("TODO: teleporter");
+	}
+}
+
+
 void dynamicObject_footlocker_useObject(mapChannelClient_t *client, int actionId, int actionArgId, dynObject_t *footlocker)
 {
 	if( actionId == ACTION_USEOBJECT )
@@ -403,11 +660,113 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, unsigned ch
 	dynObject_t *dynObject = (dynObject_t*)entityMgr_get(entityId);
 	if( dynObject == NULL )
 		return;
+	pyMarshalString_t pms;
 	switch( dynObject->objectType )
 	{
+	case OBJECTTYPE_TELEPORTER:
+		 dynamicObject_teleporter_useObject(client, actionId, actionArgId, dynObject);
+		break;
+	
 	case OBJECTTYPE_FOOTLOCKER:
 		dynamicObject_footlocker_useObject(client, actionId, actionArgId, dynObject);
 		break;
+	case OBJECTTYPE_CONTROL_POINT:
+		/*
+			(176) (USE_CPOINT_STATE_FACTION_A_OWNED)
+			(177) (USE_CPOINT_STATE_FACTION_B_CLAIMING)
+			(179) (USE_CPOINT_STATE_FACTION_B_OWNED)
+			(180) (USE_CPOINT_STATE_FACTION_A_CLAIMING)
+			(181) (USE_CPOINT_STATE_UNCLAIMED)
+		*/
+		//printf("ActionID: %i - ActionArgID: %i\n", actionId, actionArgId);
+		// send interruptible use
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId); // actorID
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 691, pym_getData(&pms), pym_getLen(&pms));
+		client->player->actionEntityId = dynObject->entityId;
+		// change CP state - ForceState
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 174); // 180
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
+		client->mapChannel->cp_trigger.cb = _dynamicObject_controlpoint_callback;
+		client->mapChannel->cp_trigger.param = client;
+		client->mapChannel->cp_trigger.timeLeft = 9500;
+		client->mapChannel->cp_trigger.period = 0;
+		break;
+	case OBJECTTYPE_LOGOS:
+		printf("using logos\n");
+		// Recv_Use(self, actorId, curStateId, windupTimeMs, *args):
+		// send interruptible use
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId); // actorID
+		pym_addInt(&pms, 81);
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 230, pym_getData(&pms), pym_getLen(&pms));
+		client->player->actionEntityId = dynObject->entityId;
+		break;
+	}
+}
+
+bool _dynamicObject_controlpoint_callback(mapChannel_t *mapChannel, void *param, int timePassed)
+{
+	printf("callback control point activated!\n");
+	mapChannelClient_t* client = (mapChannelClient_t*)param;
+	if (client->player->actionEntityId == NULL)
+		return true;
+	printf("action entity is not null\n");
+	// change CP state - ForceState
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 176); // 180
+	pym_addInt(&pms, 10000);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 454, pym_getData(&pms), pym_getLen(&pms));
+	// set usable
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, false);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 203, pym_getData(&pms), pym_getLen(&pms));
+	client->player->actionEntityId = NULL;
+	return true;
+}
+
+void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+{
+	printf("Request action interrupt\n");
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	int actionId = pym_unpackInt(&pums);
+	int actionArgId = pym_unpackInt(&pums);
+	if (actionId == 80 && actionArgId == 7) //ControlPoint data?
+	{
+		printf("Interrupting control point claiming\n");
+		// Use Interrupted
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->entityId); // actorID
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 609, pym_getData(&pms), pym_getLen(&pms));
+		// change CP state - ForceState
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 179);
+		pym_addInt(&pms, 10000);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actionEntityId, 454, pym_getData(&pms), pym_getLen(&pms));
+		client->player->actionEntityId = NULL;
+		client->mapChannel->cp_trigger.cb = NULL;
 	}
 }
 
@@ -456,4 +815,39 @@ void dynamicObject_cellDiscardObjectsToClient(mapChannel_t *mapChannel, mapChann
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, 5, 56, pym_getData(&pms), pym_getLen(&pms));
 	}
+}
+
+
+// TEEEEEEST
+
+void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y, float z)
+{
+	dynObject_t *dynObject = _dynamicObject_create(7302, OBJECTTYPE_LOGOS); // 3814
+	if( !dynObject )
+		return;
+	dynamicObject_setPosition(dynObject, x, y, z);
+	cellMgr_addToWorld(mapChannel, dynObject);
+}
+
+void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z)
+{
+	dynObject_t *dynObject = _dynamicObject_create(9269, OBJECTTYPE_BANE_DROPSHIP); // 3814
+	if( !dynObject )
+		return;
+	printf("Human Dropship Entity ID: %u\n", dynObject->entityId);
+	dynamicObject_setPosition(dynObject, x, y, z);
+	//dynamicObject_setRotation(dynObject, 0.0f, 0.0f, 0.0f);
+	dynObject->stateId = 1;
+	cellMgr_addToWorld(mapChannel, dynObject);
+}
+
+void dynamicObject_forceState(clientGamemain_t* cgm, unsigned int entityId, int state)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, state);
+	pym_addInt(&pms, 10000);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cgm, entityId, 454, pym_getData(&pms), pym_getLen(&pms));
 }

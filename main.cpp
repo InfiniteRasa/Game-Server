@@ -226,11 +226,12 @@ int main()
 	hGamePort = CreateSocket(8102);
 
 	printf("\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n");
-	printf("\xBA     Tabula Rasa Server - Testrelease v2   \xBA\n");
+	printf("\xBA     Tabula Rasa Server - Testrelease v6   \xBA\n");
 	printf("\xBA     author: JH @ jhwork.net               \xBA\n");
+	printf("\xBA     Experimental Branch @ InfiniteRasa    \xBA\n");
 	printf("\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\n");
 
-	do
+	/*do
 	{
 		if( !AuthServerUtil_Register() )
 		{
@@ -239,12 +240,12 @@ int main()
 		}
 		else
 			break;
-	}while(1);
-	printf("Auth: Register succeeded\n");
-	printf("Loading game data...\n");
-	gameData_load();
+	}while(1);*/
 	printf("Connecting to database...\n");
 	dataInterface_init();
+	dataInterface_registerServerForAuth();
+	printf("Loading game data...\n");
+	gameData_load();
 	printf("running\n");
 	// init other
 	entityMgr_init();
@@ -404,7 +405,7 @@ void SMSG_Q_HANDOFF(CLIENT_QUEUE *cp)
 	unsigned char SendBuffer[32];
 	*(unsigned int*)(SendBuffer+0) = 17;
 	*(unsigned char*)(SendBuffer+4) = 0xE;
-	*(unsigned int*)(SendBuffer+5) = AuthServerUtil_GetMyIP(); //IP
+	*(unsigned int*)(SendBuffer+5) = dataInterface_getMyIP(); //IP
 	*(unsigned int*)(SendBuffer+9) = 8102; //Port
 	*(unsigned int*)(SendBuffer+13) = cp->sessionId1; //sessionId1
 	*(unsigned int*)(SendBuffer+17) = cp->sessionId2; //sessionId2

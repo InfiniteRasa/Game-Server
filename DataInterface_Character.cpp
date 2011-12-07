@@ -7,7 +7,7 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 	char queryText[1024];
 	if( job->slotIndex == -1 )
 		wsprintf(queryText, "SELECT "
-		"id,name,slotId,gender,raceId,classId,"
+		"id,name,lastname,slotId,gender,raceId,classId,"
 		"currentContextId,posX,posY,posZ,"
 		"ad1_classId,ad1_hue,"
 		"ad2_classId,ad2_hue,"
@@ -34,7 +34,7 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 	else
 	{
 		wsprintf(queryText, "SELECT "
-			"id,name,slotId,gender,raceId,classId,"
+			"id,name,lastname,slotId,gender,raceId,classId,"
 			"currentContextId,posX,posY,posZ,"
 			"ad1_classId,ad1_hue,"
 			"ad2_classId,ad2_hue,"
@@ -82,17 +82,17 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		double char_posZ;
 
 		sscanf(dbRow[0], "%I64u", &char_id);
-		sscanf(dbRow[2], "%d", &char_slotIndex);
-		sscanf(dbRow[3], "%d", &char_gender);
-		sscanf(dbRow[4], "%d", &char_race);
-		sscanf(dbRow[5], "%d", &char_classId);
-		sscanf(dbRow[6], "%d", &char_currentContextId);
-		sscanf(dbRow[7], "%lf", &char_posX);
-		sscanf(dbRow[8], "%lf", &char_posY);
-		sscanf(dbRow[9], "%lf", &char_posZ);
+		sscanf(dbRow[3], "%d", &char_slotIndex);
+		sscanf(dbRow[4], "%d", &char_gender);
+		sscanf(dbRow[5], "%d", &char_race);
+		sscanf(dbRow[6], "%d", &char_classId);
+		sscanf(dbRow[7], "%d", &char_currentContextId);
+		sscanf(dbRow[8], "%lf", &char_posX);
+		sscanf(dbRow[9], "%lf", &char_posY);
+		sscanf(dbRow[10], "%lf", &char_posZ);
 		char_rawSlotIndex = char_slotIndex-1;
 		job->outPreviewData[char_rawSlotIndex] = (di_characterPreview_t *)malloc(sizeof(di_characterPreview_t));
-		int rIdx = 10;
+		int rIdx = 11;
 		for(int i=0; i<21; i++)
 		{
 			sscanf(dbRow[rIdx+0], "%d", &job->outPreviewData[char_rawSlotIndex]->appearanceData[i].classId);
@@ -101,6 +101,7 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		}
 		job->outPreviewData[char_rawSlotIndex]->characterID = char_id;
 		strcpy(job->outPreviewData[char_rawSlotIndex]->unicodeName, dbRow[1]);
+		strcpy(job->outPreviewData[char_rawSlotIndex]->unicodeFamily, dbRow[2]);
 		job->outPreviewData[char_rawSlotIndex]->genderIsMale = char_gender==0;
 		job->outPreviewData[char_rawSlotIndex]->raceID = char_race;
 		job->outPreviewData[char_rawSlotIndex]->classID = char_classId;
@@ -136,7 +137,7 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 {
 	char queryText[1024];
 	wsprintf(queryText, "SELECT "
-			"id,name,slotId,gender,raceId,classId,"
+			"id,name,lastname,slotId,gender,raceId,classId,"
 			"currentContextId,posX,posY,posZ,"
 			"ad1_classId,ad1_hue,"
 			"ad2_classId,ad2_hue,"
@@ -184,17 +185,17 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		double char_posZ;
 
 		sscanf(dbRow[0], "%I64u", &char_id);
-		sscanf(dbRow[2], "%d", &char_slotIndex);
-		sscanf(dbRow[3], "%d", &char_gender);
-		sscanf(dbRow[4], "%d", &char_race);
-		sscanf(dbRow[5], "%d", &char_classId);
-		sscanf(dbRow[6], "%d", &char_currentContextId);
-		sscanf(dbRow[7], "%lf", &char_posX);
-		sscanf(dbRow[8], "%lf", &char_posY);
-		sscanf(dbRow[9], "%lf", &char_posZ);
+		sscanf(dbRow[3], "%d", &char_slotIndex);
+		sscanf(dbRow[4], "%d", &char_gender);
+		sscanf(dbRow[5], "%d", &char_race);
+		sscanf(dbRow[6], "%d", &char_classId);
+		sscanf(dbRow[7], "%d", &char_currentContextId);
+		sscanf(dbRow[8], "%lf", &char_posX);
+		sscanf(dbRow[9], "%lf", &char_posY);
+		sscanf(dbRow[10], "%lf", &char_posZ);
 		char_rawSlotIndex = char_slotIndex-1;
 		job->outCharacterData = (di_characterData_t*)malloc(sizeof(di_characterData_t));
-		int rIdx = 10;
+		int rIdx = 11;
 		for(int i=0; i<21; i++)
 		{
 			sscanf(dbRow[rIdx+0], "%d", &job->outCharacterData->appearanceData[i].classId);
@@ -203,6 +204,7 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		}
 		job->outCharacterData->characterID = char_id;
 		strcpy(job->outCharacterData->unicodeName, dbRow[1]);
+		strcpy(job->outCharacterData->unicodeFamily, dbRow[2]);
 		job->outCharacterData->genderIsMale = char_gender==0;
 		job->outCharacterData->raceID = char_race;
 		job->outCharacterData->classID = char_classId;
@@ -264,8 +266,8 @@ void cb_dataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	mysql_free_result(dbResult);
 	// try insert character	
 	sprintf(queryText, "INSERT INTO characters ("
-			"`name`,`slotId`,`gender`,`raceId`,`classId`,`userId`,"
-			"`currentContextId`,`posX`,`posY`,`posZ`,"
+			"`name`,`lastname`,`slotId`,`gender`,`raceId`,`classId`,`userId`,"
+			"`currentContextId`,`posX`,`posY`,`posZ`,`rotation`,"
 			"`ad1_classId`,`ad1_hue`,"
 			"`ad2_classId`,`ad2_hue`,"
 			"`ad3_classId`,`ad3_hue`,"
@@ -288,8 +290,8 @@ void cb_dataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 			"`ad20_classId`,`ad20_hue`,"
 			"`ad21_classId`,`ad21_hue`"
 			") VALUES"
-			"('%s',%d,%d,%d,%d,%I64u,"
-			"%d,%f,%f,%f,"
+			"('%s','%s',%d,%d,%d,%d,%I64u,"
+			"%d,%f,%f,%f,0,"
 			"%d,%u,%d,%u,%d,%u,%d,%u," // 1
 			"%d,%u,%d,%u,%d,%u,%d,%u," // 5
 			"%d,%u,%d,%u,%d,%u,%d,%u," // 9
@@ -297,7 +299,7 @@ void cb_dataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 			"%d,%u,%d,%u,%d,%u,%d,%u," // 17
 			"%d,%u"					   // 21
 			")", 
-			characterData->unicodeName, characterData->slotIndex, characterData->genderIsMale?0:1, characterData->raceID, characterData->classId, characterData->userID,
+			characterData->unicodeName, characterData->unicodeFamily, characterData->slotIndex, characterData->genderIsMale?0:1, characterData->raceID, characterData->classId, characterData->userID,
 			characterData->currentContextId,(float)characterData->posX,(float)characterData->posY,(float)characterData->posZ,
 			characterData->appearanceData[0].classId,characterData->appearanceData[0].hue,
 			characterData->appearanceData[1].classId,characterData->appearanceData[1].hue,

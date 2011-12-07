@@ -76,6 +76,7 @@ int pym_unpackInt(pyUnmarshalString_t *pms);
 long long pym_unpackLongLong(pyUnmarshalString_t *pms);
 int pym_unpackUnicode(pyUnmarshalString_t *pms, char *dst, int limit);
 float pym_unpackFloat(pyUnmarshalString_t *pms);
+bool pym_unpackBool(pyUnmarshalString_t *pms);
 bool pym_unpackNoneStruct(pyUnmarshalString_t *pms);
 
 bool pym_unpack_isNoneStruct(pyUnmarshalString_t *pms);

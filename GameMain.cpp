@@ -229,8 +229,10 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 		do{
 			unsigned short Subsize = *(unsigned short*)Buffer;
 			// 20110729 - thuvvik if/else to avoid gamecrash
-			if (Subsize==43 && Size ==12)
-				r =1;
+			if (Subsize == 43 && Size == 12)
+			{
+				r = 1;
+			}
 			else
 			{
 				if (Subsize >4000)
@@ -365,7 +367,12 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		}
 		pIdx += versionLen;
 		
-		if( wrongVersion ) { printf("Client version missmatch\n"); }
+		if( wrongVersion ) 
+		{ 
+			printf("Client version missmatch\n"); 
+			closesocket(cgm->socket);
+			return 0;
+		}
 			// return 0;//__debugbreak(); // shit has wrong version
 		
 		unsigned char ukn02_4 = *(unsigned char*)(data+pIdx); pIdx++;

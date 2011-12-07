@@ -2,6 +2,13 @@ void dynamicObject_init(mapChannel_t *mapChannel);
 
 void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
 
+bool _dynamicObject_controlpoint_callback(mapChannel_t *mapChannel, void *param, int timePassed);
+void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y, float z);
+void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z);
+void dynamicObject_forceState(clientGamemain_t* cgm, unsigned int entityId, int state);
+
+void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
+
 typedef struct  
 {
 	int phaseTimeleft;
@@ -52,9 +59,12 @@ bool dynamicObject_process(mapChannel_t *mapChannel, dynObject_t *dynObject, int
 
 // developer / testing
 void dynamicObject_developer_createFootlocker(mapChannel_t *mapChannel, float x, float y, float z);
+void dynamicObject_developer_createControlPoint(mapChannel_t *mapChannel, float x, float y, float z);
 void dynamicObject_developer_createCustom(mapChannel_t *mapChannel, int classId, float x, float y, float z);
 
 void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y, float z, int spawnCount, creatureType_t **spawnTypeList, spawnPool_t *spawnPool);
 void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y, float z, int spawnCount, creatureType_t **spawnTypeList);
 
+dynObject_t *_dynamicObject_create(unsigned int classId, unsigned short objectType);
+void dynamicObject_setPosition(dynObject_t *dynamicObject, float x, float y, float z);
 void dynamicObject_destroy(mapChannel_t *mapChannel, dynObject_t *dynObject);

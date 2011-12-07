@@ -225,13 +225,21 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
 		// hue
-		pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
+		// test .16
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+		pym_tuple_end(&pms);
+		// end test .16
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -252,7 +260,7 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1);
+	pym_addInt(&pms, 0);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	// set skills
@@ -283,6 +291,28 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 243, pym_getData(&pms), pym_getLen(&pms));
+	// Test for weapons
+	if( npc->actor.appearanceData[13].classId != 0 && strcmp(npc->actor.name, "Catherine Jones"))
+	{
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		// Recv_RequestVisualCombatMode
+		//RequestVisualCombatMode = 753
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 753, pym_getData(&pms), pym_getLen(&pms));*/
+
+		// weapon ready
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, npc->entityId, 718, pym_getData(&pms), pym_getLen(&pms));*/
+	}
 	// set conversation status
 	npc_updateConversationStatus(client, npc);
 }
@@ -316,14 +346,20 @@ void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int
 			continue;
 		pym_addInt(&pms, i+1);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
-		pym_tuple_begin(&pms);
-		// hue
-		pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-		pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
-		pym_tuple_end(&pms);
+			pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
+			// hue
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
+			pym_tuple_begin(&pms);
+				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
@@ -650,7 +686,8 @@ void npc_cellDiscardNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *c
 		netMgr_pythonAddMethodCallRaw(client->cgm, 5, 56, pym_getData(&pms), pym_getLen(&pms));
 	}
 }
-
+//---jobdata->outNpcList: contains a list with all npc specific data like position,contextid,entityid,classid and appereance
+//---jobdata->outNpcList: contains data AND locations
 void _cb_npc_initForMapChannel(void *param, diJob_npcListData_t *jobData)
 {
 	mapChannel_t *mapChannel = (mapChannel_t*)param;

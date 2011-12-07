@@ -1,5 +1,5 @@
 #include "Global.h"
-
+#include <time.h>
 /*
 	Behavior controller
 
@@ -7,7 +7,10 @@
 		npc and creature movement, decisions, combat or any actions.
 */
 
-
+extern int gridL1;
+extern int gridL2;
+extern int gridCount;
+extern int** entityPosGrid;
 
 /*
  * Called every 250 milliseconds for every NPC on the map
@@ -33,110 +36,442 @@ float calcAngle(float a_x, float a_y)
 	return acos((a_x*b_x+a_y*b_y)/sqrt(dif));
 }
 
-/*
- * Called every 250 milliseconds for every creature on the map
- */
-void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
+void updateEntityMovementW2 (float difX,float difY,float difZ,creature_t *creature,mapChannel_t *mapChannel,float speeddiv,bool isMoved)
 {
-	if( creature->controller.currentAction == BEHAVIOR_ACTION_IDLE )
+
+	
+	float length = 1.0f / sqrt(difX*difX + difY*difY + difZ*difZ);
+	float velocity = 0.0f;
+	difX *= length;
+	difY *= length;
+	difZ *= length;
+
+	float vX = atan2(-difX, -difZ);
+	// multiplicate with speed
+	if( isMoved == true) velocity = creature->velocity * speeddiv;
+	else velocity = 0.0f;
+
+	float speed = velocity * ( 250.0f / 1000.0f);
+	//float rspeed = creature->rotspeed * (250.0f / 1000.0f);
+	difX *= speed;
+	difY *= speed;
+	difZ *= speed;
+	// move unit
+	if(isMoved == true)
 	{
-		mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
-		int mPosX = creature->actor.posX;
-		int mPosZ = creature->actor.posZ;
-		if( mapCell )
+		creature->actor.posX += difX;
+		creature->actor.posY += difY;
+		creature->actor.posZ += difZ;
+	}
+	// send movement update
+	netCompressedMovement_t movement = {0};
+	movement.entityId = creature->actor.entityId;
+	movement.posX24b = (unsigned int)(creature->actor.posX*256.0f);
+	movement.posY24b = (unsigned int)(creature->actor.posY*256.0f);
+	movement.posZ24b = (unsigned int)(creature->actor.posZ*256.0f);
+	
+	movement.flag = 0x08;
+	movement.viewX = (unsigned short)(short)(vX*10240.0f);
+	movement.viewY = 0;//(unsigned short)(short)(vX*10240.0f);//(int)(calcAngle(difX, difZ)*1024.0f);
+	movement.velocity = (unsigned short)(velocity * 1024.0f);
+	netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
+
+	//--grid update
+				
+
+}
+
+
+void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCell_t *mapCell,int type)
+{
+  
+	int tCount =0;
+	float minimumRange = 16.1f;
+	float difX = 0.0f;
+	float difY = 0.0f;
+	float difZ = 0.0f;
+	float dist = 0.0f;
+	minimumRange *= minimumRange;
+	float mPosX = creature->actor.posX;
+	float mPosZ = creature->actor.posZ;
+	mapChannelClient_t **playerList = NULL;
+	creature_t  **creatureList      = NULL;
+
+	if (type == 0) 
+	{
+		tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
+		playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+   
+	}
+	if (type == 1)
+	{
+		//tCount = hashTable_getCount(&mapCell->ht_creatureList);
+		//creatureList = (creature_t **)hashTable_getValueArray(&mapCell->ht_creatureList);
+	}	
+
+	// check players in range
+	for(int i=0; i<tCount; i++)
+	{
+		if( playerList == NULL) break; //no player found
+		mapChannelClient_t *player = playerList[i];
+		if(player->player->actor->stats.healthCurrent<=0) break;
+		difX = (int)(player->player->actor->posX) - mPosX;
+		difZ = (int)(player->player->actor->posZ) - mPosZ;
+		dist = difX*difX + difZ*difZ;
+		if( dist <= minimumRange && creature->currentHealth > 0 )
 		{
-			// check players in range
-			int playerCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
-			mapChannelClient_t **playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
-			int minimumRange = 15;
-			minimumRange *= minimumRange;
-			for(int i=0; i<playerCount; i++)
+			//printf("Found player to attack\n");
+			// set target and change state
+			//friendly creatures dont attack player
+			if (creature->faction == 0)
 			{
-				mapChannelClient_t *player = playerList[i];
-				int difX = (int)(player->player->actor->posX) - mPosX;
-				int difY = (int)(player->player->actor->posZ) - mPosZ;
-				int dist = difX*difX + difY*difY;
-				if( dist <= minimumRange )
+				creature->controller.targetEntityId = player->clientEntityId;
+				creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
+				break;
+			}
+			//break;
+		}
+	}//---for: playercount
+	
+	// check other creatures in range
+	if(type == 0) return;
+	for(int i2= 0; i2 < gridCount; i2++)
+	{
+        //---dont check yourself
+		if(creature->actor.entityId == entityPosGrid[i2][1])
+		{
+			continue;
+		}
+
+		//--check if in same map
+		if(mapChannel->mapInfo->contextId == entityPosGrid[i2][0])
+		{
+			//difX = (int)creature ->actor.posX-entityPosGrid[i2][2];
+			//difZ = (int)creature ->actor.posZ-entityPosGrid[i2][3];	
+
+			difX = entityPosGrid[i2][2] - mPosX;
+			difZ = entityPosGrid[i2][3] - mPosZ;
+			dist = difX*difX + difZ*difZ;
+	
+			if(dist <= minimumRange)
+			{
+				if( creature->faction != entityPosGrid[i2][4] )
 				{
-					//printf("Found player to attack\n");
-					// set target and change state
-					creature->controller.targetEntityId = player->clientEntityId;
+					creature->controller.targetEntityId = entityPosGrid[i2][1];
 					creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
 					break;
 				}
 			}
 		}
 	}
+	/*
+	for(int i2=0; i2<tCount; i2++)
+	{
+		if(creatureList == NULL) break; // no creatures found
+		creature_t  *crea = creatureList[i2];
+		if( tCount == i2) break;
+		if(crea->currentHealth<=0) continue;
+		if(crea->actor.entityId == creature->actor.entityId) continue; //skip if same creature
+		difX = crea->actor.posX - mPosX;
+		difZ = crea->actor.posZ - mPosZ;
+		dist = difX*difX + difZ*difZ;
+	
+		if( creature->currentHealth >0 )
+		{
+	        //__debugbreak();
+			// attack only other factional creatures
+			if( crea->faction != creature->faction )
+			{
+				printf("found enemy creature entity: %d  class: %d \n",
+					crea->actor.entityId, crea->actor.entityClassId);
+				creature->controller.targetEntityId = crea->actor.entityId;
+				creature->controller.currentAction = BEHAVIOR_ACTION_FIGHTING;
+				break;
+			}
+			//break;
+		}//---if
+	}//---for:creatureCount
+	*/
+}
+
+/*
+ * Called every 250 milliseconds for every creature on the map
+ */
+
+//todo: make walkingspeed, rotationspeed variable(fromd or textfile) 
+void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
+{
+  //---dahrkael @ 8046b75
+  if (creature->currentHealth <= 0) 	
+  { return; } 	
+
+  //---update entity position grid
+	for(int i= 0; i < gridCount; i++)
+	{
+        if(creature->actor.entityId == entityPosGrid[i][1])
+		{
+            entityPosGrid[i][2] = (int)creature->actor.posX;  
+			entityPosGrid[i][3] = (int)creature->actor.posZ;   
+		}
+	}
+
+	if(creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
+	{
+	   	
+		//__debugbreak();
+           //calc new target location
+	       if(creature->wanderstate == 0)
+		   {		    
+	
+				mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
+				if( mapCell )
+				{
+					//__debugbreak();
+				    checkForEntityInRange(mapChannel,creature,mapCell,1); //creature
+					checkForEntityInRange(mapChannel,creature,mapCell,0); //player
+					//---skip wandering if enemy found
+	                if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING)
+					{
+						creature->lastagression = GetTickCount();
+						return;
+					}
+				}//--cellwide search
+			   
+			    //--- idle for short time before get new wander position
+				unsigned int resttime = GetTickCount();
+				if( (resttime-creature->lastresttime) > 3500 )
+				{
+					//__debugbreak();
+					/*printf("entity: %d x:%f y:%f z:%f \n",
+					creature->actor.entityId,creature->actor.posX,creature->actor.posY,creature->actor.posZ); */
+					creature->lastresttime = resttime;
+					//calc target
+					srand(GetTickCount());
+					int srnd = rand() % (int)creature->wander_dist;
+					creature->wx = creature->homePos.x + (float)srnd;
+					creature->wy = creature->homePos.y+1.0f;
+					creature->wz = creature->homePos.z + (float)srnd;			
+					//next step approaching
+					creature->wanderstate = 1;
+				}
+				
+		   }	
+		  if(creature->wanderstate == 1)
+		  {   
+				
+			    mapCell_t *mapCell = cellMgr_tryGetCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
+				if( mapCell )
+				{
+					//__debugbreak();
+					checkForEntityInRange(mapChannel,creature,mapCell,1); //creature
+					checkForEntityInRange(mapChannel,creature,mapCell,0); //player
+					//---skip wandering if enemy found
+					if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING)
+					{
+						creature->lastagression = GetTickCount();
+						return;
+					}
+
+					
+				}//--cellwide search
+			  
+			    // get distance
+				float difX = creature->wx - creature->actor.posX;
+				float difY = creature->wy - creature->actor.posY;
+				float difZ = creature->wz - creature->actor.posZ;
+				float dist = difX*difX + difZ*difZ;
+			    
+				//wander targetlocation reached
+				
+			    
+		        updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.29f,true);
+				if(dist < 2.0f) 
+				{
+					
+					creature->wanderstate = 0;
+				}
+				
+		  }
+
+	}
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
 	{
+		
+    	int difX;
+		int difY;
+		int difZ; 
+		//__debugbreak();
+		if ( creature->currentHealth <=0)
+			return;
 		// get target
 		void *target = entityMgr_get(creature->controller.targetEntityId);
+		
 		if( target )
 		{
-			// get poisition of target
+			
+			//--get out of combat
+			int aggtime = GetTickCount();
+			if(aggtime - creature->lastagression > creature->agression)
+			{
+				creature->controller.currentAction =  BEHAVIOR_ACTION_WANDER;
+				creature->wanderstate = 0;
+				return;
+			}			
+			
+			// get position of target
 			float targetX = 0.0f;
 			float targetY = 0.0f;
 			float targetZ = 0.0f;
 			if( entityMgr_getEntityType(creature->controller.targetEntityId) == ENTITYTYPE_CLIENT )
 			{
 				mapChannelClient_t *client = (mapChannelClient_t*)target;
+	            //if target dead, set wander state
+				if( client->player->actor->stats.healthCurrent<= 0 )
+				{
+				   creature->wanderstate = 0;
+                   creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+				   return;
+				}
 				targetX = client->player->actor->posX;
 				targetY = client->player->actor->posY;
 				targetZ = client->player->actor->posZ;
+
+			}
+			else if( entityMgr_getEntityType(creature->controller.targetEntityId) == ENTITYTYPE_CREATURE )
+			{  
+				creature_t  *creat = (creature_t*)target;
+				if( (creat->currentHealth <= 0) )
+				{
+				   creature->wanderstate = 0;
+                   creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+				   return;
+				}
+				targetX = creat->actor.posX;
+				targetY = creat->actor.posY;
+				targetZ = creat->actor.posZ;
 			}
 			else
 				__debugbreak(); // todo
-			// get distance
+
+
+			//########### update rotation ###############	
+			float difXR = targetX - creature->actor.posX;
+			float difYR = targetY - creature->actor.posY;
+			float difZR = targetZ - creature->actor.posZ;
+			float distR = difXR*difXR + difZR*difZR;	
+			updateEntityMovementW2(difXR,difYR,difZR,creature,mapChannel,0.0f,false);
+			
+
+			//########### distance check #################
+			unsigned int resttime = GetTickCount();
+			
+			if( (creature->movestate == 0) && ((resttime-creature->lastresttime) > 1500 ) )
+			{
+			     
+			    creature->lastresttime = resttime;	
+				//---check distance to other entitys
+				for(int i= 0; i < gridCount; i++)
+				{
+					//---dont check yourself
+					if(creature->actor.entityId == entityPosGrid[i][1])
+					{
+						continue;
+					}
+                
+					//--check if in same map
+				
+					if(mapChannel->mapInfo->contextId == entityPosGrid[i][0])
+					{
+						difX = (int)creature ->actor.posX-entityPosGrid[i][2];
+						difZ = (int)creature ->actor.posZ-entityPosGrid[i][3];	
+						
+						if( (abs(difX) <2) && (abs(difZ) < 2) )
+						{
+							srand(GetTickCount());
+							int sgnrnd = rand() % 2;
+							int sign = (sgnrnd == 0) ? -1: 1;
+							int srnd1 = rand() % 7;
+							creature->wx = creature->actor.posX + (float)(srnd1 * sign);
+							sgnrnd = rand() % 2;
+							sign = (sgnrnd == 0) ? -1: 1;
+							srnd1 = rand() % 7;
+							creature->wz = creature->actor.posZ + (float)(srnd1 * sign);	
+							creature->wy = targetY;
+							creature->movestate = 1;
+						}//---if entity to close
+					
+					}//---if: same mapid
+				}//--- check whole grid
+			}//---movestate == 0
+			if(creature-> movestate == 1)
+			{
+               
+				float difX1 = creature->wx - creature->actor.posX;
+				float difZ1 = creature->wz - creature->actor.posZ;
+				float dist1 = difX1*difX1 + difZ1*difZ1;
+			 
+		        updateEntityMovementW2(difX1,0.0f,difZ1,creature,mapChannel,0.85f,true);
+				if(dist1 < 1.0f) 
+				{
+					
+					creature->movestate = 0;
+				}
+				return;
+			}//---movestate == 1
+
+			// get distance			
 			float difX = targetX - creature->actor.posX;
 			float difY = targetY - creature->actor.posY;
 			float difZ = targetZ - creature->actor.posZ;
-			float dist = difX*difX + difZ*difZ;
+			float dist = difX*difX + difZ*difZ;	
+
+			float tpx,tpy,tpz;
+
 			float meeleRange = 1.5f;
-			meeleRange *= meeleRange;
+			meeleRange *= meeleRange;		 
+
+			//---if player inside attack range update aggressiontimer
+			if( (dist < meeleRange) || (dist < creature -> range) )
+				creature->lastagression = GetTickCount();
+
 			if( dist < meeleRange )
 			{
-				// can do meele attack
+				//rangeattack (every x sec)
+				unsigned int time2 = GetTickCount();
+				if( (time2-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
+				{
+					//__debugbreak();
+				    creature->lastattack = time2;			
+					missile_launch(mapChannel, &creature->actor, creature->controller.targetEntityId, creature->type->MeleeMissile, 2);
+				}
 			}
 			else
 			{
-				// to far away, move
-				// movefactor is 250 / 1000 * 6
-				// normalize difference vector
-				float length = 1.0f / sqrt(difX*difX + difY*difY + difZ*difZ);
-				difX *= length;
-				difY *= length;
-				difZ *= length;
-
-				float vX = atan2(-difX, -difZ);
-				// multiplicate with speed
-				float velocity = 6.0f;
-				float speed = velocity * (250.0f / 1000.0f);
-				difX *= speed;
-				difY *= speed;
-				difZ *= speed;
-				// move unit
-				creature->actor.posX += difX;
-				creature->actor.posY += difY;
-				creature->actor.posZ += difZ;
-				// send movement update
-				netCompressedMovement_t movement;
-				movement.entityId = creature->actor.entityId;
-				movement.posX24b = (int)(creature->actor.posX*256.0f);
-				movement.posY24b = (int)(creature->actor.posY*256.0f);
-				movement.posZ24b = (int)(creature->actor.posZ*256.0f);
-				movement.flag = 0x08;
-				movement.viewX = (unsigned short)(short)(vX*10240.0f);
-				movement.viewY = 0;//(unsigned short)(short)(vX*10240.0f);//(int)(calcAngle(difX, difZ)*1024.0f);
-				movement.velocity = (int)(velocity * 1024.0f);
-				netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
-			}
+								
+				if( (creature->attack_habbit == 0 && dist > creature -> range) || (creature->attack_habbit == 1 ))
+				{
+					
+					updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f,true);
+				}
+				//rangeattack (every x sec)
+				unsigned int time = GetTickCount();
+				if( ((time-creature->lastattack) > creature->attackspeed) && (dist <= creature-> range) )
+				{
+					//__debugbreak();
+				    creature->lastattack = time;
+					//if( creature->controller.targetEntityId )
+					
+					if(creature->attack_habbit == 0)
+					missile_launch(mapChannel, &creature->actor, creature->controller.targetEntityId, creature->type->RangeMissile, 3);
+				}
+			}//---range attack and movement
 		}
 		else
 		{
 			// target disappeared, leave combat mode (todo: immideatly search for new target)
-			creature->controller.currentAction = BEHAVIOR_ACTION_IDLE;
-		}
-	}
+			creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+		}//---nor target: -> wandering
+	}//---fighting
 }
 
 

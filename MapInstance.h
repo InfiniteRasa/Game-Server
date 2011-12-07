@@ -10,3 +10,4 @@
 #include "creature.h"
 #include "SpawnSystem.h"
 #include "combatMgr.h"
+#include "teleporter.h"
