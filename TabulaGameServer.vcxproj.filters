@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\GameMain">
+      <UniqueIdentifier>{8880617b-49b8-47ef-8fae-d8792081cdc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Message">
+      <UniqueIdentifier>{0dbfbfdb-f26f-4ee9-aae6-355d560e2fe4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help">
+      <UniqueIdentifier>{a0d8616b-c885-4edc-8103-ce82e440cbd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help\netMgr %28Packet%29">
+      <UniqueIdentifier>{abe3d4f2-1b7d-4147-9e5e-c73359c57c67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help\Packing">
+      <UniqueIdentifier>{c5bd7b28-9e70-4f82-b7aa-5d5b358d3067}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help\FileMgr">
+      <UniqueIdentifier>{369e436a-58f1-475f-818c-671d218037d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help\FileMgr\sData">
+      <UniqueIdentifier>{f679c3d8-f845-4244-b7fc-4a8596580146}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Help\HashTable">
+      <UniqueIdentifier>{fe9865be-35db-4531-a332-85dc5663653d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\GameData">
+      <UniqueIdentifier>{7c7e40d1-70b2-47ca-ab5a-401dc690ca8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance">
+      <UniqueIdentifier>{8740248f-bea7-4ef1-831b-c5a9ca530433}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\entityMgr">
+      <UniqueIdentifier>{a3640cca-6d1a-4fb4-8f25-b5e44bc1f27f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\manifestation">
+      <UniqueIdentifier>{b487fda7-b793-4e55-b140-dffa02fd354a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\communicator">
+      <UniqueIdentifier>{3233d015-0b47-4054-86da-038e3e223b51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\inventory">
+      <UniqueIdentifier>{923784dd-412b-4a5a-88de-73b32d95d81f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\dynamicObjects">
+      <UniqueIdentifier>{31c58ff9-c1c6-46dd-b7bc-0efe7f52cc7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\cellMgr">
+      <UniqueIdentifier>{f087ec72-47be-42b3-8dfe-9e8a4c40c701}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\npc">
+      <UniqueIdentifier>{df4f5c05-0661-47ec-803d-c927db16acf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\actor">
+      <UniqueIdentifier>{20fa6304-449f-4099-84d5-ca0c6007e049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\mission">
+      <UniqueIdentifier>{cf78ef6d-252b-478b-9100-c5bea48947c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\creature">
+      <UniqueIdentifier>{6baf8bd3-c6fd-4ce0-84c5-04ee1ff2ddaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\creature\spawnSystem">
+      <UniqueIdentifier>{dcd7c11a-57b0-4b84-8622-d271c2a73c71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\combatMgr">
+      <UniqueIdentifier>{d67e3377-5908-4b75-96a8-ffbe6ca2a776}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\behaviorController">
+      <UniqueIdentifier>{2c981a76-c077-45b1-bdcc-77cbd59a74ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Global">
+      <UniqueIdentifier>{ddbf205d-8d7e-447f-867d-927fd73fcb4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\Global\TabulaCrypt2">
+      <UniqueIdentifier>{017c2745-7404-46f5-92f6-34fbb940daa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main">
+      <UniqueIdentifier>{96f1c3b3-c7cb-4b08-b02c-1e3ef677ce65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main\Bignum">
+      <UniqueIdentifier>{eb8a1a84-315b-4ec4-a5c1-97c257352a19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main\AuthServerUtil">
+      <UniqueIdentifier>{aa4ad90b-2251-4fb0-a0d7-be018d909949}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DataInterface">
+      <UniqueIdentifier>{e4bd32c8-bd92-49c7-83c9-e8b16cd9e219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Doc">
+      <UniqueIdentifier>{1da8a4f1-1f46-46dd-a02a-3be29db2b4bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data">
+      <UniqueIdentifier>{763e3461-7129-413a-b0f6-8cdaf24b41d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\Libs">
+      <UniqueIdentifier>{34ee92bf-fa13-45d1-aaeb-b66bd1ec957d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\sql">
+      <UniqueIdentifier>{aeca8776-a517-4e3f-b154-087fac33f061}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\gameData">
+      <UniqueIdentifier>{7ad09d26-5c5a-407d-b12f-1edabe1c5be2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameMain\MapInstance\Teleporter">
+      <UniqueIdentifier>{d2d3a830-ffc5-49ff-b93d-bf68d681bb17}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GameMain.cpp">
+      <Filter>Source Files\GameMain</Filter>
+    </ClCompile>
+    <ClCompile Include="MapChannel.cpp">
+      <Filter>Source Files\GameMain</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterMgr.cpp">
+      <Filter>Source Files\GameMain\Message</Filter>
+    </ClCompile>
+    <ClCompile Include="netMgr.cpp">
+      <Filter>Source Files\GameMain\Help\netMgr %28Packet%29</Filter>
+    </ClCompile>
+    <ClCompile Include="PyMarshal.cpp">
+      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    </ClCompile>
+    <ClCompile Include="UnpackObjects.cpp">
+      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    </ClCompile>
+    <ClCompile Include="fileMgr.cpp">
+      <Filter>Source Files\GameMain\Help\FileMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="sData.cpp">
+      <Filter>Source Files\GameMain\Help\FileMgr\sData</Filter>
+    </ClCompile>
+    <ClCompile Include="hashTable_string.cpp">
+      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    </ClCompile>
+    <ClCompile Include="hashTable_StringSynced.cpp">
+      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    </ClCompile>
+    <ClCompile Include="hashTable_uint32.cpp">
+      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    </ClCompile>
+    <ClCompile Include="hashTable_uint32Iterable.cpp">
+      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    </ClCompile>
+    <ClCompile Include="gameData.cpp">
+      <Filter>Source Files\GameMain\GameData</Filter>
+    </ClCompile>
+    <ClCompile Include="entityMgr.cpp">
+      <Filter>Source Files\GameMain\MapInstance\entityMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="manifestation.cpp">
+      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    </ClCompile>
+    <ClCompile Include="playerActions.cpp">
+      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    </ClCompile>
+    <ClCompile Include="communicator.cpp">
+      <Filter>Source Files\GameMain\MapInstance\communicator</Filter>
+    </ClCompile>
+    <ClCompile Include="inventory.cpp">
+      <Filter>Source Files\GameMain\MapInstance\inventory</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamicObject.cpp">
+      <Filter>Source Files\GameMain\MapInstance\dynamicObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="cellMgr.cpp">
+      <Filter>Source Files\GameMain\MapInstance\cellMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="npc.cpp">
+      <Filter>Source Files\GameMain\MapInstance\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="gameEffects.cpp">
+      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    </ClCompile>
+    <ClCompile Include="mission.cpp">
+      <Filter>Source Files\GameMain\MapInstance\mission</Filter>
+    </ClCompile>
+    <ClCompile Include="creature.cpp">
+      <Filter>Source Files\GameMain\MapInstance\creature</Filter>
+    </ClCompile>
+    <ClCompile Include="spawnSystem.cpp">
+      <Filter>Source Files\GameMain\MapInstance\creature\spawnSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="missile.cpp">
+      <Filter>Source Files\GameMain\MapInstance\combatMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="behaviorController.cpp">
+      <Filter>Source Files\GameMain\MapInstance\behaviorController</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    </ClCompile>
+    <ClCompile Include="TabulaCrypt2.cpp">
+      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Bignum.cpp">
+      <Filter>Source Files\Main\Bignum</Filter>
+    </ClCompile>
+    <ClCompile Include="AuthServerUtil.cpp">
+      <Filter>Source Files\Main\AuthServerUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="DataInterface.cpp">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="DataInterface_Character.cpp">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="DataInterface_Mission.cpp">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="DataInterface_NPC.cpp">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="teleporter.cpp">
+      <Filter>Source Files\GameMain\MapInstance\Teleporter</Filter>
+    </ClCompile>
+    <ClCompile Include="DataInterface_Teleporter.cpp">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameMain.h">
+      <Filter>Source Files\GameMain</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>Source Files\GameMain</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChannel.h">
+      <Filter>Source Files\GameMain</Filter>
+    </ClInclude>
+    <ClInclude Include="Msg.h">
+      <Filter>Source Files\GameMain\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Source Files\GameMain\Help\netMgr %28Packet%29</Filter>
+    </ClInclude>
+    <ClInclude Include="Packing.h">
+      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    </ClInclude>
+    <ClInclude Include="fileMgr.h">
+      <Filter>Source Files\GameMain\Help\FileMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="sData.h">
+      <Filter>Source Files\GameMain\Help\FileMgr\sData</Filter>
+    </ClInclude>
+    <ClInclude Include="hashTable.h">
+      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    </ClInclude>
+    <ClInclude Include="classIDs.h">
+      <Filter>Source Files\GameMain\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="entityIDs.h">
+      <Filter>Source Files\GameMain\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="gameData.h">
+      <Filter>Source Files\GameMain\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="methodIDs.h">
+      <Filter>Source Files\GameMain\GameData</Filter>
+    </ClInclude>
+    <ClInclude Include="MapInstance.h">
+      <Filter>Source Files\GameMain\MapInstance</Filter>
+    </ClInclude>
+    <ClInclude Include="entityMgr.h">
+      <Filter>Source Files\GameMain\MapInstance\entityMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="manifestation.h">
+      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    </ClInclude>
+    <ClInclude Include="communicator.h">
+      <Filter>Source Files\GameMain\MapInstance\communicator</Filter>
+    </ClInclude>
+    <ClInclude Include="inventory.h">
+      <Filter>Source Files\GameMain\MapInstance\inventory</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamicObject.h">
+      <Filter>Source Files\GameMain\MapInstance\dynamicObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="cellMgr.h">
+      <Filter>Source Files\GameMain\MapInstance\cellMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="npc.h">
+      <Filter>Source Files\GameMain\MapInstance\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="actor.h">
+      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    </ClInclude>
+    <ClInclude Include="gameEffects.h">
+      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    </ClInclude>
+    <ClInclude Include="mission.h">
+      <Filter>Source Files\GameMain\MapInstance\mission</Filter>
+    </ClInclude>
+    <ClInclude Include="creature.h">
+      <Filter>Source Files\GameMain\MapInstance\creature</Filter>
+    </ClInclude>
+    <ClInclude Include="spawnSystem.h">
+      <Filter>Source Files\GameMain\MapInstance\creature\spawnSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="combatMgr.h">
+      <Filter>Source Files\GameMain\MapInstance\combatMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="behaviorController.h">
+      <Filter>Source Files\GameMain\MapInstance\behaviorController</Filter>
+    </ClInclude>
+    <ClInclude Include="TabulaCrypt.h">
+      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Source Files\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Bignum.h">
+      <Filter>Source Files\Main\Bignum</Filter>
+    </ClInclude>
+    <ClInclude Include="AuthServerUtil.h">
+      <Filter>Source Files\Main\AuthServerUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="DataInterface.h">
+      <Filter>Source Files\DataInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="teleporter.h">
+      <Filter>Source Files\GameMain\MapInstance\Teleporter</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDescriptions.txt">
+      <Filter>Doc</Filter>
+    </None>
+    <None Include="ToDo.txt">
+      <Filter>Doc</Filter>
+    </None>
+    <None Include="libmysql.dll">
+      <Filter>Data\Libs</Filter>
+    </None>
+    <None Include="sql\tabuladb.sql">
+      <Filter>Data\sql</Filter>
+    </None>
+    <None Include="gameData\equipableClassEquipmentSlot.txt">
+      <Filter>Data\gameData</Filter>
+    </None>
+    <None Include="gameData\itemTemplates.txt">
+      <Filter>Data\gameData</Filter>
+    </None>
+    <None Include="gameData\mapInfo.txt">
+      <Filter>Data\gameData</Filter>
+    </None>
+    <None Include="gameData\starterItemTemplateClassIds.txt">
+      <Filter>Data\gameData</Filter>
+    </None>
+  </ItemGroup>
+</Project>
