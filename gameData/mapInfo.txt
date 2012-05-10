@@ -103,8 +103,8 @@
 (1737, 'test_nexus2', 147, 0) #TEST Nexus 2 -NO GUI RADAR- Center of Nexus -6,27,3
 (1115, 'characterselection', 0, 0) #Character Selection -NO GUI RADAR- supply tent in the middle of nowhere -15,20,-72
 ##UNUSED##
-(2371, 'adv_earth_unitedstates_newyorkcity', 1, 0) #adv_earth_unitedstates_newyorkcity MAP NOT FOUND (physically)
+##(2371, 'adv_earth_unitedstates_newyorkcity', 1, 0) #adv_earth_unitedstates_newyorkcity MAP NOT FOUND (physically)
 ##UNKNOWN##
 ##(2233, 'test_pvpcontrolpoint', 140, 0) #TEST PvP Control Point 01
-(X, 'test_pvpcontrolpoint01', 140, 0) #TEST PvP Control Point 01
-(X, 'test_lridout_outpostcombat', 0, 0) #TEST LRidout Outpost Combat
+##(X, 'test_pvpcontrolpoint01', 140, 0) #TEST PvP Control Point 01
+##(X, 'test_lridout_outpostcombat', 0, 0) #TEST LRidout Outpost Combat
