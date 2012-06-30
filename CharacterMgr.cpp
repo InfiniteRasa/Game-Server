@@ -437,8 +437,15 @@ void _cb_charMgr_recv_requestSwitchToCharacterInSlot(void *param, diJob_getChara
 	if( !characterData )
 		return;
 	cgm->mapLoadSlotId = slotIndex;
-	// send PreWonkavate (clientMethod.134)
+
 	pyMarshalString_t pms;
+	// Test: send GM enabled
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, true);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cgm, 5, 366, pym_getData(&pms), pym_getLen(&pms));
+	// send PreWonkavate (clientMethod.134)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0); // wonkType - actually not used by the game

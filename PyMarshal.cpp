@@ -88,7 +88,7 @@ void pym_dict_addKey(pyMarshalString_t *pms, char *s)
 	pms->buffer[pms->idx] = 0x74; pms->idx++;
 	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
 	// append string data
-	for(int i=0; i<slen; i++)
+	for(unsigned int i=0; i<slen; i++)
 	{
 		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
@@ -113,7 +113,7 @@ void pym_addString(pyMarshalString_t *pms, char *s)
 	pms->buffer[pms->idx] = 's'; pms->idx++;
 	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
 	// append string data
-	for(int i=0; i<slen; i++)
+	for(unsigned int i=0; i<slen; i++)
 	{
 		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
@@ -128,7 +128,7 @@ void pym_addUnicode(pyMarshalString_t *pms, char *s)
 	pms->buffer[pms->idx] = 'u'; pms->idx++;
 	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
 	// append string data
-	for(int i=0; i<slen; i++)
+	for(unsigned int i=0; i<slen; i++)
 	{
 		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
