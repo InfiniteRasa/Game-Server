@@ -28,9 +28,9 @@ typedef struct
 }item_t;
 
 void inventory_initForClient(mapChannelClient_t *client);
+item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
-item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
 void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);

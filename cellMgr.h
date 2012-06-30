@@ -44,11 +44,13 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc);
 
 // add/remove creature from the world
 void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature);
+void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creat );
 
 // misc
 npc_t *cellMgr_findNPCinViewOf(mapChannelClient_t *aggregator, unsigned long long npcEntityId);
 
 mapCell_t* cellMgr_tryGetCell(mapChannel_t *mapChannel, int x, int z);
+mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, int x, int z);
 
 mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, int *oCount);
 mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, actor_t *aggregator, int *oCount);

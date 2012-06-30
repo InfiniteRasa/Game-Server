@@ -227,6 +227,27 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 }
 
 // todo: removeFromWorld for creatures
+void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creat )
+{
+	if( !creat )
+		return;
+
+	unsigned int x = (unsigned int)((creat->actor.posX / CELL_SIZE) + CELL_BIAS);
+	unsigned int z = (unsigned int)((creat->actor.posZ / CELL_SIZE) + CELL_BIAS);
+	// calculate initial cell
+	creat->actor.cellLocation.x = x;
+	creat->actor.cellLocation.z = z;
+	// get cell
+	mapCell_t *mapCell = cellMgr_getCell(mapChannel, x, z);
+	if( mapCell )
+	{
+		// notify all players of creature removing
+		creature_cellDiscardCreatureToClients(mapChannel, creat, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		// unregister creature
+		hashTable_set(&mapCell->ht_creatureList, creat->actor.entityId, NULL);
+	}
+
+}
 
 
 mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, int *oCount)

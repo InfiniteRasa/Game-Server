@@ -1,6 +1,7 @@
 #if(_MSC_VER>=1600)
-#define _HAS_ITERATOR_DEBUGGING 0
+ #define _HAS_ITERATOR_DEBUGGING 0	
 #endif
+
 #include <vector>
 
 typedef struct _mapChannel_t mapChannel_t;
@@ -41,10 +42,10 @@ typedef struct
 
 typedef struct  
 {
-	int delay;
-	int timeLeft;
-	manifestation_t* origin;
-	int type;
+int delay;
+int timeLeft;
+manifestation_t* origin;
+int type;
 }mapChannelAutoFireTimer_t;
 
 typedef struct _mapChannel_t
@@ -90,6 +91,7 @@ mapChannel_t *mapChannel_findByContextId(int contextId);
 bool mapChannel_pass(mapChannel_t *mapChannel, clientGamemain_t *cgm);
 
 // timer
+//void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, int timePassed));
 void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, int timePassed));
 void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, int delay, manifestation_t* origin, int type);
 void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin);

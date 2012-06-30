@@ -1,6 +1,7 @@
 #if(_MSC_VER>=1600)
-#define _HAS_ITERATOR_DEBUGGING 0
+ #define _HAS_ITERATOR_DEBUGGING 0	
 #endif
+
 #include <Winsock2.h>
 #include <Windows.h>
 #include <stdio.h>

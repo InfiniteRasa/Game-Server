@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5AAC9C49-5BFA-49DC-B04C-C695D0E12D79}</ProjectGuid>
+    <RootNamespace>TabulaGameServer</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\mysql;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\mysql;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\mysql\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libmysql.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\mysql\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\mysql\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libmysql.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\mysql\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="DataInterface_Teleporter.cpp" />
+    <ClCompile Include="GameMain.cpp" />
+    <ClCompile Include="MapChannel.cpp" />
+    <ClCompile Include="CharacterMgr.cpp" />
+    <ClCompile Include="netMgr.cpp" />
+    <ClCompile Include="PyMarshal.cpp" />
+    <ClCompile Include="teleporter.cpp" />
+    <ClCompile Include="UnpackObjects.cpp" />
+    <ClCompile Include="fileMgr.cpp" />
+    <ClCompile Include="sData.cpp" />
+    <ClCompile Include="hashTable_string.cpp" />
+    <ClCompile Include="hashTable_StringSynced.cpp" />
+    <ClCompile Include="hashTable_uint32.cpp" />
+    <ClCompile Include="hashTable_uint32Iterable.cpp" />
+    <ClCompile Include="gameData.cpp" />
+    <ClCompile Include="entityMgr.cpp" />
+    <ClCompile Include="manifestation.cpp" />
+    <ClCompile Include="playerActions.cpp" />
+    <ClCompile Include="communicator.cpp" />
+    <ClCompile Include="inventory.cpp" />
+    <ClCompile Include="dynamicObject.cpp" />
+    <ClCompile Include="cellMgr.cpp" />
+    <ClCompile Include="npc.cpp" />
+    <ClCompile Include="gameEffects.cpp" />
+    <ClCompile Include="mission.cpp" />
+    <ClCompile Include="creature.cpp" />
+    <ClCompile Include="spawnSystem.cpp" />
+    <ClCompile Include="missile.cpp" />
+    <ClCompile Include="behaviorController.cpp" />
+    <ClCompile Include="MD5.cpp" />
+    <ClCompile Include="TabulaCrypt2.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Bignum.cpp" />
+    <ClCompile Include="AuthServerUtil.cpp" />
+    <ClCompile Include="DataInterface.cpp" />
+    <ClCompile Include="DataInterface_Character.cpp" />
+    <ClCompile Include="DataInterface_Mission.cpp" />
+    <ClCompile Include="DataInterface_NPC.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameMain.h" />
+    <ClInclude Include="Global.h" />
+    <ClInclude Include="MapChannel.h" />
+    <ClInclude Include="Msg.h" />
+    <ClInclude Include="Packet.h" />
+    <ClInclude Include="Packing.h" />
+    <ClInclude Include="fileMgr.h" />
+    <ClInclude Include="sData.h" />
+    <ClInclude Include="hashTable.h" />
+    <ClInclude Include="classIDs.h" />
+    <ClInclude Include="entityIDs.h" />
+    <ClInclude Include="gameData.h" />
+    <ClInclude Include="methodIDs.h" />
+    <ClInclude Include="MapInstance.h" />
+    <ClInclude Include="entityMgr.h" />
+    <ClInclude Include="manifestation.h" />
+    <ClInclude Include="communicator.h" />
+    <ClInclude Include="inventory.h" />
+    <ClInclude Include="dynamicObject.h" />
+    <ClInclude Include="cellMgr.h" />
+    <ClInclude Include="npc.h" />
+    <ClInclude Include="actor.h" />
+    <ClInclude Include="gameEffects.h" />
+    <ClInclude Include="mission.h" />
+    <ClInclude Include="creature.h" />
+    <ClInclude Include="spawnSystem.h" />
+    <ClInclude Include="combatMgr.h" />
+    <ClInclude Include="behaviorController.h" />
+    <ClInclude Include="TabulaCrypt.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="Bignum.h" />
+    <ClInclude Include="AuthServerUtil.h" />
+    <ClInclude Include="DataInterface.h" />
+    <ClInclude Include="teleporter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDescriptions.txt" />
+    <None Include="ToDo.txt" />
+    <None Include="libmysql.dll" />
+    <None Include="sql\tabuladb.sql" />
+    <None Include="gameData\equipableClassEquipmentSlot.txt" />
+    <None Include="gameData\itemTemplates.txt" />
+    <None Include="gameData\mapInfo.txt" />
+    <None Include="gameData\starterItemTemplateClassIds.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -27,6 +27,8 @@ typedef struct _actor_t
 	float posY;
 	float posZ;
 	float rotation;
+	int attackstyle;
+	int actionid;
 	bool isRunning;
 	bool inCombatMode;
 	mapCellLocation_t cellLocation;

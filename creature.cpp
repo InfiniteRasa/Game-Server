@@ -48,28 +48,53 @@ void creatureType_setMaxHealth(creatureType_t *creatureType, int maxHealth)
 
 creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool, int faction)
 {
+	
 	// allocate and init creature
 	creature_t *creature = (creature_t*)malloc(sizeof(creature_t));
 	memset(creature, 0, sizeof(creature_t));
 	creature->type = creatureType; // direct pointer for fast access to type info
 	creature->actor.entityClassId = creatureType->entityClassId;
 	creature->actor.entityId = entityMgr_getFreeEntityIdForCreature();
+	if(spawnPool == NULL)
+	{
+         creature->actor.attackstyle = 1;  
+		 creature->actor.actionid = 174; //melee
+		 creature->velocity = 1.1f;
+	     creature->attackspeed = 10000;
+		 creature->attack_habbit = 1;
+		 creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
+		 creature->lastagression = 0;
+		 creature->rottime = 350;
+		 creature->range = 26.40f;
+		 creature->currentHealth = creatureType->maxHealth;
+		 creature->controller.currentAction = 3;
+		 creature->wanderstate = 0; //wanderstate: calc new position
+		 creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
+		 //set wander boundaries 
+		 creature->wander_dist = 11.12f;
+		 creature->aggrocount = 0;
+		 return creature;
+	}
+	creature->actor.attackstyle = spawnPool->attackanim;
+	creature->actor.actionid = spawnPool->actionid;
 	creature->spawnPool = spawnPool;
 	// other settings
-	creature->velocity = 5.0f;
-	creature->attackspeed = 2000;
+	creature->velocity = spawnPool->velocity;
+	creature->attackspeed = spawnPool->attackspeed;
+	//creature->attackanim = spawnPool->attackanim;
 	creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
 	creature->lastagression = 0;
-	creature->rotspeed = 1.8f;
-	creature->attack_habbit = 2; //2=range fighter (test)
-	creature->range = 22.40f;
+	creature->rottime = 350;
+	creature->attack_habbit = spawnPool->attackstyle; //0=range fighter (test)
+	creature->range = 26.40f;
 	//if(faction <= 0) creature->faction = 0;
 	creature->faction = faction; //hostile
 	creature->currentHealth = creatureType->maxHealth;
 	creature->controller.currentAction = 3;
 	creature->wanderstate = 0; //wanderstate: calc new position
+	creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
 	//set wander boundaries 
-	creature->wander_dist = 13.12f;
+	creature->wander_dist = 11.12f;
 	// update spawnpool
 	if( creature->spawnPool )
 	{
@@ -186,7 +211,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1); // level
+	pym_addInt(&pms, 15); // level
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 103, pym_getData(&pms), pym_getLen(&pms));
 
@@ -262,26 +287,45 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	{
 		creature_updateAppearance(client->cgm, creature->actor.entityId, 6042);
 	}
-	
-	netCompressedMovement_t netMovement = {0};
-	netMovement.entityId = creature->actor.entityId;
-	netMovement.posX24b = creature->actor.posX * 256.0f;
-	netMovement.posY24b = creature->actor.posY * 256.0f;
-	netMovement.posZ24b = creature->actor.posZ * 256.0f;
-	netMovement.flag = 0x08;
-	netMgr_cellDomain_sendEntityMovement(client->mapChannel, &creature->actor, &netMovement);
-	//rangeattack (every 2 sec)
-	/*srand(GetTickCount());
-    int rnd1 = rand() % 200;
-	unsigned int time = GetTickCount();
-	if( (time-creature->lastattack) > creature->attackspeed )
-	{
-		//__debugbreak();
-		creature->lastattack = time;
-		//if( creature->controller.targetEntityId )
-		
 
-	}*/
+	if (creature->actor.entityClassId == 29765) // pistol
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 6443);
+		// weapon ready
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 575, pym_getData(&pms), pym_getLen(&pms));
+	}
+	if (creature->actor.entityClassId == 29423) 
+	{
+		creature_updateAppearance(client->cgm, creature->actor.entityId, 6443);
+		// weapon ready
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addBool(&pms, true);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 575, pym_getData(&pms), pym_getLen(&pms));
+	}
+
+	if( creature->currentHealth <= 0 )
+	{
+          creature->actor.state = ACTOR_STATE_DEAD;
+		// dead!
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_list_begin(&pms);
+		pym_addInt(&pms, 5); // dead
+		pym_list_end(&pms);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, &creature->actor, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
+		// fix health
+		creature->currentHealth = 0;
+
+	}
+
+	
 }
 
 void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId)
@@ -383,18 +427,24 @@ void creature_init()
 		int n, a=5, b=3;
 		n=sprintf (buffer, "TEST%d", i);
 
+		
+
 		creatureType_t* ct = creatureType_createCreatureType(i, 1337);
 		creatureType_setMaxHealth(ct, 150);
+
 		ct->RangeMissile = MISSILE_PISTOL;
 		ct->MeleeMissile = MISSILE_PISTOL;
-		if (ct->entityClassId == 25580) // bane pistol
+		//---files: actiondata,
+  		if (ct->entityClassId == 25580) // bane pistol
 		{
 			ct->RangeMissile = MISSILE_THRAX_PISTOL;
 			ct->MeleeMissile = MELEE_THRAX;
-		}
-		if (ct->entityClassId == 6031) // boargar
+  		}
+
+  		if (ct->entityClassId == 6031) // boargar
 		{
-			ct->RangeMissile = MELEE_BOARGAR;
+
+  			ct->RangeMissile = MELEE_BOARGAR;
 			ct->MeleeMissile = MELEE_BOARGAR;
 		}
 		if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
@@ -402,7 +452,27 @@ void creature_init()
 			ct->RangeMissile = MISSILE_PISTOL;
 			ct->MeleeMissile = MELEE_PISTOL;
 		}
-		
-		creatureType_registerCreatureType(ct, buffer);
+		if(ct->entityClassId == 10166) //bane hunter
+		{
+            ct->RangeMissile = MISSILE_HUNTER_PULSEGUN;
+			ct->MeleeMissile = MELEE_HUNTER;
+		}
+		if(ct->entityClassId == 6032) //amoeboid
+		{
+            ct->RangeMissile = MELEE_AMOEBOID;
+			ct->MeleeMissile = MELEE_AMOEBOID;
+		}
+		if(ct->entityClassId == 10442) //AFS Mech
+		{
+            ct->RangeMissile = MISSILE_AFSMECH_MG;
+			ct->MeleeMissile = MISSILE_AFSMECH_MG;
+		}
+		if(ct->entityClassId == 3781) //Bane Stalker
+		{
+            ct->RangeMissile = MISSILE_STALKER;
+			ct->MeleeMissile = MISSILE_STALKER;
+		}
+
+			creatureType_registerCreatureType(ct, buffer);
 	}
 }

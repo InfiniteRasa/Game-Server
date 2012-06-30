@@ -1,6 +1,5 @@
 
 /* creature type */
-
 typedef struct _creatureType_t 
 {
 	// actor info
@@ -18,13 +17,6 @@ void				creatureType_setMaxHealth(creatureType_t *creatureType, int maxHealth);
 
 /* creature */
 
-typedef struct baseBehavior_baseNode
-{
-	float x;
-	float y;
-	float z;
-}cbaseNode;
-
 typedef struct _creature_t
 {
 	creatureType_t *type;		// the creature 'layout'
@@ -35,17 +27,20 @@ typedef struct _creature_t
 	int lastattack;
 	int lastresttime;
 	float velocity;
-	float rotspeed;
+	int rottime; //rotation speed
 	float range; //attackrange
 	int attack_habbit; //meelee or range fighter 
 	int agression; // hunting timer for enemys
 	int lastagression;
 	int faction; // hostile /friendly
-	int wanderstate; 
+	int wanderstate;
+	int movestate;
 	float wx,wy,wz; 
     float wander_dist; // -- wander boundaries 
     baseBehavior_baseNode homePos;  //--- spawn location (used for wander)
     baseBehavior_baseNode *pathnodes; //--entity patrol nodes
+	int **aggrotable; //stores enemydamage
+	int aggrocount; 
 	// origin
 	spawnPool_t *spawnPool; // the spawnpool that initiated the creation of this creature
 	// behavior controller

@@ -43,7 +43,7 @@ void manifestation_removeAppearanceItem(manifestation_t *manifestation, int item
 {
 	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 )
-		return;
+	return;
 	manifestation->actor->appearanceData[equipmentSlotId-1].classId = 0;
 }
 
@@ -110,6 +110,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->controllerUser = owner;
 	manifestation->actor->entityId = entityMgr_getFreeEntityIdForPlayer(); // generate an entityId
 	// todo: should globally register entity
+	
+
 	strcpy(manifestation->actor->name, characterData->unicodeName);
 	strcpy(manifestation->actor->family, characterData->unicodeFamily);
 	manifestation->actor->posX = characterData->posX;
@@ -120,14 +122,14 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
-	manifestation->classId = 2; // soldier
-	manifestation->level = 15;
+	manifestation->classId = 8; // Grenadier
+	manifestation->level = 50;
 	manifestation->actor->isRunning = true;
 	manifestation->actor->inCombatMode = false;
 	manifestation->targetEntityId = 0;
-	manifestation->actor->stats.healthBonus = 110;
-	manifestation->actor->stats.healthMax = 100;
-	manifestation->actor->stats.healthCurrent = 100;
+	manifestation->actor->stats.healthBonus = 21100;
+	manifestation->actor->stats.healthMax = 22800;
+	manifestation->actor->stats.healthCurrent = 22800;
 	manifestation->currentAbilityDrawer = 0;
 	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
@@ -143,6 +145,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	//}
 	//LeaveCriticalSection(&mapChannel->criticalSection);
 	// set controller and other local player information
+
+	
 	communicator_loginOk(mapChannel, owner);
 	cellMgr_addToWorld(owner); // will introduce the player to all clients, including the current owner
 	manifestation_assignPlayer(mapChannel, owner, manifestation);
@@ -211,7 +215,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
 	    pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
 		pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
-		pym_addInt(&pms, 8); // refreshIncrement
+		pym_addInt(&pms, 35); // refreshIncrement
 		pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 		pym_tuple_end(&pms);
 		// chi
@@ -228,11 +232,11 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		{
 			pym_addInt(&pms, i);
 			pym_tuple_begin(&pms);
-			pym_addInt(&pms, 10); // current
-			pym_addInt(&pms, 50); // currentMax
-			pym_addInt(&pms, 100); // normalMax
-			pym_addInt(&pms, 0); // refreshIncrement
-			pym_addInt(&pms, 0); // refreshPeriod
+			pym_addInt(&pms, 22800); // current
+			pym_addInt(&pms, 22800); // currentMax
+			pym_addInt(&pms, 22800); // normalMax
+			pym_addInt(&pms, 335); // refreshIncrement
+			pym_addInt(&pms, 3); // refreshPeriod
 			pym_tuple_end(&pms);
 		}
 		pym_dict_end(&pms);
@@ -343,7 +347,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set target category
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 1); // 'FRIENDLY'
+		pym_addInt(&pms, 0); // 'FRIENDLY'
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 211, pym_getData(&pms), pym_getLen(&pms));
 		// send inital movement packet
@@ -407,7 +411,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
 	pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
 	pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
-	pym_addInt(&pms, 8); // refreshIncrement
+	pym_addInt(&pms, 35); // refreshIncrement
 	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
 	// chi
@@ -425,11 +429,11 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 50); // currentMax
-		pym_addInt(&pms, 100); // normalMax
-		pym_addInt(&pms, 0); // refreshIncrement
-		pym_addInt(&pms, 0); // refreshPeriod
+		pym_addInt(&pms, 22800); // current
+		pym_addInt(&pms, 22800); // currentMax
+		pym_addInt(&pms, 22800); // normalMax
+		pym_addInt(&pms, 335); // refreshIncrement
+		pym_addInt(&pms, 3); // refreshPeriod
 		pym_tuple_end(&pms);
 	}
 	/*
@@ -587,15 +591,37 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 21);  // id
 		pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
+	//T2_SOLDIER_RAGE
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 147);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
 	// T2_SOLDIER_MACHINE_GUN
 	pym_tuple_begin(&pms);
 		pym_addInt(&pms, 22);  // id
 		pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
+	// T3_COMMANDO_LAUNCHER
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 24);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	// T4_GRENADIER_PROPELLANT
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 40);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//	T3_COMMANDO_GRAVITON_ARMOR
+	pym_tuple_begin(&pms);
+		pym_addInt(&pms, 39);  // id
+		pym_addInt(&pms, 5);	// level
+	pym_tuple_end(&pms);
+	//T1_SPRINT
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRINT
 	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
+
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
 	pym_addInt(&pms, 1);// level
@@ -649,7 +675,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// set target category
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 1); // 'FRIENDLY'
+	pym_addInt(&pms, 0); // 'FRIENDLY'
 	pym_tuple_end(&pms);
 	for(int i=0; i<playerCount; i++)
 	{
@@ -872,7 +898,7 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
 	float yaw = pym_unpackFloat(&pums);
-
+	
 	pyMarshalString_t pms;
 	client->player->actor->inCombatMode = true;
 	pym_init(&pms);
@@ -881,25 +907,105 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
 
+
+ 
+
 	printf("%f at %I64d\n", yaw, client->player->targetEntityId);
 	// TODO!
 
 	printf("TODO: "); puts(__FUNCTION__);
 	printf("target: %u\n", client->player->targetEntityId);
 
+	//##################### Begin: if target is Mapchannel Client #################
+	//desc: have to use mapchannel-client id instead of player-entity-id because
+	//player-entity-id isnt registered, when new player is created(enter world)
+	
+	int targetType = entityMgr_getEntityType(client->player->targetEntityId);
+	int newTargetEntityId = 0;
+	if(targetType == 0) //1:client-type,0=player-type
+	{
+        mapCell_t *mapCell = cellMgr_tryGetCell(client->mapChannel, 
+												client->player->actor->cellLocation.x, 
+			                                    client->player->actor->cellLocation.z);	
+		if(mapCell)
+		{
+             mapChannelClient_t **playerList = NULL;
+			 int tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
+			 playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+			 for(int i=0; i < tCount; i++)
+			 {
+
+				 mapChannelClient_t *targetPlayer = playerList[i];
+				 if(targetPlayer->player->actor->entityId == client->player->targetEntityId)
+				 {
+					 client->player->targetEntityId = targetPlayer->clientEntityId;
+					 break; //player-entity-id found, now use client-entity-id for missile trigger
+				 }
+			 }
+			 //void *entity = entityMgr_get();
+		}
+		
+	}
+	//##################### End: if target is Mapchannel Client #################
+
 	if( client->player->targetEntityId )
 	{
-		if (inventory_CurrentWeapon(client)->itemTemplate->toolType == 7) // rifle
-		{ 
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_RIFLE, 10); 
-			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_RIFLE);
-		}
-		else
-		{ 
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10); 
+		
+		switch(inventory_CurrentWeapon(client)->itemTemplate->toolType)
+		{
+
+		case 9:
+			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29395)
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN_V3, 120); 
+				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN_V3);
+			
+			}
+			else
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN, 40); 
+				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN);
+			}
+		break;
+		case 10:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_GRENADE, 90); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_NETGUN);
+			//gameEffect_attach(client->mapChannel, client->player->targetEntityId, 258, 5, 3000);
+			break;
+
+		case 8:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 15); 
 			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_PISTOL);
+			break;
+
+		case 7:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_RIFLE, 25); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_RIFLE);
+			break;
+		case 15:
+			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29757)
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN_V3, 20); 
+  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN_V3);
+			}
+			else
+			{
+				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN, 15); 
+  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
+			}
+			break;
+		case 22:
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PROPELLANT_ICE, 20); 
+  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
+			break;
+         
+		default:
+			printf("unknown weapontype \n");
+			return;
+
 		}
-	}
+		
+	}//--if: targed id	
 }
 
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -908,17 +1014,18 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-
+	
 	pyMarshalString_t pms;
 	client->player->actor->inCombatMode = false;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addBool(&pms, false);
+  	pym_addBool(&pms, false);
 	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
+  	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
 
-	mapChannel_removeAutoFireTimer(client->mapChannel, client->player);
+  	mapChannel_removeAutoFireTimer(client->mapChannel, client->player);
 	printf("TODO: "); puts(__FUNCTION__);
+	
 }
 
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
@@ -927,12 +1034,13 @@ void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned c
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
+
 	int keepAliveDelay = pym_unpackInt(&pums);
 
 	printf("TODO: "); puts(__FUNCTION__);
 	printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
 	//if( client->player->targetEntityId )
-	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
+	//missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
 
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client)

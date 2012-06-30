@@ -65,4 +65,6 @@ void dynamicObject_developer_createCustom(mapChannel_t *mapChannel, int classId,
 void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y, float z, int spawnCount, creatureType_t **spawnTypeList, spawnPool_t *spawnPool);
 void dynamicObject_createBaneDropship(mapChannel_t *mapChannel, float x, float y, float z, int spawnCount, creatureType_t **spawnTypeList);
 
+dynObject_t *_dynamicObject_create(unsigned int classId, unsigned short objectType);
+void dynamicObject_setPosition(dynObject_t *dynamicObject, float x, float y, float z);
 void dynamicObject_destroy(mapChannel_t *mapChannel, dynObject_t *dynObject);
