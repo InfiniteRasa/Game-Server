@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TabulaGameServer"
 	ProjectGUID="{5AAC9C49-5BFA-49DC-B04C-C695D0E12D79}"
 	RootNamespace="TabulaGameServer"
@@ -498,6 +498,18 @@
 						</File>
 					</Filter>
 				</Filter>
+				<Filter
+					Name="Teleporter"
+					>
+					<File
+						RelativePath=".\teleporter.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\teleporter.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="Main"
@@ -556,6 +568,10 @@
 				</File>
 				<File
 					RelativePath=".\DataInterface_NPC.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\DataInterface_Teleporter.cpp"
 					>
 				</File>
 			</Filter>
