@@ -152,7 +152,12 @@
 #define METHODID_PING									129
 
 // Character Life/ state
-#define METHODID_REVIVEME                170
-#define METHODID_STATECHANGE              206
-#define METHODID_REQUESTREVIVE              763
-#define METHODID_PLAYERDEAD                595
+#define METHODID_REVIVEME								170
+#define METHODID_REVIVED								171 // not used 20120902
+#define METHODID_STATECHANGE							206
+#define METHODID_REQUESTREVIVE							763
+#define METHODID_REVIVEREQUESTINFO						764 // not used 20120902
+#define METHODID_GRAVEYARDGAINED						462
+#define METHODID_PLAYERDEAD								595
+#define METHODID_SWAPMESHREVIVE							552
+#define METHODID_SWAPMESHDEATH							551 // not used 20120902

@@ -1087,6 +1087,74 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 
 }
 
+
+void manifestion_recv_revive(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+{
+	printf("Revive me requested- Size: %d\n", pyStringLen);
+
+
+		
+		// remove player from cell
+		cellMgr_removeFromWorld(cm);
+		// rebuild players  health/status /etc..
+		cm->player->actor->stats.healthCurrent = 100;
+		cm->player->actor->stats.healthMax  = 100;
+		
+
+
+
+		// update health (Recv_UpdateHealth 380) or 285
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current
+		pym_addInt(&pms, cm->player->actor->stats.healthMax); // currentMax
+		pym_addInt(&pms, 0); // refreshAmount
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
+												 cm->player->actor, 
+			                                     cm->player->actor->entityId, 380, 
+												 pym_getData(&pms), pym_getLen(&pms));
+
+		//cm->player->actor->state = -51;
+		//	// alive!
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addNoneStruct(&pms);
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+				                                    cm->player->actor, 
+													cm->player->actor->entityId, 
+													METHODID_SWAPMESHREVIVE, 
+													pym_getData(&pms), pym_getLen(&pms));
+			// alive!
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_list_begin(&pms);
+			pym_addInt(&pms, ACTOR_STATE_ALIVE); // standing
+			pym_list_end(&pms);
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+				                                    cm->player->actor, 
+													cm->player->actor->entityId, 
+													METHODID_STATECHANGE, 
+													pym_getData(&pms), pym_getLen(&pms));
+
+
+
+			// send "revived" to client
+			pym_init(&pms);			
+			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+				                                    cm->player->actor, 
+													cm->player->actor->entityId, 
+													552, 
+													pym_getData(&pms), pym_getLen(&pms));
+
+			// introduce him back to cell.
+			cellMgr_addToWorld(cm);
+}
+
 //todo: 1) change everything to broadcast information only to things in sight
 //	  2) tell the entering player about the already logged in players
 //	  3) broadcast movement packets only to players in range..
