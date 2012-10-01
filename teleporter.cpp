@@ -1,11 +1,17 @@
-
 #include "global.h"
+//
+//bool teleporter_process_waypoint(mapChannel_t *mapChannel, dynObject_t *dynObject, sint32 timePassed)
+//{
+//
+//
+//	return true;
+//}
 
 void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData)
 {
 	mapChannel_t *mapChannel = (mapChannel_t*)param;
 	
-	for(int i=0; i<jobData->scount; i++)
+	for(sint32 i=0; i<jobData->scount; i++)
 	{
 		di_teleporterData *teleporterList = jobData->tdata+i;
 		
@@ -13,13 +19,17 @@ void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData
 														teleporterList->sx,
 														teleporterList->sy,
 														teleporterList->sz);*/
-		dynObject_t *dynObject = _dynamicObject_create(teleporterList->modelid, 
-			                                           teleporterList->type); 
+		dynObject_t *dynObject = NULL;
+		//_dynamicObject_create(teleporterList->modelid, teleporterList->type); 
+		if( teleporterList->type == OBJECTTYPE_WAYPOINT )
+		{
+			dynObject = waypoint_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId);
+		}
 		if( !dynObject )
-			return;
-		dynamicObject_setPosition(dynObject, teleporterList->sx, teleporterList->sy, teleporterList->sz);
-		//dynObject->stateId = 1;
-		cellMgr_addToWorld(mapChannel, dynObject);
+		{
+			printf("Unknown teleporter type(%d) in db\n", teleporterList->type);
+			continue;
+		}
 	}
 
 	mapChannel->loadState = 1; // loading is done
@@ -29,6 +39,6 @@ void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData
 void teleporter_initForMapChannel(mapChannel_t *mapChannel)
 {
 	mapChannel->loadState = 0;
-	dataInterface_teleporter_getList(mapChannel->mapInfo->contextId,_cb_teleporter_initForMapChannel, mapChannel);
+	DataInterface_teleporter_getList(mapChannel->mapInfo->contextId,_cb_teleporter_initForMapChannel, mapChannel);
 	while( mapChannel->loadState == 0 ) Sleep(100);
 }

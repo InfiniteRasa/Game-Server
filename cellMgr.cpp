@@ -14,7 +14,7 @@ bool cellMgr_initForMapChannel(mapChannel_t *mapChannel)
 }
 
 // will always return a valid cell if within valid range conditions
-mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, int x, int z)
+mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, sint32 x, sint32 z)
 {
 	unsigned cellSeed = (x&0xFFFF) | (z<<16);
 	mapCell_t *mapCell = (mapCell_t*)hashTable_get(&mapChannel->mapCellInfo.ht_cells, cellSeed);
@@ -22,18 +22,19 @@ mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, int x, int z)
 	{
 		// create cell
 		mapCell = (mapCell_t*)malloc(sizeof(mapCell_t));
+		RtlZeroMemory(mapCell, sizeof(mapCell_t));
 		// init cell
-		hashTable_init(&mapCell->ht_playerList, 8);
-		hashTable_init(&mapCell->ht_playerNotifyList, 8);
-		hashTable_init(&mapCell->ht_objectList, 8);
-		hashTable_init(&mapCell->ht_npcList, 8);
-		hashTable_init(&mapCell->ht_creatureList, 8);
+		//hashTable_init(&mapCell->ht_playerList, 8);
+		//hashTable_init(&mapCell->ht_playerNotifyList, 8);
+		//hashTable_init(&mapCell->ht_objectList, 8);
+		//hashTable_init(&mapCell->ht_npcList, 8);
+		//hashTable_init(&mapCell->ht_creatureList, 8);
 		if( mapChannel->mapCellInfo.loadedCellCount == mapChannel->mapCellInfo.loadedCellLimit )
 		{
 			// enlarge buffer
-			int newLimit = mapChannel->mapCellInfo.loadedCellLimit * 2;
+			sint32 newLimit = mapChannel->mapCellInfo.loadedCellLimit * 2;
 			mapCell_t **newLoadedCellList = (mapCell_t**)malloc(sizeof(mapCell_t*) * newLimit);
-			for(int i=0; i<mapChannel->mapCellInfo.loadedCellLimit; i++)
+			for(sint32 i=0; i<mapChannel->mapCellInfo.loadedCellLimit; i++)
 				newLoadedCellList[i] = mapChannel->mapCellInfo.loadedCellList[i];
 			free(mapChannel->mapCellInfo.loadedCellList);
 			mapChannel->mapCellInfo.loadedCellList = newLoadedCellList;
@@ -56,7 +57,7 @@ mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, int x, int z)
 }
 
 // will return the cell only if it exists
-mapCell_t* cellMgr_tryGetCell(mapChannel_t *mapChannel, int x, int z)
+mapCell_t* cellMgr_tryGetCell(mapChannel_t *mapChannel, sint32 x, sint32 z)
 {
 	unsigned cellSeed = (x&0xFFFF) | (z<<16);
 	mapCell_t *mapCell = (mapCell_t*)hashTable_get(&mapChannel->mapCellInfo.ht_cells, cellSeed);
@@ -68,8 +69,8 @@ void cellMgr_addToWorld( mapChannelClient_t *client )
 	if( !client->player )
 		return;
 	mapChannel_t *mapChannel = client->mapChannel;
-	unsigned int x = (unsigned int)((client->player->actor->posX / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((client->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((client->player->actor->posX / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((client->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
 	client->player->actor->cellLocation.x = x;
 	client->player->actor->cellLocation.z = z;
@@ -78,29 +79,34 @@ void cellMgr_addToWorld( mapChannelClient_t *client )
 	if( mapCell )
 	{
 		// register player in cell
-		hashTable_set(&mapCell->ht_playerList, client->clientEntityId, client);
+		mapCell->ht_playerList.push_back(client);
 		// register notifications in visible area
-		for(int ix=x-CELL_VIEWRANGE; ix<=x+CELL_VIEWRANGE; ix++)
+		for(sint32 ix=x-CELL_VIEWRANGE; ix<=x+CELL_VIEWRANGE; ix++)
 		{
-			for(int iz=z-CELL_VIEWRANGE; iz<=z+CELL_VIEWRANGE; iz++)
+			for(sint32 iz=z-CELL_VIEWRANGE; iz<=z+CELL_VIEWRANGE; iz++)
 			{
 				mapCell_t *nMapCell = cellMgr_getCell(mapChannel, ix, iz);
 				if( nMapCell )
 				{
-					hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, client);
+					nMapCell->ht_playerNotifyList.push_back(client);
 					// notify me about all objects that are visible to the cell
-					dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, (dynObject_t**)hashTable_getValueArray(&nMapCell->ht_objectList), hashTable_getCount(&nMapCell->ht_objectList));
+					if( nMapCell->ht_objectList.empty() == false )
+						dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());
 					// notify me about all npcs that are visible to the cell
-					npc_cellIntroduceNPCsToClient(mapChannel, client, (npc_t**)hashTable_getValueArray(&nMapCell->ht_npcList), hashTable_getCount(&nMapCell->ht_npcList));
+					if( nMapCell->ht_npcList.empty() == false )
+						npc_cellIntroduceNPCsToClient(mapChannel, client, &nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());
 					// notify me about all creatures that are visible to the cell
-					creature_cellIntroduceCreaturesToClient(mapChannel, client, (creature_t**)hashTable_getValueArray(&nMapCell->ht_creatureList), hashTable_getCount(&nMapCell->ht_creatureList));				
+					if( nMapCell->ht_creatureList.empty() == false )
+						creature_cellIntroduceCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				
 				}
 			}
 		}
 		// notify all players of me
-		manifestation_cellIntroduceClientToPlayers(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			manifestation_cellIntroduceClientToPlayers(mapChannel, client, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 		// notify me about all players that are visible here
-		manifestation_cellIntroducePlayersToClient(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			manifestation_cellIntroducePlayersToClient(mapChannel, client, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 	}
 }
 
@@ -109,29 +115,51 @@ void cellMgr_removeFromWorld( mapChannelClient_t *client )
 	if( client->player == NULL )
 		return;
 	mapChannel_t *mapChannel = client->mapChannel;
-	int oldX1 = client->player->actor->cellLocation.x-CELL_VIEWRANGE;
-	int oldX2 = client->player->actor->cellLocation.x+CELL_VIEWRANGE;
-	int oldZ1 = client->player->actor->cellLocation.z-CELL_VIEWRANGE;
-	int oldZ2 = client->player->actor->cellLocation.z+CELL_VIEWRANGE;
-	for(int ix=oldX1; ix<=oldX2; ix++)
+	sint32 oldX1 = client->player->actor->cellLocation.x-CELL_VIEWRANGE;
+	sint32 oldX2 = client->player->actor->cellLocation.x+CELL_VIEWRANGE;
+	sint32 oldZ1 = client->player->actor->cellLocation.z-CELL_VIEWRANGE;
+	sint32 oldZ2 = client->player->actor->cellLocation.z+CELL_VIEWRANGE;
+	for(sint32 ix=oldX1; ix<=oldX2; ix++)
 	{
-		for(int iz=oldZ1; iz<=oldZ2; iz++)
+		for(sint32 iz=oldZ1; iz<=oldZ2; iz++)
 		{
 			mapCell_t *nMapCell = cellMgr_getCell(mapChannel, ix, iz);
 			if( nMapCell )
 			{
 				// remove notify entry
-				hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, NULL);
+				std::vector<mapChannelClient_t*>::iterator itr = nMapCell->ht_playerNotifyList.begin();
+				while (itr != nMapCell->ht_playerNotifyList.end())
+				{
+					if ((*itr) == client)
+					{
+						nMapCell->ht_playerNotifyList.erase(itr);
+						break;
+					}
+					++itr;
+				}
 				// remove player visibility client-side
-				manifestation_cellDiscardClientToPlayers(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
-				manifestation_cellDiscardPlayersToClient(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
+				if( nMapCell->ht_playerList.empty() == false )
+				{
+					manifestation_cellDiscardClientToPlayers(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());					
+					manifestation_cellDiscardPlayersToClient(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());					
+				}
 			}
 		}
 	}
 	mapCell_t *nMapCell = cellMgr_getCell(mapChannel, client->player->actor->cellLocation.x, client->player->actor->cellLocation.z);
 	if( nMapCell )
 	{
-		hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, NULL);
+		//hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, NULL);
+		std::vector<mapChannelClient_t*>::iterator itr = nMapCell->ht_playerList.begin();
+		while (itr != nMapCell->ht_playerList.end())
+		{
+			if ((*itr) == client)
+			{
+				nMapCell->ht_playerList.erase(itr);
+				break;
+			}
+			++itr;
+		}
 	}
 }
 
@@ -139,8 +167,8 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, dynObject_t *dynObject)
 {
 	if( !dynObject )
 		return;
-	unsigned int x = (unsigned int)((dynObject->x / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((dynObject->z / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((dynObject->x / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((dynObject->z / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
 	dynObject->cellLocation.x = x;
 	dynObject->cellLocation.z = z;
@@ -149,9 +177,11 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, dynObject_t *dynObject)
 	if( mapCell )
 	{
 		// register object
-		hashTable_set(&mapCell->ht_objectList, dynObject->entityId, dynObject);
+		//hashTable_set(&mapCell->ht_objectList, dynObject->entityId, dynObject);
+		mapCell->ht_objectList.push_back(dynObject);
 		// notify all players of object
-		dynamicObject_cellIntroduceObjectToClients(mapChannel, dynObject, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			dynamicObject_cellIntroduceObjectToClients(mapChannel, dynObject, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 	}
 }
 
@@ -160,8 +190,8 @@ void cellMgr_removeFromWorld(mapChannel_t *mapChannel, dynObject_t *dynObject)
 {
 	if( !dynObject )
 		return;
-	unsigned int x = (unsigned int)((dynObject->x / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((dynObject->z / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((dynObject->x / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((dynObject->z / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
 	dynObject->cellLocation.x = x;
 	dynObject->cellLocation.z = z;
@@ -170,9 +200,19 @@ void cellMgr_removeFromWorld(mapChannel_t *mapChannel, dynObject_t *dynObject)
 	if( mapCell )
 	{
 		// notify all players of object removing
-		dynamicObject_cellDiscardObjectToClients(mapChannel, dynObject, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			dynamicObject_cellDiscardObjectToClients(mapChannel, dynObject, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 		// unregister object
-		hashTable_set(&mapCell->ht_objectList, dynObject->entityId, NULL);
+		std::vector<dynObject_t*>::iterator itr = mapCell->ht_objectList.begin();
+		while (itr != mapCell->ht_objectList.end())
+		{
+			if ((*itr) == dynObject)
+			{
+				mapCell->ht_objectList.erase(itr);
+				break;
+			}
+			++itr;
+		}
 	}
 }
 
@@ -185,8 +225,8 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc)
 	// register npc entity
 	entityMgr_registerEntity(npc->entityId, npc);
 	// get initial cell
-	unsigned int x = (unsigned int)((npc->actor.posX / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((npc->actor.posZ / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((npc->actor.posX / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((npc->actor.posZ / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
 	npc->actor.cellLocation.x = x;
 	npc->actor.cellLocation.z = z;
@@ -195,9 +235,11 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc)
 	if( mapCell )
 	{
 		// register object
-		hashTable_set(&mapCell->ht_npcList, npc->actor.entityId, npc);
+		//hashTable_set(&mapCell->ht_npcList, npc->actor.entityId, npc);
+		mapCell->ht_npcList.push_back(npc);
 		// notify all players of object
-		npc_cellIntroduceNPCToClients(mapChannel, npc, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			npc_cellIntroduceNPCToClients(mapChannel, npc, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 	}
 }
 
@@ -210,8 +252,8 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 	// register creature entity
 	entityMgr_registerEntity(creature->actor.entityId, creature);
 	// get initial cell
-	unsigned int x = (unsigned int)((creature->actor.posX / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((creature->actor.posZ / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((creature->actor.posX / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((creature->actor.posZ / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
 	creature->actor.cellLocation.x = x;
 	creature->actor.cellLocation.z = z;
@@ -220,69 +262,88 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 	if( mapCell )
 	{
 		// register object
-		hashTable_set(&mapCell->ht_creatureList, creature->actor.entityId, creature);
+		//hashTable_set(&mapCell->ht_creatureList, creature->actor.entityId, creature);
+		mapCell->ht_creatureList.push_back(creature);
 		// notify all players of object
-		creature_cellIntroduceCreatureToClients(mapChannel, creature, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			creature_cellintroduceCreatureToClients(mapChannel, creature, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 	}
 }
 
 // todo: removeFromWorld for creatures
-void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creat )
+void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creature )
 {
-	if( !creat )
+	if( !creature )
 		return;
 
-	unsigned int x = (unsigned int)((creat->actor.posX / CELL_SIZE) + CELL_BIAS);
-	unsigned int z = (unsigned int)((creat->actor.posZ / CELL_SIZE) + CELL_BIAS);
+	uint32 x = (uint32)((creature->actor.posX / CELL_SIZE) + CELL_BIAS);
+	uint32 z = (uint32)((creature->actor.posZ / CELL_SIZE) + CELL_BIAS);
 	// calculate initial cell
-	creat->actor.cellLocation.x = x;
-	creat->actor.cellLocation.z = z;
+	creature->actor.cellLocation.x = x;
+	creature->actor.cellLocation.z = z;
 	// get cell
 	mapCell_t *mapCell = cellMgr_getCell(mapChannel, x, z);
 	if( mapCell )
 	{
 		// notify all players of creature removing
-		creature_cellDiscardCreatureToClients(mapChannel, creat, (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList), hashTable_getCount(&mapCell->ht_playerNotifyList));
+		if( mapCell->ht_playerNotifyList.empty() == false )
+			creature_cellDiscardCreatureToClients(mapChannel, creature, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
 		// unregister creature
-		hashTable_set(&mapCell->ht_creatureList, creat->actor.entityId, NULL);
+		//hashTable_set(&mapCell->ht_creatureList, creature->actor.entityId, NULL);
+		std::vector<creature_t*>::iterator itr = mapCell->ht_creatureList.begin();
+		while (itr != mapCell->ht_creatureList.end())
+		{
+			if ((*itr) == creature)
+			{
+				mapCell->ht_creatureList.erase(itr);
+				break;
+			}
+			++itr;
+		}
 	}
 
 }
 
 
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, int *oCount)
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, sint32 *oCount)
 {
 	if( !aggregator->player )
 		return NULL;
 	mapChannel_t *mapChannel = aggregator->mapChannel;
-	//unsigned int x = (unsigned int)((aggregator->player->actor->posX / CELL_SIZE) + CELL_BIAS);
-	//unsigned int z = (unsigned int)((aggregator->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
+	//uint32 x = (uint32)((aggregator->player->actor->posX / CELL_SIZE) + CELL_BIAS);
+	//uint32 z = (uint32)((aggregator->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
 	//// calculate initial cell
 	//aggregator->cellLocation.x = x;
 	//aggregator->cellLocation.z = z;
 	// get cell
 	mapCell_t *mapCell = cellMgr_getCell(mapChannel, aggregator->player->actor->cellLocation.x, aggregator->player->actor->cellLocation.z);
 	// get players
-	*oCount =  hashTable_getCount(&mapCell->ht_playerNotifyList);
-	return (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+	if( mapCell->ht_playerNotifyList.empty() )
+		return NULL;
+	*oCount =  mapCell->ht_playerNotifyList.size();
+	return &mapCell->ht_playerNotifyList[0];
 }
 
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, actor_t *aggregator, int *oCount)
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, actor_t *aggregator, sint32 *oCount)
 {
 	// get cell
 	mapCell_t *mapCell = cellMgr_getCell(mapChannel, aggregator->cellLocation.x, aggregator->cellLocation.z);
 	// get players
-	*oCount =  hashTable_getCount(&mapCell->ht_playerNotifyList);
-	return (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+	if( mapCell->ht_playerNotifyList.empty() )
+		return NULL;
+	*oCount =  mapCell->ht_playerNotifyList.size();
+	return &mapCell->ht_playerNotifyList[0];
 }
 
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, dynObject_t *aggregator, int *oCount)
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, dynObject_t *aggregator, sint32 *oCount)
 {
 	// get cell
 	mapCell_t *mapCell = cellMgr_getCell(mapChannel, aggregator->cellLocation.x, aggregator->cellLocation.z);
 	// get players
-	*oCount =  hashTable_getCount(&mapCell->ht_playerNotifyList);
-	return (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+	if( mapCell->ht_playerNotifyList.empty() )
+		return NULL;
+	*oCount =  mapCell->ht_playerNotifyList.size();
+	return &mapCell->ht_playerNotifyList[0];
 }
 
 npc_t *cellMgr_findNPCinViewOf(mapChannelClient_t *aggregator, unsigned long long npcEntityId)
@@ -294,24 +355,24 @@ npc_t *cellMgr_findNPCinViewOf(mapChannelClient_t *aggregator, unsigned long lon
 
 void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 {
-	for(int i=0; i<mapChannel->playerCount; i++)
+	for(sint32 i=0; i<mapChannel->playerCount; i++)
 	{
 		mapChannelClient_t *client = mapChannel->playerList[i];
 		if( client->disconnected || client->player == NULL )
 			continue;
-		unsigned int x = (unsigned int)((client->player->actor->posX / CELL_SIZE) + CELL_BIAS);
-		unsigned int z = (unsigned int)((client->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
+		uint32 x = (uint32)((client->player->actor->posX / CELL_SIZE) + CELL_BIAS);
+		uint32 z = (uint32)((client->player->actor->posZ / CELL_SIZE) + CELL_BIAS);
 		if( client->player->actor->cellLocation.x != x || client->player->actor->cellLocation.z != z )
 		{
 			// find players that leave visibility range
-			int oldX1 = client->player->actor->cellLocation.x-CELL_VIEWRANGE;
-			int oldX2 = client->player->actor->cellLocation.x+CELL_VIEWRANGE;
-			int oldZ1 = client->player->actor->cellLocation.z-CELL_VIEWRANGE;
-			int oldZ2 = client->player->actor->cellLocation.z+CELL_VIEWRANGE;
+			sint32 oldX1 = client->player->actor->cellLocation.x-CELL_VIEWRANGE;
+			sint32 oldX2 = client->player->actor->cellLocation.x+CELL_VIEWRANGE;
+			sint32 oldZ1 = client->player->actor->cellLocation.z-CELL_VIEWRANGE;
+			sint32 oldZ2 = client->player->actor->cellLocation.z+CELL_VIEWRANGE;
 
-			for(int ix=oldX1; ix<=oldX2; ix++)
+			for(sint32 ix=oldX1; ix<=oldX2; ix++)
 			{
-				for(int iz=oldZ1; iz<=oldZ2; iz++)
+				for(sint32 iz=oldZ1; iz<=oldZ2; iz++)
 				{
 					if( (ix>=(x-CELL_VIEWRANGE) && ix<=(x+CELL_VIEWRANGE)) && (iz>=(z-CELL_VIEWRANGE) && iz<=(z+CELL_VIEWRANGE)) )
 						continue;
@@ -319,23 +380,39 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 					if( nMapCell )
 					{
 						// remove notify entry
-						hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, NULL);
+						//hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, NULL);
+						std::vector<mapChannelClient_t*>::iterator itr = nMapCell->ht_playerNotifyList.begin();
+						while (itr != nMapCell->ht_playerNotifyList.end())
+						{
+							if ((*itr) == client)
+							{
+								nMapCell->ht_playerNotifyList.erase(itr);
+								break;
+							}
+							++itr;
+						}
 						// remove player visibility client-side
-						manifestation_cellDiscardClientToPlayers(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
-						manifestation_cellDiscardPlayersToClient(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
+						if( nMapCell->ht_playerList.empty() == false )
+						{
+							manifestation_cellDiscardClientToPlayers(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());					
+							manifestation_cellDiscardPlayersToClient(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());
+						}
 						// remove object visibility
-						dynamicObject_cellDiscardObjectsToClient(mapChannel, client, (dynObject_t**)hashTable_getValueArray(&nMapCell->ht_objectList), hashTable_getCount(&nMapCell->ht_objectList));	
+						if( nMapCell->ht_objectList.empty() == false )
+							dynamicObject_cellDiscardObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());	
 						// remove npc visibility
-						npc_cellDiscardNPCsToClient(mapChannel, client, (npc_t**)hashTable_getValueArray(&nMapCell->ht_npcList), hashTable_getCount(&nMapCell->ht_npcList));	
+						if( nMapCell->ht_npcList.empty() == false )
+							npc_cellDiscardNPCsToClient(mapChannel, client, (npc_t**)&nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());	
 						// remove creature visibility
-						creature_cellDiscardCreaturesToClient(mapChannel, client, (creature_t**)hashTable_getValueArray(&nMapCell->ht_creatureList), hashTable_getCount(&nMapCell->ht_creatureList));				
+						if( nMapCell->ht_creatureList.empty() == false )
+							creature_cellDiscardCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				
 					}
 				}
 			}
 			// find players that enter visibility range
-			for(int ix=x-CELL_VIEWRANGE; ix<=x+CELL_VIEWRANGE; ix++)
+			for(sint32 ix=x-CELL_VIEWRANGE; ix<=x+CELL_VIEWRANGE; ix++)
 			{
-				for(int iz=z-CELL_VIEWRANGE; iz<=z+CELL_VIEWRANGE; iz++)
+				for(sint32 iz=z-CELL_VIEWRANGE; iz<=z+CELL_VIEWRANGE; iz++)
 				{
 					if( (ix>=oldX1 && ix<=oldX2) && (iz>=oldZ1 && iz<=oldZ2) )
 						continue;
@@ -343,16 +420,23 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 					if( nMapCell )
 					{
 						// add player visibility client-side
-						manifestation_cellIntroduceClientToPlayers(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
-						manifestation_cellIntroducePlayersToClient(mapChannel, client, (mapChannelClient_t**)hashTable_getValueArray(&nMapCell->ht_playerList), hashTable_getCount(&nMapCell->ht_playerList));					
+						if( nMapCell->ht_playerList.empty() == false )
+						{
+							manifestation_cellIntroduceClientToPlayers(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());					
+							manifestation_cellIntroducePlayersToClient(mapChannel, client, &nMapCell->ht_playerList[0], nMapCell->ht_playerList.size());					
+						}
 						// add notify entry
-						hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, client);
+						//hashTable_set(&nMapCell->ht_playerNotifyList, client->clientEntityId, client);
+						nMapCell->ht_playerNotifyList.push_back(client);
 						// add object visibility client-side
-						dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, (dynObject_t**)hashTable_getValueArray(&nMapCell->ht_objectList), hashTable_getCount(&nMapCell->ht_objectList));				
+						if( nMapCell->ht_objectList.empty() == false )
+							dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());				
 						// add npc visibility client-side
-						npc_cellIntroduceNPCsToClient(mapChannel, client, (npc_t**)hashTable_getValueArray(&nMapCell->ht_npcList), hashTable_getCount(&nMapCell->ht_npcList));				
+						if( nMapCell->ht_npcList.empty() == false )
+							npc_cellIntroduceNPCsToClient(mapChannel, client, (npc_t**)&nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());				
 						// add creature visibility client-side
-						creature_cellIntroduceCreaturesToClient(mapChannel, client, (creature_t**)hashTable_getValueArray(&nMapCell->ht_creatureList), hashTable_getCount(&nMapCell->ht_creatureList));				
+						if( nMapCell->ht_creatureList.empty() == false )
+							creature_cellIntroduceCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				
 					}
 				}
 			}
@@ -360,12 +444,24 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 			mapCell_t *nMapCell = cellMgr_getCell(mapChannel, client->player->actor->cellLocation.x, client->player->actor->cellLocation.z);
 			if( nMapCell )
 			{
-				hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, NULL);
+				//hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, NULL);
+				std::vector<mapChannelClient_t*>::iterator itr = nMapCell->ht_playerList.begin();
+				while (itr != nMapCell->ht_playerList.end())
+				{
+					if ((*itr) == client)
+					{
+						nMapCell->ht_playerList.erase(itr);
+						break;
+					}
+					itr++;
+				}
 			}
 			nMapCell = cellMgr_getCell(mapChannel, x, z);
 			if( nMapCell )
 			{
-				hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, client);
+				//hashTable_set(&nMapCell->ht_playerList, client->clientEntityId, client);
+				nMapCell->ht_playerList.push_back(client);
+
 			}
 			// update location
 			client->player->actor->cellLocation.x = x;
@@ -376,7 +472,7 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 
 void cellMgr_doWork( mapChannel_t *mapChannel )
 {
-	unsigned int currentTime = GetTickCount();
+	uint32 currentTime = GetTickCount();
 	if( mapChannel->mapCellInfo.time_updateVisibility < currentTime )
 	{
 		cellMgr_updateVisibility(mapChannel);
@@ -387,5 +483,4 @@ void cellMgr_doWork( mapChannel_t *mapChannel )
 
 	// events etc...
 
-	// clean up empty cells
 }

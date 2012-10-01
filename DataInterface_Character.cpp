@@ -2,9 +2,9 @@
 #include<stdio.h>
 #include"DataInterface.h"
 
-void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getCharacterPreviewInfo_t *job, void *cb, void *param)
+void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getCharacterPreviewInfo_t *job, void *cb, void *param)
 {
-	char queryText[1024];
+	sint8 queryText[1024];
 	if( job->slotIndex == -1 )
 		wsprintf(queryText, "SELECT "
 		"id,name,lastname,slotId,gender,raceId,classId,"
@@ -71,12 +71,12 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		unsigned long long char_id;
-		int char_gender;
-		int char_slotIndex;
-		int char_rawSlotIndex;
-		int char_race;
-		int char_classId;
-		int char_currentContextId;
+		sint32 char_gender;
+		sint32 char_slotIndex;
+		sint32 char_rawSlotIndex;
+		sint32 char_race;
+		sint32 char_classId;
+		sint32 char_currentContextId;
 		double char_posX;
 		double char_posY;
 		double char_posZ;
@@ -92,8 +92,8 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		sscanf(dbRow[10], "%lf", &char_posZ);
 		char_rawSlotIndex = char_slotIndex-1;
 		job->outPreviewData[char_rawSlotIndex] = (di_characterPreview_t *)malloc(sizeof(di_characterPreview_t));
-		int rIdx = 11;
-		for(int i=0; i<21; i++)
+		sint32 rIdx = 11;
+		for(sint32 i=0; i<21; i++)
 		{
 			sscanf(dbRow[rIdx+0], "%d", &job->outPreviewData[char_rawSlotIndex]->appearanceData[i].classId);
 			sscanf(dbRow[rIdx+1], "%u", &job->outPreviewData[char_rawSlotIndex]->appearanceData[i].hue);
@@ -116,26 +116,26 @@ void cb_dataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 	// do callback
 	((void (*)(void*,void*))cb)(param, job);
 	// free data
-	for(int i=0; i<16; i++)
+	for(sint32 i=0; i<16; i++)
 	{
 		free(job->outPreviewData[i]);
 	}
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, unsigned int slotIndex, void (*cb)(void *param, diJob_getCharacterPreviewInfo_t *jobData), void *param)
+void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, uint32 slotIndex, void (*cb)(void *param, diJob_getCharacterPreviewInfo_t *jobData), void *param)
 {	
-	diJob_getCharacterPreviewInfo_t *job = (diJob_getCharacterPreviewInfo_t*)dataInterface_allocJob(sizeof(diJob_getCharacterPreviewInfo_t));
+	diJob_getCharacterPreviewInfo_t *job = (diJob_getCharacterPreviewInfo_t*)DataInterface_allocJob(sizeof(diJob_getCharacterPreviewInfo_t));
 	job->userId = userID;
 	job->slotIndex = slotIndex;
-	for(int i=0; i<16; i++)
+	for(sint32 i=0; i<16; i++)
 		job->outPreviewData[i] = NULL;
-	dataInterface_queueJob(job, cb_dataInterface_Character_getCharacterPreviewInfo, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_Character_getCharacterPreviewInfo, cb, param);
 }
 
-void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterData_t *job, void *cb, void *param)
+void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterData_t *job, void *cb, void *param)
 {
-	char queryText[1024];
+	sint8 queryText[1024];
 	wsprintf(queryText, "SELECT "
 			"id,name,lastname,slotId,gender,raceId,classId,"
 			"currentContextId,posX,posY,posZ,"
@@ -174,12 +174,12 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		unsigned long long char_id;
-		int char_gender;
-		int char_slotIndex;
-		int char_rawSlotIndex;
-		int char_race;
-		int char_classId;
-		int char_currentContextId;
+		sint32 char_gender;
+		sint32 char_slotIndex;
+		sint32 char_rawSlotIndex;
+		sint32 char_race;
+		sint32 char_classId;
+		sint32 char_currentContextId;
 		double char_posX;
 		double char_posY;
 		double char_posZ;
@@ -195,8 +195,8 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		sscanf(dbRow[10], "%lf", &char_posZ);
 		char_rawSlotIndex = char_slotIndex-1;
 		job->outCharacterData = (di_characterData_t*)malloc(sizeof(di_characterData_t));
-		int rIdx = 11;
-		for(int i=0; i<21; i++)
+		sint32 rIdx = 11;
+		for(sint32 i=0; i<21; i++)
 		{
 			sscanf(dbRow[rIdx+0], "%d", &job->outCharacterData->appearanceData[i].classId);
 			sscanf(dbRow[rIdx+1], "%u", &job->outCharacterData->appearanceData[i].hue);
@@ -224,21 +224,21 @@ void cb_dataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	// free data
 	if( job->outCharacterData )
 		free(job->outCharacterData);
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_Character_getCharacterData(unsigned long long userID, unsigned int slotIndex, void (*cb)(void *param, diJob_characterData_t *jobData), void *param)
+void DataInterface_Character_getCharacterData(unsigned long long userID, uint32 slotIndex, void (*cb)(void *param, diJob_characterData_t *jobData), void *param)
 {	
-	diJob_characterData_t *job = (diJob_characterData_t*)dataInterface_allocJob(sizeof(diJob_characterData_t));
+	diJob_characterData_t *job = (diJob_characterData_t*)DataInterface_allocJob(sizeof(diJob_characterData_t));
 	job->userId = userID;
 	job->slotIndex = slotIndex;
 	job->outCharacterData = NULL;
-	dataInterface_queueJob(job, cb_dataInterface_Character_getCharacterData, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_Character_getCharacterData, cb, param);
 }
 
-void cb_dataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout_t *characterData, void *cb, void *param)
+void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout_t *characterData, void *cb, void *param)
 {
-	char queryText[2048];
+	sint8 queryText[2048];
 	// todo, validate name first ( so no sql injection is possible, use mysql_real_escape_string ? )
 	// reset error codes
 	characterData->error_nameAlreadyInUse = false;
@@ -338,14 +338,14 @@ void cb_dataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	// dont free data as we do not allocate it here
 }
 
-void dataInterface_Character_createCharacter(di_characterLayout_t *characterData, void (*cb)(void *param, di_characterLayout_t *jobData), void *param)
+void DataInterface_Character_createCharacter(di_characterLayout_t *characterData, void (*cb)(void *param, di_characterLayout_t *jobData), void *param)
 {	
-	dataInterface_queueJob(characterData, cb_dataInterface_Character_createCharacter, cb, param);
+	DataInterface_queueJob(characterData, cb_DataInterface_Character_createCharacter, cb, param);
 }
 
-void cb_dataInterface_Character_deleteCharacter(MYSQL *dbCon, diJob_deleteCharacter_t *job, void *cb, void *param)
+void cb_DataInterface_Character_deleteCharacter(MYSQL *dbCon, diJob_deleteCharacter_t *job, void *cb, void *param)
 {
-	char queryText[512];
+	sint8 queryText[512];
 	wsprintf(queryText, "DELETE FROM characters WHERE userId=%I64u AND slotId=%d", job->userId, job->slotId);
 	// execute query
 	job->error = false;
@@ -362,15 +362,15 @@ void cb_dataInterface_Character_deleteCharacter(MYSQL *dbCon, diJob_deleteCharac
 	// do callback
 	((void (*)(void*,void*))cb)(param, job);
 	// free data
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_Character_deleteCharacter(unsigned long long userID, int slotId, void (*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param)
+void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void (*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param)
 {	
-	diJob_deleteCharacter_t *job = (diJob_deleteCharacter_t*)dataInterface_allocJob(sizeof(diJob_deleteCharacter_t));
+	diJob_deleteCharacter_t *job = (diJob_deleteCharacter_t*)DataInterface_allocJob(sizeof(diJob_deleteCharacter_t));
 	job->userId = userID;
 	job->slotId = slotId;
-	dataInterface_queueJob(job, cb_dataInterface_Character_deleteCharacter, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_Character_deleteCharacter, cb, param);
 }
 
 

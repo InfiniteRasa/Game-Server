@@ -7,10 +7,10 @@
 		npc and creature movement, decisions, combat or any actions.
 */
 
-extern int gridL1;
-extern int gridL2;
-extern int gridCount;
-extern int** entityPosGrid;
+extern sint32 gridL1;
+extern sint32 gridL2;
+extern sint32 gridCount;
+extern sint32** entityPosGrid;
 
 /*
  * Called every 250 milliseconds for every NPC on the map
@@ -66,14 +66,14 @@ void updateEntityMovementW2 (float difX,float difY,float difZ,creature_t *creatu
 	// send movement update
 	netCompressedMovement_t movement = {0};
 	movement.entityId = creature->actor.entityId;
-	movement.posX24b = (unsigned int)(creature->actor.posX*256.0f);
-	movement.posY24b = (unsigned int)(creature->actor.posY*256.0f);
-	movement.posZ24b = (unsigned int)(creature->actor.posZ*256.0f);
+	movement.posX24b = (uint32)(creature->actor.posX*256.0f);
+	movement.posY24b = (uint32)(creature->actor.posY*256.0f);
+	movement.posZ24b = (uint32)(creature->actor.posZ*256.0f);
 	
 	movement.flag = 0x08;
-	movement.viewX = (unsigned short)(short)(vX*10240.0f);
-	movement.viewY = 0;//(unsigned short)(short)(vX*10240.0f);//(int)(calcAngle(difX, difZ)*1024.0f);
-	movement.velocity = (unsigned short)(velocity * 1024.0f);
+	movement.viewX = (uint16)(sint16)(vX*10240.0f);
+	movement.viewY = 0;//(uint16)(sint16)(vX*10240.0f);//(sint32)(calcAngle(difX, difZ)*1024.0f);
+	movement.velocity = (uint16)(velocity * 1024.0f);
 	netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
 
 	//--grid update
@@ -82,10 +82,10 @@ void updateEntityMovementW2 (float difX,float difY,float difZ,creature_t *creatu
 }
 
 
-void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCell_t *mapCell,int type)
+void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCell_t *mapCell,sint32 type)
 {
   
-	int tCount =0;
+	sint32 tCount =0;
 	float minimumRange = 16.1f;
 	float difX = 0.0f;
 	float difY = 0.0f;
@@ -99,8 +99,9 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 
 	if (type == 0) 
 	{
-		tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
-		playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
+		tCount = mapCell->ht_playerNotifyList.size();
+		if( tCount > 0 )
+			playerList = &mapCell->ht_playerNotifyList[0];
    
 	}
 	if (type == 1)
@@ -110,13 +111,13 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 	}	
 
 	// check players in range
-	for(int i=0; i<tCount; i++)
+	for(sint32 i=0; i<tCount; i++)
 	{
 		if( playerList == NULL) break; //no player found
 		mapChannelClient_t *player = playerList[i];
 		if(player->player->actor->stats.healthCurrent<=0) break;
-		difX = (int)(player->player->actor->posX) - mPosX;
-		difZ = (int)(player->player->actor->posZ) - mPosZ;
+		difX = (sint32)(player->player->actor->posX) - mPosX;
+		difZ = (sint32)(player->player->actor->posZ) - mPosZ;
 		dist = difX*difX + difZ*difZ;
 		if( dist <= minimumRange && creature->currentHealth > 0 )
 		{
@@ -135,7 +136,7 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 	
 	// check other creatures in range
 	if(type == 0) return;
-	for(int i2= 0; i2 < gridCount; i2++)
+	for(sint32 i2= 0; i2 < gridCount; i2++)
 	{
         //---dont check yourself
 		if(creature->actor.entityId == entityPosGrid[i2][1])
@@ -146,8 +147,8 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 		//--check if in same map
 		if(mapChannel->mapInfo->contextId == entityPosGrid[i2][0])
 		{
-			//difX = (int)creature ->actor.posX-entityPosGrid[i2][2];
-			//difZ = (int)creature ->actor.posZ-entityPosGrid[i2][3];	
+			//difX = (sint32)creature ->actor.posX-entityPosGrid[i2][2];
+			//difZ = (sint32)creature ->actor.posZ-entityPosGrid[i2][3];	
 
 			difX = entityPosGrid[i2][2] - mPosX;
 			difZ = entityPosGrid[i2][3] - mPosZ;
@@ -165,7 +166,7 @@ void checkForEntityInRange(mapChannel_t *mapChannel, creature_t *creature,mapCel
 		}
 	}
 	/*
-	for(int i2=0; i2<tCount; i2++)
+	for(sint32 i2=0; i2<tCount; i2++)
 	{
 		if(creatureList == NULL) break; // no creatures found
 		creature_t  *crea = creatureList[i2];
@@ -206,12 +207,12 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
   { return; } 	
 
   //---update entity position grid
-	for(int i= 0; i < gridCount; i++)
+	for(sint32 i= 0; i < gridCount; i++)
 	{
         if(creature->actor.entityId == entityPosGrid[i][1])
 		{
-            entityPosGrid[i][2] = (int)creature->actor.posX;  
-			entityPosGrid[i][3] = (int)creature->actor.posZ;   
+            entityPosGrid[i][2] = (sint32)creature->actor.posX;  
+			entityPosGrid[i][3] = (sint32)creature->actor.posZ;   
 		}
 	}
 
@@ -237,8 +238,8 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 					}
 				}//--cellwide search
 			   
-			    //--- idle for short time before get new wander position
-				unsigned int resttime = GetTickCount();
+			    //--- idle for sint16 time before get new wander position
+				uint32 resttime = GetTickCount();
 				if( (resttime-creature->lastresttime) > 3500 )
 				{
 					//__debugbreak();
@@ -247,7 +248,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 					creature->lastresttime = resttime;
 					//calc target
 					srand(GetTickCount());
-					int srnd = rand() % (int)creature->wander_dist;
+					sint32 srnd = rand() % (sint32)creature->wander_dist;
 					creature->wx = creature->homePos.x + (float)srnd;
 					creature->wy = creature->homePos.y+1.0f;
 					creature->wz = creature->homePos.z + (float)srnd;			
@@ -297,9 +298,9 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
 	{
 		
-    	int difX;
-		int difY;
-		int difZ; 
+    	sint32 difX;
+		sint32 difY;
+		sint32 difZ; 
 		//__debugbreak();
 		if ( creature->currentHealth <=0)
 			return;
@@ -310,7 +311,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 		{
 			
 			//--get out of combat
-			int aggtime = GetTickCount();
+			sint32 aggtime = GetTickCount();
 			if(aggtime - creature->lastagression > creature->agression)
 			{
 				creature->controller.currentAction =  BEHAVIOR_ACTION_WANDER;
@@ -363,14 +364,14 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			
 
 			//########### distance check #################
-			unsigned int resttime = GetTickCount();
+			uint32 resttime = GetTickCount();
 			
 			if( (creature->movestate == 0) && ((resttime-creature->lastresttime) > 1500 ) )
 			{
 			     
 			    creature->lastresttime = resttime;	
 				//---check distance to other entitys
-				for(int i= 0; i < gridCount; i++)
+				for(sint32 i= 0; i < gridCount; i++)
 				{
 					//---dont check yourself
 					if(creature->actor.entityId == entityPosGrid[i][1])
@@ -382,15 +383,15 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 				
 					if(mapChannel->mapInfo->contextId == entityPosGrid[i][0])
 					{
-						difX = (int)creature ->actor.posX-entityPosGrid[i][2];
-						difZ = (int)creature ->actor.posZ-entityPosGrid[i][3];	
+						difX = (sint32)creature ->actor.posX-entityPosGrid[i][2];
+						difZ = (sint32)creature ->actor.posZ-entityPosGrid[i][3];	
 						
 						if( (abs(difX) <2) && (abs(difZ) < 2) )
 						{
 							srand(GetTickCount());
-							int sgnrnd = rand() % 2;
-							int sign = (sgnrnd == 0) ? -1: 1;
-							int srnd1 = rand() % 7;
+							sint32 sgnrnd = rand() % 2;
+							sint32 sign = (sgnrnd == 0) ? -1: 1;
+							sint32 srnd1 = rand() % 7;
 							creature->wx = creature->actor.posX + (float)(srnd1 * sign);
 							sgnrnd = rand() % 2;
 							sign = (sgnrnd == 0) ? -1: 1;
@@ -437,7 +438,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 			if( dist < meeleRange )
 			{
 				//rangeattack (every x sec)
-				unsigned int time2 = GetTickCount();
+				uint32 time2 = GetTickCount();
 				if( (time2-creature->lastattack) > creature->attackspeed && (dist < creature-> range) )
 				{
 					//__debugbreak();
@@ -454,7 +455,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 					updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,0.91f,true);
 				}
 				//rangeattack (every x sec)
-				unsigned int time = GetTickCount();
+				uint32 time = GetTickCount();
 				if( ((time-creature->lastattack) > creature->attackspeed) && (dist <= creature-> range) )
 				{
 					//__debugbreak();
@@ -480,21 +481,27 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
  */
 void controller_mapChannelThink(mapChannel_t *mapChannel)
 {
-	for(int i=0; i<mapChannel->mapCellInfo.loadedCellCount; i++)
+	for(sint32 i=0; i<mapChannel->mapCellInfo.loadedCellCount; i++)
 	{
 		mapCell_t *mapCell = mapChannel->mapCellInfo.loadedCellList[i];
 		if( mapCell == NULL ) // should never happen, but still do a check for saftey
 			continue;
 		// npcs
-		npc_t **npcList = (npc_t**)hashTable_getValueArray(&mapCell->ht_npcList);
-		int npcCount = hashTable_getCount(&mapCell->ht_npcList);
-		for(int f=0; f<npcCount; f++)
-			controller_npcThink(mapChannel, npcList[f]);
+		if( mapCell->ht_npcList.empty() != true )
+		{
+			npc_t **npcList = &mapCell->ht_npcList[0];
+			sint32 npcCount = mapCell->ht_npcList.size();
+			for(sint32 f=0; f<npcCount; f++)
+				controller_npcThink(mapChannel, npcList[f]);
+		}
 		// creatures
-		creature_t **creatureList = (creature_t**)hashTable_getValueArray(&mapCell->ht_creatureList);
-		int creatureCount = hashTable_getCount(&mapCell->ht_creatureList);
-		for(int f=0; f<creatureCount; f++)
-			controller_creatureThink(mapChannel, creatureList[f]);
+		if( mapCell->ht_creatureList.empty() != true )
+		{
+			creature_t **creatureList = &mapCell->ht_creatureList[0];
+			sint32 creatureCount = mapCell->ht_creatureList.size();
+			for(sint32 f=0; f<creatureCount; f++)
+				controller_creatureThink(mapChannel, creatureList[f]);
+		}
 	}
 }
 

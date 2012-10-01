@@ -1,73 +1,50 @@
 
 typedef struct  
 {
-	DWORD hashB;
-	DWORD hashC;
-	void *item;
-}_HashTable_string_entry_t;
-
-typedef struct
-{
-	_HashTable_string_entry_t *entrys;
-	DWORD size;
-}HashTable_string_t;
-
-
-void hashTable_init(HashTable_string_t *hashTable, int itemLimit);
-bool hashTable_set(HashTable_string_t *hashTable, char *key, void *item);
-void *hashTable_get(HashTable_string_t *hashTable, char *key);
-
-typedef struct
-{
-	_HashTable_string_entry_t *entrys;
-	DWORD size;
-	CRITICAL_SECTION cs;
-}HashTable_stringSynced_t;
-
-void hashTable_init(HashTable_stringSynced_t *hashTable, int itemLimit);
-bool hashTable_set(HashTable_stringSynced_t *hashTable, char *key, void *item);
-void *hashTable_get(HashTable_stringSynced_t *hashTable, char *key);
-
-
-typedef struct  
-{
-	DWORD originalValue;
-	void *item;
-}_HashTable_uint32_entry_t;
-
-typedef struct
-{
-	_HashTable_uint32_entry_t *entrys;
-	DWORD size;
-	DWORD count;
-}HashTable_uint32_t;
-
-
-void hashTable_init(HashTable_uint32_t *hashTable, int itemLimit);
-void hashTable_destroy(HashTable_uint32_t *hashTable);
-bool hashTable_set(HashTable_uint32_t *hashTable, unsigned int key, void *item);
-void *hashTable_get(HashTable_uint32_t *hashTable, unsigned int key);
-
-
-typedef struct  
-{
-	int itemIndex;
+	sint32 itemIndex;
 }_HashTable_uint32Iterable_entry_t;
 
 typedef struct
 {
 	_HashTable_uint32Iterable_entry_t *entrys;
-	unsigned int *itemKeyArray;
+	uint32 *itemKeyArray;
 	void **itemValueArray;
-	DWORD size;
-	DWORD count;
-}HashTable_uint32Iterable_t;
+	uint32 size;
+	uint32 count;
+}hashTable_t;
 
-void hashTable_init(HashTable_uint32Iterable_t *hashTable, int itemLimit);
-void hashTable_destroy(HashTable_uint32Iterable_t *hashTable);
-bool hashTable_set(HashTable_uint32Iterable_t *hashTable, unsigned int key, void *item);
-void *hashTable_get(HashTable_uint32Iterable_t *hashTable, unsigned int key);
+void hashTable_init(hashTable_t *hashTable, sint32 itemLimit);
+void hashTable_destroy(hashTable_t *hashTable);
+void hashTable_clear(hashTable_t *hashTable);
+bool hashTable_set(hashTable_t *hashTable, uint32 key, void *item);
+void *hashTable_get(hashTable_t *hashTable, uint32 key);
 
-void** hashTable_getValueArray(HashTable_uint32Iterable_t *hashTable);
-unsigned int* hashTable_getKeyArray(HashTable_uint32Iterable_t *hashTable);
-unsigned int hashTable_getCount(HashTable_uint32Iterable_t *hashTable);
+void** hashTable_getValueArray(hashTable_t *hashTable);
+uint32* hashTable_getKeyArray(hashTable_t *hashTable);
+uint32 hashTable_getCount(hashTable_t *hashTable);
+
+bool hashTable_set(hashTable_t *hashTable, sint8 *key, void *item);
+void *hashTable_get(hashTable_t *hashTable, sint8 *key);
+
+typedef struct
+{
+	_HashTable_uint32Iterable_entry_t *entrys;
+	uint32 *itemKeyArray;
+	void **itemValueArray;
+	uint32 size;
+	uint32 count;
+	CRITICAL_SECTION criticalSection;
+}hashTableSynced_t;
+
+void hashTable_init(hashTableSynced_t *hashTable, sint32 itemLimit);
+void hashTable_destroy(hashTableSynced_t *hashTable);
+void hashTable_clear(hashTableSynced_t *hashTable);
+bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item);
+void *hashTable_get(hashTableSynced_t *hashTable, uint32 key);
+
+void** hashTable_getValueArray(hashTableSynced_t *hashTable);
+uint32* hashTable_getKeyArray(hashTableSynced_t *hashTable);
+uint32 hashTable_getCount(hashTableSynced_t *hashTable);
+
+bool hashTable_set(hashTableSynced_t *hashTable, sint8 *key, void *item);
+void *hashTable_get(hashTableSynced_t *hashTable, sint8 *key);

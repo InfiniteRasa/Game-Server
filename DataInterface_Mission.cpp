@@ -2,9 +2,9 @@
 #include<stdio.h>
 #include"DataInterface.h"
 
-void cb_dataInterface_Mission_getMissionList(MYSQL *dbCon, diJob_missionListData_t *job, void *cb, void *param)
+void cb_DataInterface_Mission_getMissionList(MYSQL *dbCon, diJob_missionListData_t *job, void *cb, void *param)
 {
-	char queryText[1024];
+	sint8 queryText[1024];
 	job->outMissionCount = 0;
 	job->outMissionList = NULL;
 
@@ -21,20 +21,20 @@ void cb_dataInterface_Mission_getMissionList(MYSQL *dbCon, diJob_missionListData
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate mission data
-	int missionCount = (int)mysql_num_rows(dbResult);
+	sint32 missionCount = (sint32)mysql_num_rows(dbResult);
 	di_missionData_t *missionDataList = (di_missionData_t*)malloc(sizeof(di_missionData_t) * missionCount);
 	
-	int idx = 0;
+	sint32 idx = 0;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		di_missionData_t *missionData = missionDataList+idx;
 		idx++;
 
-		unsigned int mission_id;
+		uint32 mission_id;
 		unsigned long long mission_dispenserNPC;
 		unsigned long long mission_collectorNPC;
 
-		int idx = 0;
+		sint32 idx = 0;
 		sscanf(dbRow[idx], "%u", &mission_id); idx++;
 		sscanf(dbRow[idx], "%I64u", &mission_dispenserNPC); idx++;
 		sscanf(dbRow[idx], "%I64u", &mission_collectorNPC); idx++;
@@ -49,11 +49,11 @@ void cb_dataInterface_Mission_getMissionList(MYSQL *dbCon, diJob_missionListData
 	((void (*)(void*,void*))cb)(param, job);
 	// free data
 	free(missionDataList);
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param)
+void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param)
 {	
-	diJob_missionListData_t *job = (diJob_missionListData_t*)dataInterface_allocJob(sizeof(diJob_missionListData_t));
-	dataInterface_queueJob(job, cb_dataInterface_Mission_getMissionList, cb, param);
+	diJob_missionListData_t *job = (diJob_missionListData_t*)DataInterface_allocJob(sizeof(diJob_missionListData_t));
+	DataInterface_queueJob(job, cb_DataInterface_Mission_getMissionList, cb, param);
 }

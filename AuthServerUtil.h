@@ -1,18 +1,18 @@
-int AuthServerUtil_Register();
-unsigned int AuthServerUtil_GetMyIP();
+sint32 AuthServerUtil_Register();
+uint32 AuthServerUtil_GetMyIP();
 
 typedef struct
 {
-	char Accountname[15];
+	sint8 Accountname[15];
 	union
 	{
 		struct
 		{
-			unsigned int UID1;
-			unsigned int UID2;
+			uint32 UID1;
+			uint32 UID2;
 		};
 	unsigned long long uid;
 	};
 }authSessionInfo_t;
 
-int AuthServerUtil_QuerySession(unsigned int ID1, unsigned int ID2, authSessionInfo_t *asiOut);
+sint32 AuthServerUtil_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asiOut);

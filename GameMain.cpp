@@ -6,7 +6,7 @@ CRITICAL_SECTION CS_CMgr;
 #define MAX_GAMEMAIN_CLIENTS 512
 
 clientGamemain_t Clients_GameMain[MAX_GAMEMAIN_CLIENTS];
-unsigned int ClientsGameMainCount = 0;
+uint32 ClientsGameMainCount = 0;
 
 clientGamemain_t *ClientMgr_AddToGameMain(SOCKET s)
 {
@@ -27,9 +27,9 @@ clientGamemain_t *ClientMgr_AddToGameMain(SOCKET s)
 	return rs;
 }
 
-int _ClientMgr_GetIndexGameMain(SOCKET s)
+sint32 _ClientMgr_GetIndexGameMain(SOCKET s)
 {
-	for(int i=0; i<ClientsGameMainCount; i++)
+	for(sint32 i=0; i<ClientsGameMainCount; i++)
 		if( Clients_GameMain[i].socket == s )
 			return i;
 	return -1;
@@ -39,7 +39,7 @@ int _ClientMgr_GetIndexGameMain(SOCKET s)
 void ClientMgr_RemoveFromGameMain(SOCKET s)
 {
 	EnterCriticalSection(&CS_CMgr);
-	int Idx = _ClientMgr_GetIndexGameMain(s);
+	sint32 Idx = _ClientMgr_GetIndexGameMain(s);
 	if( Idx == -1 )
 	{
 		LeaveCriticalSection(&CS_CMgr);
@@ -72,13 +72,13 @@ clientGamemain_t* GameMain_isolate(clientGamemain_t *cgm)
 
 void ClientMgr_AddGameMainsToFD(FD_SET *fd)
 {
-	for(int i=0; i<ClientsGameMainCount; i++)
+	for(sint32 i=0; i<ClientsGameMainCount; i++)
 		FD_SET(Clients_GameMain[i].socket, fd);
 }
 
-void ClientMgr_CallbackEventGameMain(int (*cb)(clientGamemain_t *cp), fd_set *fd)
+void ClientMgr_CallbackEventGameMain(sint32 (*cb)(clientGamemain_t *cp), fd_set *fd)
 {
-	int idx = 0;
+	sint32 idx = 0;
 	while(idx < ClientsGameMainCount)
 	{
 		if( FD_ISSET(Clients_GameMain[idx].socket, fd) )
@@ -93,7 +93,7 @@ void ClientMgr_CallbackEventGameMain(int (*cb)(clientGamemain_t *cp), fd_set *fd
 					if( mapChannel == NULL )
 					{
 						// mapChannel not live, disconnect the client!
-						// todo: send him back to char selection and show error
+						// todo: send him back to sint8 selection and show error
 						closesocket(newCgm->socket);
 						free(newCgm);
 					}
@@ -119,17 +119,17 @@ void ClientMgr_CallbackEventGameMain(int (*cb)(clientGamemain_t *cp), fd_set *fd
 
 /************** Prototypes ***************/
 
-int GameMain_ReadCallback(clientGamemain_t *cp);
+sint32 GameMain_ReadCallback(clientGamemain_t *cp);
 
-int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned int len);
-//int GameMain_UnpackPacket(clientGamemain_t *cgm, unsigned char *data, unsigned int len);
+sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len);
+//sint32 GameMain_UnpackPacket(clientGamemain_t *cgm, uint8 *data, uint32 len);
 //
-//int GameMain_UnpackPacket_OP_2(clientGamemain_t *cgm, VALUESTRUCT1 *vs1);
+//sint32 GameMain_UnpackPacket_OP_2(clientGamemain_t *cgm, VALUESTRUCT1 *vs1);
 
-int GameMain_processPythonRPC(clientGamemain_t *cgm, unsigned int methodID, unsigned char *pyString, int pyStringLen);
+sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *pyString, sint32 pyStringLen);
 
 /***************** Main ******************/
-int GameMain_Run(void *p1)
+sint32 GameMain_Run(void *p1)
 {
 	InitializeCriticalSection(&CS_CMgr);
 
@@ -145,7 +145,7 @@ int GameMain_Run(void *p1)
 		//Add all connected clients/gameservers
 		ClientMgr_AddGameMainsToFD(&fd);
 		//Do work select
-		int r = select(0, &fd, 0, 0, &sTimeout); //Dont wait forever, we need to check Gameserver online states too
+		sint32 r = select(0, &fd, 0, 0, &sTimeout); //Dont wait forever, we need to check Gameserver online states too
 		if( r )
 		{
 			//Check for all receivers
@@ -191,19 +191,19 @@ void GameMain_PassClientToCharacterSelection(clientGamemain_t *cgm)
 	LeaveCriticalSection(&CS_CMgr);
 }
 
-int GameMain_ReadCallback(clientGamemain_t *cgm)
+sint32 GameMain_ReadCallback(clientGamemain_t *cgm)
 {
 	if( cgm->RecvState < 4 )
 	{
-		int r = recv(cgm->socket, (char*)cgm->RecvBuffer+cgm->RecvState, 4-cgm->RecvState, 0);
+		sint32 r = recv(cgm->socket, (char*)cgm->RecvBuffer+cgm->RecvState, 4-cgm->RecvState, 0);
 		if( r == 0 || r == SOCKET_ERROR )
 			return 0;
 		cgm->RecvState += r;
 		if( cgm->RecvState == 4 )
-			cgm->RecvSize = *(unsigned int*)cgm->RecvBuffer + 4;
+			cgm->RecvSize = *(uint32*)cgm->RecvBuffer + 4;
 		return 1;
 	}
-	int r = recv(cgm->socket, (char*)cgm->RecvBuffer+cgm->RecvState, cgm->RecvSize-cgm->RecvState, 0);
+	sint32 r = recv(cgm->socket, (char*)cgm->RecvBuffer+cgm->RecvState, cgm->RecvSize-cgm->RecvState, 0);
 	if( r == 0 || r == SOCKET_ERROR )
 		return 0;
 	cgm->RecvState += r;
@@ -220,14 +220,14 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 		}
 		
 
-		Tabula_Decrypt2(&cgm->tbc2, (unsigned int*)(cgm->RecvBuffer+4), cgm->RecvSize);		
-		int r = 0;
-		int AlignBytes = cgm->RecvBuffer[4]%9;
+		Tabula_Decrypt2(&cgm->tbc2, (uint32*)(cgm->RecvBuffer+4), cgm->RecvSize);		
+		sint32 r = 0;
+		sint32 AlignBytes = cgm->RecvBuffer[4]%9;
 
-		unsigned char *Buffer = cgm->RecvBuffer + 4 + AlignBytes;
-		int Size = cgm->RecvSize - 4 - AlignBytes;
+		uint8 *Buffer = cgm->RecvBuffer + 4 + AlignBytes;
+		sint32 Size = cgm->RecvSize - 4 - AlignBytes;
 		do{
-			unsigned short Subsize = *(unsigned short*)Buffer;
+			uint16 Subsize = *(uint16*)Buffer;
 			// 20110729 - thuvvik if/else to avoid gamecrash
 			if (Subsize == 43 && Size == 12)
 			{
@@ -237,7 +237,7 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 			{
 				if (Subsize >4000)
 				{
-					int foundSubsize = findSubsize(Subsize, Buffer);
+					sint32 foundSubsize = findSubsize(Subsize, Buffer);
 					Subsize= foundSubsize;
 				}
 				
@@ -256,13 +256,13 @@ int GameMain_ReadCallback(clientGamemain_t *cgm)
 	return 1;
 }
 
-int findSubsize(int current, unsigned char *data)
+sint32 findSubsize(sint32 current, uint8 *data)
 {
-	int iIndex = 0;
-	int zeroFound = 0;
+	sint32 iIndex = 0;
+	sint32 zeroFound = 0;
 	for (iIndex =0; iIndex < current; iIndex++)
 	{
-		if ((*(unsigned short*)(data+iIndex)) == 0)
+		if ((*(uint16*)(data+iIndex)) == 0)
 			zeroFound ++;
 
 		if (zeroFound==2)
@@ -275,16 +275,16 @@ int findSubsize(int current, unsigned char *data)
 }
 
 /***Debug***/
-void HexOut(unsigned char *hex, int l)
+void HexOut(uint8 *hex, sint32 l)
 {
-	for(int p=0; p<l; p++)
+	for(sint32 p=0; p<l; p++)
 	{
 		printf("%02X ", hex[p]);
 		if( ((p+1)&0xF) == 0 )
 			printf("\n");
 	}
 	printf("\n");
-	for(int p=0; p<l; p++)
+	for(sint32 p=0; p<l; p++)
 	{
 		if( hex[p] > 0x10 )
 			printf("%c", hex[p]);
@@ -295,7 +295,7 @@ void HexOut(unsigned char *hex, int l)
 	}
 }
 
-int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned int len)
+sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len)
 {
 	if( len >= 0xFFFF )
 		__debugbreak();
@@ -305,58 +305,58 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 	//HexOut(data, len);
 	//printf("\n\n");
 
-	int pIdx = 0;
+	sint32 pIdx = 0;
 	// read subSize
-	unsigned int subSize = *(unsigned short*)(data+pIdx); pIdx += 2; // redundancy with param len
+	uint32 subSize = *(uint16*)(data+pIdx); pIdx += 2; // redundancy with param len
 	// read major opcode
-	unsigned int majorOpc = *(unsigned short*)(data+pIdx); pIdx += 2;
+	uint32 majorOpc = *(uint16*)(data+pIdx); pIdx += 2;
 	if( majorOpc )
 	{
 		return 1; // ignore the packet
 	}
 	// read header A
-	unsigned char ukn1 = *(unsigned char*)(data+pIdx); pIdx +=1;
+	uint8 ukn1 = *(uint8*)(data+pIdx); pIdx +=1;
 	if( ukn1 != 2 )
 		__debugbreak();
 	
-	unsigned char opcode = *(unsigned char*)(data+pIdx); pIdx +=1; // not 100% sure	
-	unsigned char ukn2 = *(unsigned char*)(data+pIdx); pIdx +=1;
+	uint8 opcode = *(uint8*)(data+pIdx); pIdx +=1; // not 100% sure	
+	uint8 ukn2 = *(uint8*)(data+pIdx); pIdx +=1;
 	if( ukn2 != 0 )
 		__debugbreak();
-	unsigned char xorCheckA = *(unsigned char*)(data+pIdx); pIdx +=1;
+	uint8 xorCheckA = *(uint8*)(data+pIdx); pIdx +=1;
 	if( xorCheckA != 3 ) // we only know headerA length of 3 for now
 		__debugbreak();
 
-	unsigned int hdrB_start = pIdx;
-	unsigned char ukn3 = *(unsigned char*)(data+pIdx); pIdx +=1;
+	uint32 hdrB_start = pIdx;
+	uint8 ukn3 = *(uint8*)(data+pIdx); pIdx +=1;
 	if( ukn3 != 3 )
 		__debugbreak();
 	// different handling now
 	if( opcode == 0x02 )
 	{
 		// expect header B part 1 (0x29)
-		if( *(unsigned char*)(data+pIdx) != 0x29 )
+		if( *(uint8*)(data+pIdx) != 0x29 )
 			__debugbreak(); // wrong
 		pIdx++;
 		// most likely the register-me-packet
-		unsigned char ukn02_1 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 ukn02_1 = *(uint8*)(data+pIdx); pIdx++;
 		if( ukn02_1 != 3 ) __debugbreak();
-		unsigned char ukn02_2 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 ukn02_2 = *(uint8*)(data+pIdx); pIdx++;
 		if( ukn02_2 != 1 ) __debugbreak();
-		unsigned char preffix02_1 = *(unsigned char*)(data+pIdx); pIdx++;
-		if( preffix02_1 != 7 ) __debugbreak(); // 7 --> 32-bit int
-		unsigned int sessionId2 = *(unsigned int*)(data+pIdx); pIdx += 4;
-		unsigned char preffix02_2 = *(unsigned char*)(data+pIdx); pIdx++;
-		if( preffix02_2 != 7 ) __debugbreak(); // 7 --> 32-bit int
-		unsigned int sessionId1 = *(unsigned int*)(data+pIdx); pIdx += 4;
-		unsigned char ukn02_3 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 preffix02_1 = *(uint8*)(data+pIdx); pIdx++;
+		if( preffix02_1 != 7 ) __debugbreak(); // 7 --> 32-bit sint32
+		uint32 sessionId2 = *(uint32*)(data+pIdx); pIdx += 4;
+		uint8 preffix02_2 = *(uint8*)(data+pIdx); pIdx++;
+		if( preffix02_2 != 7 ) __debugbreak(); // 7 --> 32-bit sint32
+		uint32 sessionId1 = *(uint32*)(data+pIdx); pIdx += 4;
+		uint8 ukn02_3 = *(uint8*)(data+pIdx); pIdx++;
 		if( ukn02_3 != 0xD ) __debugbreak();
 		// part 2 (0xCB)
-		if( *(unsigned char*)(data+pIdx) != 0xCB )
+		if( *(uint8*)(data+pIdx) != 0xCB )
 			__debugbreak(); // wrong
 		pIdx++;
 		// read version
-		unsigned int versionLen = *(unsigned char*)(data+pIdx); pIdx++;
+		uint32 versionLen = *(uint8*)(data+pIdx); pIdx++;
 		bool wrongVersion = false;
 		if( versionLen != 8 )
 			wrongVersion = true;
@@ -375,19 +375,20 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		}
 			// return 0;//__debugbreak(); // shit has wrong version
 		
-		unsigned char ukn02_4 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 ukn02_4 = *(uint8*)(data+pIdx); pIdx++;
 		if( ukn02_4 != 0x2A )
 			return 0;//__debugbreak();
 
 		authSessionInfo_t asi;
-		if( !dataInterface_QuerySession(sessionId1, sessionId2, &asi) )
+		if( !DataInterface_QuerySession(sessionId1, sessionId2, &asi) )
 		{
+			printf("Failed to query login session\n");
 			closesocket(cgm->socket);
 			return 0;
 		}
 		cgm->State = 1;
 
-		strcpy(cgm->Accountname, asi.Accountname);
+		strcpy((char*)cgm->Accountname, (char*)asi.Accountname);
 		cgm->userID = asi.ID;
 		cgm->sessionId1 = sessionId1;
 		cgm->sessionId2 = sessionId2;
@@ -400,27 +401,27 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 	else if( opcode == 0x0C )
 	{
 		// expect header B part 1 (0x29)
-		if( *(unsigned char*)(data+pIdx) == 0x00 )
+		if( *(uint8*)(data+pIdx) == 0x00 )
 			return 1; // empty packet?
-		if( *(unsigned char*)(data+pIdx) != 0x29 )
+		if( *(uint8*)(data+pIdx) != 0x29 )
 			__debugbreak(); // wrong
 		pIdx++;
-		unsigned char ukn0C_1 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 ukn0C_1 = *(uint8*)(data+pIdx); pIdx++;
 		if( ukn0C_1 != 3 ) __debugbreak();
-		unsigned char ukn0C_2 = *(unsigned char*)(data+pIdx); pIdx++;
+		uint8 ukn0C_2 = *(uint8*)(data+pIdx); pIdx++;
 		//if( ukn0C_2 != 1 && ukn0C_2 != 3 && ukn0C_2 != 9 ) __debugbdfdsfreak(); // server entityId?
 		if( ukn0C_2 == 0 || ukn0C_2 > 0x10 ) __debugbreak(); // server entityId?
-		unsigned char preffix0C_1 = *(unsigned char*)(data+pIdx); pIdx++;
-		if( preffix0C_1 != 7 ) __debugbreak(); // 7 --> 32-bit int
-		unsigned int methodID = *(unsigned int*)(data+pIdx); pIdx += 4;
-		unsigned char ukn0C_3 = *(unsigned char*)(data+pIdx); pIdx++; // entityID?
+		uint8 preffix0C_1 = *(uint8*)(data+pIdx); pIdx++;
+		if( preffix0C_1 != 7 ) __debugbreak(); // 7 --> 32-bit sint32
+		uint32 methodID = *(uint32*)(data+pIdx); pIdx += 4;
+		uint8 ukn0C_3 = *(uint8*)(data+pIdx); pIdx++; // entityID?
 		if( ukn0C_3 != 1 ) __debugbreak();
 		// part 2 (0xCB)
-		if( *(unsigned char*)(data+pIdx) != 0xCB )
+		if( *(uint8*)(data+pIdx) != 0xCB )
 			__debugbreak(); // wrong
 		pIdx++;
-		unsigned int dataLen = 0;
-		unsigned int lenMask = *(unsigned char*)(data+pIdx); pIdx++;
+		uint32 dataLen = 0;
+		uint32 lenMask = *(uint8*)(data+pIdx); pIdx++;
 		if( (lenMask>>6) == 0 )
 		{
 			// 6 bit length
@@ -430,7 +431,7 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 		{
 			// 14 bit length
 			dataLen = (lenMask&0x3F);
-			dataLen |= ((*(unsigned char*)(data+pIdx))<<6);
+			dataLen |= ((*(uint8*)(data+pIdx))<<6);
 			pIdx++;
 		}
 		else
@@ -447,7 +448,7 @@ int GameMain_DecodePacket(clientGamemain_t *cgm, unsigned char *data, unsigned i
 	return 1;
 }
 
-int GameMain_processPythonRPC(clientGamemain_t *cgm, unsigned int methodID, unsigned char *pyString, int pyStringLen)
+sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *pyString, sint32 pyStringLen)
 {
 	// check if 'O'
 	if( *pyString != 'O' )

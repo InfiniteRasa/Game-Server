@@ -4,7 +4,7 @@ typedef struct
 {
 	CRITICAL_SECTION cs;
 	CRITICAL_SECTION cs_missionList; // synchronous access to any npc mission list
-	HashTable_uint32Iterable_t ht_mission;
+	hashTable_t ht_mission;
 	/*
 		Important notice:
 			After loading the mission Hashtable is accessed unsynchronized.
@@ -36,7 +36,7 @@ void _cb_mission_initForChannel(void *param, diJob_missionListData_t *jobData)
 	// alloc memory, init hashtable
 	mission_t *missionDataList = (mission_t*)malloc(sizeof(mission_t)*jobData->outMissionCount);
 	hashTable_init(&missionEnv.ht_mission, jobData->outMissionCount + 16);
-	for(int i=0; i<jobData->outMissionCount; i++)
+	for(sint32 i=0; i<jobData->outMissionCount; i++)
 	{
 		di_missionData_t *missionData = jobData->outMissionList+i;
 		mission_t *mission = missionDataList+i;
@@ -64,7 +64,7 @@ void mission_initForChannel(mapChannel_t *mapChannel)
 	}
 	missionsLoaded = true;
 	mapChannel->loadState = 0;
-	dataInterface_Mission_getMissionList(_cb_mission_initForChannel, mapChannel);
+	DataInterface_Mission_getMissionList(_cb_mission_initForChannel, mapChannel);
 	while( mapChannel->loadState == 0 ) Sleep(10);
 	LeaveCriticalSection(&missionEnv.cs);
 }
@@ -73,10 +73,10 @@ missionList_t *mission_generateMissionListForNPC(npc_t *npc)
 {
 	// todo: cache mission lists 
 	mission_t *missions[32];
-	int missionCount = 0;
+	sint32 missionCount = 0;
 	mission_t **fullMissionList = (mission_t**)hashTable_getValueArray(&missionEnv.ht_mission);
-	int fullMissionCount = hashTable_getCount(&missionEnv.ht_mission);
-	for(int i=0; i<fullMissionCount; i++)
+	sint32 fullMissionCount = hashTable_getCount(&missionEnv.ht_mission);
+	for(sint32 i=0; i<fullMissionCount; i++)
 	{
 		if( fullMissionList[i] == NULL )
 			continue;
@@ -100,20 +100,20 @@ missionList_t *mission_generateMissionListForNPC(npc_t *npc)
 	missionList = (missionList_t*)malloc(sizeof(missionList_t) + sizeof(mission_t*) * missionCount);
 	missionList->missionCount = missionCount;
 	missionList->missionReferences = (mission_t **)(missionList+1);
-	for(int i=0; i<missionCount; i++)
+	for(sint32 i=0; i<missionCount; i++)
 		missionList->missionReferences[i] = missions[i];
 	return missionList;
 }
 
-bool mission_newAvailableForClient(missionList_t *missionList, mapChannelClient_t *client, npc_t *npc, mission_t **outMissionList, int *outLimit)
+bool mission_newAvailableForClient(missionList_t *missionList, mapChannelClient_t *client, npc_t *npc, mission_t **outMissionList, sint32 *outLimit)
 {
 	mission_t *mission;
-	int c = 0;
-	int limit = *outLimit;
+	sint32 c = 0;
+	sint32 limit = *outLimit;
 	*outLimit = 0;
 	if( missionList == NULL )
 		return false;
-	for(int i=0; i<missionList->missionCount; i++)
+	for(sint32 i=0; i<missionList->missionCount; i++)
 	{
 		mission = missionList->missionReferences[i];
 		if( mission )
@@ -121,8 +121,8 @@ bool mission_newAvailableForClient(missionList_t *missionList, mapChannelClient_
 			if( mission->npcDispenserEntityId != npc->entityId )
 				continue;
 			// todo: check conditions, is quest available?
-			unsigned int missionValue = (unsigned int)hashTable_get(&client->mission, mission->missionId);
-			unsigned int missionState = missionValue&MISSION_STATE_MASK;
+			uint32 missionValue = (uint32)hashTable_get(&client->mission, mission->missionId);
+			uint32 missionState = missionValue&MISSION_STATE_MASK;
 			if( missionState == MISSION_STATE_NOTACCEPTED )
 			{
 				outMissionList[c] = mission;
@@ -141,15 +141,15 @@ bool mission_newAvailableForClient(missionList_t *missionList, mapChannelClient_
 	return false;
 }
 
-bool mission_completeableAvailableForClient(missionList_t *missionList, mapChannelClient_t *client, npc_t *npc, mission_t **outMissionList, int *outLimit)
+bool mission_completeableAvailableForClient(missionList_t *missionList, mapChannelClient_t *client, npc_t *npc, mission_t **outMissionList, sint32 *outLimit)
 {
 	mission_t *mission;
-	int c = 0;
-	int limit = *outLimit;
+	sint32 c = 0;
+	sint32 limit = *outLimit;
 	*outLimit = 0;
 	if( missionList == NULL )
 		return false;
-	for(int i=0; i<missionList->missionCount; i++)
+	for(sint32 i=0; i<missionList->missionCount; i++)
 	{
 		mission = missionList->missionReferences[i];
 		if( mission )
@@ -157,8 +157,8 @@ bool mission_completeableAvailableForClient(missionList_t *missionList, mapChann
 			if( mission->npcCollectorEntityId != npc->entityId )
 				continue;
 			// todo: check conditions, is quest available?
-			unsigned int missionValue = (unsigned int)hashTable_get(&client->mission, mission->missionId);
-			unsigned int missionState = missionValue&MISSION_STATE_MASK;
+			uint32 missionValue = (uint32)hashTable_get(&client->mission, mission->missionId);
+			uint32 missionState = missionValue&MISSION_STATE_MASK;
 			if( missionState == MISSION_STATE_DONE )
 			{
 				outMissionList[c] = mission;
@@ -216,14 +216,14 @@ void _missionLog_clientGainedMission(mapChannelClient_t *client, mission_t *miss
 	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 485, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void mission_changeMissionStateForClient(mapChannelClient_t *client, mission_t *mission, unsigned int newState, unsigned int newValue)
+void mission_changeMissionStateForClient(mapChannelClient_t *client, mission_t *mission, uint32 newState, uint32 newValue)
 {
-	unsigned int missionValue = (unsigned int)hashTable_get(&client->mission, mission->missionId);
-	unsigned int newMissionValue = newState | (newValue<<4);
+	uint32 missionValue = (uint32)hashTable_get(&client->mission, mission->missionId);
+	uint32 newMissionValue = newState | (newValue<<4);
 	if( (missionValue&MISSION_STATE_MASK) != (newMissionValue&MISSION_STATE_MASK) )
 	{
 		// state changed
-		unsigned int oldState = missionValue&MISSION_STATE_MASK;
+		uint32 oldState = missionValue&MISSION_STATE_MASK;
 		if( oldState == MISSION_STATE_NOTACCEPTED )
 		{
 			// quest gained, add to mission log
@@ -237,7 +237,7 @@ void mission_changeMissionStateForClient(mapChannelClient_t *client, mission_t *
 
 void mission_acceptForClient(mapChannelClient_t *client, mission_t *mission)
 {
-	unsigned int missionState = MISSION_STATE_ACTIVE;
+	uint32 missionState = MISSION_STATE_ACTIVE;
 	// if mission has no objectives, immediately mark as done
 	if( mission->objectiveCount == 0 )
 	{

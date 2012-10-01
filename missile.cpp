@@ -1,21 +1,21 @@
 #include"Global.h"
 
-extern int gridL1;
-extern  int gridL2;
-extern int gridCount;
-extern int** entityPosGrid;
+extern sint32 gridL1;
+extern  sint32 gridL2;
+extern sint32 gridCount;
+extern sint32** entityPosGrid;
 
 void missile_initForMapchannel(mapChannel_t *mapChannel)
 {
 	
 }
 
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage)
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage)
 {
   missile_launch(mapChannel, origin, targetEntityId, type, damage, -1);
 }
 
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage, float maxRange)
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage, float maxRange)
 {
 	missile_t missile;
 	missile.type = type;
@@ -24,7 +24,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	missile.source = origin;
 	// get distance between actors
 	actor_t *targetActor = NULL;
-	int targetType = entityMgr_getEntityType(targetEntityId);
+	sint32 targetType = entityMgr_getEntityType(targetEntityId);
 	void *entity = entityMgr_get(targetEntityId);
 	if( entity == NULL )
 	{
@@ -68,7 +68,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	switch( type )
 	{
 	case MISSILE_PISTOL:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 133;
 	break;
@@ -88,37 +88,37 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		missile.argId = 3;
 	break;
 	case MISSILE_MACHINEGUN:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 149;
 		missile.argId = 1;
 	break;
 	case MISSILE_MACHINEGUN_V3:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 149;
 		missile.argId = 7;
 	break;
 	case MISSILE_RIFLE:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 134;
 	break;
 	case MISSILE_THRAX_PISTOL:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 1;
 	break;
 	case MISSILE_GRENADE:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 6;
 	break;
 	case MISSILE_PROPELLANT_ICE:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 3;
 	break;
 	case MISSILE_THRAX_RIFLE:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 79;
 	break;
@@ -138,12 +138,12 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		missile.argId = 10;
 	break;
 	case MISSILE_LIGHTNING:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 194;
 		missile.argId = 1;
 	break;
 	case MISSILE_HUNTER_PULSEGUN:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 244;
 	break;
@@ -158,17 +158,17 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		missile.argId = 431;
 	break;
 	case MISSILE_AFSMECH_MG:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 293;
 		missile.argId = 1;
 	break;
 	case MISSILE_SHOTGUN:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 121;
 	break;
 	case MISSILE_SHOTGUN_V3:
-		missile.triggerTime = (int)(distance*0.5f);
+		missile.triggerTime = (sint32)(distance*0.5f);
 		missile.actionId = 1;
 		missile.argId = 287;
 	break;
@@ -178,7 +178,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		missile.argId = 6;
 	break;
 	case MISSILE_STALKER:
-		missile.triggerTime = (int)(distance*0.5f);;
+		missile.triggerTime = (sint32)(distance*0.5f);;
 		missile.actionId = 1;
 		missile.argId = 78;
 	break;
@@ -195,7 +195,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 {
 	pyMarshalString_t pms;
 	// do work
-	int targetType = entityMgr_getEntityType(missile->targetEntityId);
+	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
 	void *entity = entityMgr_get(missile->targetEntityId);
 	if( entity == NULL ) // check if entity still exists
 		return;
@@ -233,7 +233,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
 		pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
 		pym_list_begin(&pms); 							// Hits Start
-			pym_addInt(&pms, creature->actor.entityId);	// Each hit creature
+			pym_addLong(&pms, creature->actor.entityId);// Each hit creature	(ktb: Must be a long for some reason?)
 		pym_list_end(&pms); 							// Hits End
 		pym_list_begin(&pms); 							// Misses Start
 		pym_list_end(&pms); 							// Misses End
@@ -265,7 +265,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_list_end(&pms); 							// Hits Data End
 		pym_tuple_end(&pms); 							// Packet End
 		// 311
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, 125, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
 		// update health (Recv_UpdateHealth 380)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -394,12 +394,12 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		puts("No damage handling for that type yet");
 }
 
-void missile_check(mapChannel_t *mapChannel, int passedTime)
+void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
 {
 	std::vector<missile_t>* missileList = &mapChannel->missileInfo.list;
-	int removedMissiles = 0;
-	int totalMissiles = missileList->size();
-	int i = 0;
+	sint32 removedMissiles = 0;
+	sint32 totalMissiles = missileList->size();
+	sint32 i = 0;
 
 	while(i < totalMissiles)
 	{

@@ -10,20 +10,20 @@ typedef struct _chatChannel_playerLink_t
 
 typedef struct
 {
-	char name[40];
+	sint8 name[40];
 	bool isDefaultChannel;
-	unsigned int mapContextId;
-	unsigned int intanceId;
-	int channelId; // 1 - general, ...
+	uint32 mapContextId;
+	uint32 sint32anceId;
+	sint32 channelId; // 1 - general, ...
 	chatChannel_playerLink_t *firstPlayer; // if null --> no player in chat
 }chatChannel_t;
 
 struct
 {
 	CRITICAL_SECTION cs;
-	HashTable_string_t ht_playersByName;
-	HashTable_uint32_t ht_playersByEntityId; // todo, convert to uint64 hashtable
-	HashTable_uint32_t ht_channelsBySeed;
+	hashTable_t ht_playersByName;
+	hashTable_t ht_playersByEntityId; // todo, add support for uint64 hashtable
+	hashTable_t ht_channelsBySeed;
 }communicator;
 
 
@@ -31,11 +31,11 @@ void communicator_registerPlayer(mapChannelClient_t *client)
 {
 	EnterCriticalSection(&communicator.cs);
 	EnterCriticalSection(&client->cgm->cs_general);
-	char upperCase[256];
-	char *from = client->player->actor->name;
-	for(int i=0; i<255; i++)
+	sint8 upperCase[256];
+	sint8 *from = client->player->actor->name;
+	for(sint32 i=0; i<255; i++)
 	{
-		char c = from[i];
+		sint8 c = from[i];
 		if( c == '\0' )
 		{
 			upperCase[i] = '\0';
@@ -56,13 +56,13 @@ void communicator_unregisterPlayer(mapChannelClient_t *client)
 {
 	EnterCriticalSection(&communicator.cs);
 	EnterCriticalSection(&client->cgm->cs_general);
-	char upperCase[256];
+	sint8 upperCase[256];
 	if( client->player )
 	{
-		char *from = client->player->actor->name;
-		for(int i=0; i<255; i++)
+		sint8 *from = client->player->actor->name;
+		for(sint32 i=0; i<255; i++)
 		{
-			char c = from[i];
+			sint8 c = from[i];
 			if( c == '\0' )
 			{
 				upperCase[i] = '\0';
@@ -80,13 +80,13 @@ void communicator_unregisterPlayer(mapChannelClient_t *client)
 	LeaveCriticalSection(&communicator.cs);
 }
 
-mapChannelClient_t *communicator_findPlayerByName(char *name)
+mapChannelClient_t *communicator_findPlayerByName(sint8 *name)
 {
 	EnterCriticalSection(&communicator.cs);
-	char upperCase[256];
-	for(int i=0; i<255; i++)
+	sint8 upperCase[256];
+	for(sint32 i=0; i<255; i++)
 	{
-		char c = name[i];
+		sint8 c = name[i];
 		if( c == '\0' )
 		{
 			upperCase[i] = '\0';
@@ -149,7 +149,7 @@ void communicator_playerExitMap(mapChannelClient_t *client)
 {
 	// remove client from all channels
 	EnterCriticalSection(&communicator.cs);
-	for(int i=0; i<client->joinedChannels; i++)
+	for(sint32 i=0; i<client->joinedChannels; i++)
 	{
 		chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, client->channelHashes[i]);
 		if( chatChannel )
@@ -186,14 +186,14 @@ void communicator_playerExitMap(mapChannelClient_t *client)
 	LeaveCriticalSection(&communicator.cs);
 }
 
-unsigned int _communicator_generateDefaultChannelHash(unsigned int channelId, unsigned int mapContextId, unsigned int instanceId)
+uint32 _communicator_generateDefaultChannelHash(uint32 channelId, uint32 mapContextId, uint32 instanceId)
 {
-	unsigned int v = 0;
+	uint32 v = 0;
 	v = (channelId ^ (channelId<<7)) ^ mapContextId ^ (mapContextId*121) ^ ((instanceId + instanceId*13)<<3);
 	return v;
 }
 
-void _communicator_addClientToChannel(mapChannelClient_t *client, unsigned int cHash)
+void _communicator_addClientToChannel(mapChannelClient_t *client, uint32 cHash)
 {
 	EnterCriticalSection(&communicator.cs);
 	chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, cHash);
@@ -220,7 +220,7 @@ void _communicator_addClientToChannel(mapChannelClient_t *client, unsigned int c
 	LeaveCriticalSection(&communicator.cs);
 }
 
-void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, int channelId)
+void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, sint32 channelId)
 {
 	pyMarshalString_t pms;
 	EnterCriticalSection(&communicator.cs);
@@ -231,7 +231,7 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, int channe
 		return; // todo, send error to client
 	}
 	// generate channel hash
-	unsigned int cHash = _communicator_generateDefaultChannelHash(channelId, client->mapChannel->mapInfo->contextId, 0);
+	uint32 cHash = _communicator_generateDefaultChannelHash(channelId, client->mapChannel->mapInfo->contextId, 0);
 	// find channel
 	chatChannel_t *chatChannel;
 	chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, cHash);
@@ -240,7 +240,7 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, int channe
 		// channel does not exist, create it
 		chatChannel = (chatChannel_t*)malloc(sizeof(chatChannel_t));
 		chatChannel->name[0] = '\0';
-		chatChannel->intanceId = 0;
+		chatChannel->sint32anceId = 0;
 		chatChannel->channelId = channelId;
 		chatChannel->mapContextId = client->mapChannel->mapInfo->contextId;
 		chatChannel->isDefaultChannel = true;
@@ -263,10 +263,10 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, int channe
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 10000038, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void communicator_leaveChannel(mapChannelClient_t *client, int channelId)
+void communicator_leaveChannel(mapChannelClient_t *client, sint32 channelId)
 {
 	EnterCriticalSection(&communicator.cs);
-	for(int i=0; i<client->joinedChannels; i++)
+	for(sint32 i=0; i<client->joinedChannels; i++)
 	{
 		chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, client->channelHashes[i]);
 		if( chatChannel )
@@ -315,7 +315,7 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	// send LoginOk (despite the original description in the python files, this will only show 'You have arrived at ....' msg in chat)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	char playerName[1024];
+	sint8 playerName[1024];
 	wsprintf(playerName, "%s %s", client->player->actor->name, client->player->actor->family);
 	pym_addUnicode(&pms, playerName);
 	pym_tuple_end(&pms);
@@ -334,7 +334,7 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 769, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void communicator_systemMessage(mapChannelClient_t *client, char *message)
+void communicator_systemMessage(mapChannelClient_t *client, sint8 *message)
 {
 	pyMarshalString_t pms;
 	// send SystemMessage
@@ -345,7 +345,7 @@ void communicator_systemMessage(mapChannelClient_t *client, char *message)
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 553, pym_getData(&pms), pym_getLen(&pms));
 }
 
-bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
+bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 {
 	pyMarshalString_t pms;
 	
@@ -354,8 +354,8 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
          
 		//__debugbreak();
 		//---saves pathnode(s) for a  certain spawntype
-		/*char cmd[11];
-		int spawnid,pathindex;
+		/*sint8 cmd[11];
+		sint32 spawnid,pathindex;
 		sscanf(textMsg,"%s %d %d",cmd,&spawnid,&pathindex);
 			
 		di_pathNodeDataW2_t pNode = {0};
@@ -365,16 +365,16 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		pNode.posX = cm->player->actor->posX;
 		pNode.posY = (cm->player->actor->posY)+0.1f;
 		pNode.posZ = cm->player->actor->posZ;
-		dataInterface_PathNode_setPathnode(&pNode,NULL,NULL);
+		DataInterface_PathNode_setPathnode(&pNode,NULL,NULL);
 		*/
 		communicator_systemMessage(cm, "pathnodes deactivated");
 		return true;
 	}
-    if( memcmp(textMsg,".gameobject ",12) == 0 )
+    /*if( memcmp(textMsg,".gameobject ",12) == 0 )
 	{
-		 char cmd[12];
-		 unsigned int type;
-		 unsigned int entityClassId;
+		 sint8 cmd[12];
+		 uint32 type;
+		 uint32 entityClassId;
 		 sscanf(textMsg,"%s %d %d",cmd,&entityClassId,&type);
 
 		 di_teleporterData worldObject = {0};
@@ -385,19 +385,43 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		 worldObject.sz = cm->player->actor->posZ;
 		 worldObject.modelid = entityClassId;
 		 worldObject.type = type;
-
-		 dataInterface_teleporter_updateList(&worldObject,NULL,NULL);
+		
+		 DataInterface_teleporter_updateList(&worldObject,NULL,NULL);
          
 		 sprintf(textMsg,"Gameobject placed: %f %f %f",worldObject.sx,worldObject.sy,worldObject.sz);
 		 communicator_systemMessage(cm, textMsg);
 		 return true;
+	}*/
+	if( memcmp(textMsg,".waypoint ",10) == 0 )
+	{
+		sint8 cmd[16];
+		uint32 nameId;
+		if( sscanf(textMsg,"%s %d",cmd,&nameId) == 2 )
+		{
+			di_teleporterData worldObject = {0};
+			worldObject.bx = 2.1f;
+			worldObject.bz = 2.1f;
+			worldObject.sx = cm->player->actor->posX;
+			worldObject.sy = cm->player->actor->posY;
+			worldObject.sz = cm->player->actor->posZ;
+			worldObject.nameId = nameId;
+			worldObject.type = OBJECTTYPE_WAYPOINT;
+			DataInterface_teleporter_updateList(&worldObject,NULL,NULL);
+			// todo: Get dataset ID from DB and spawn a new waypoint right here
+			sprintf(textMsg,"Waypoint placed: %f %f %f",worldObject.sx,worldObject.sy,worldObject.sz);
+			communicator_systemMessage(cm, textMsg);
+			communicator_systemMessage(cm, "Restart server for this to take effect");
+		}
+		return true;
 	}
+
+
 	if( memcmp(textMsg,".spawner ",9) == 0 )
 	{
 		//communicator_systemMessage(cm, "spawner deactivated");
-		char cmd[9];
-		int spawntype; //---which type of spawn to place( look db for id)
-		int pwd;
+		sint8 cmd[9];
+		sint32 spawntype; //---which type of spawn to place( look db for id)
+		sint32 pwd;
 		sscanf(textMsg,"%s %d %d",cmd,&spawntype,&pwd);	
 		
 		if(pwd != 2104 )
@@ -421,7 +445,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		spawndata.posY = cm->player->actor->posY+0.5f;
 		spawndata.posZ = cm->player->actor->posZ;
 		spawndata.spawntype = spawntype;	
-		dataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
+		DataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
 
 		sprintf(textMsg, "added spawnlocation: %f %f %f of spawntype-id: %d", 
 						cm->player->actor->posX, 
@@ -438,8 +462,8 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			if( !npc )
 				return true; 
 			// various actions/animations
-			int action;
-			char cmd[40];
+			sint32 action;
+			sint8 cmd[40];
 			sscanf(textMsg,"%s %d",cmd,&action);
 			if(action <= 0 || action == NULL )
 			{
@@ -489,13 +513,13 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			strcpy(entityData.unicodeName, npc->actor.name);
 			
 			
-			for(int i=0; i<SWAPSET_SIZE; i++)
+			for(sint32 i=0; i<SWAPSET_SIZE; i++)
 			{
 				entityData.appearanceData[i].classId = npc->actor.appearanceData[i].classId;
 				entityData.appearanceData[i].hue = npc->actor.appearanceData[i].hue;
 			}
 			
-			dataInterface_Entity_updateEntityW(&entityData,NULL,NULL);
+			DataInterface_Entity_updateEntityW(&entityData,NULL,NULL);
 
 			sprintf(textMsg, "Player Location(x y z): %f %f %f \n Entity Location(x y z): %f %f %f \n Entityid: %i Classid: %i Nameid: %i \n", 
 													cm->player->actor->posX, 
@@ -557,10 +581,10 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	if( memcmp(textMsg, ".creature ", 10) == 0 )
 	{
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
-		/*char *pch = textMsg + 10;
+		/*sint8 *pch = textMsg + 10;
 
-		int creatureClass;
-		char cmd[30];
+		sint32 creatureClass;
+		sint8 cmd[30];
 		sscanf(textMsg,"%s %d",cmd,&creatureClass);			
 		creatureType_t ctype = {0};
 		ctype.maxHealth = 150;
@@ -576,7 +600,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	if( memcmp(textMsg, ".effect ", 8) == 0 )
 	{
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
-		char *pch = textMsg + 8;
+		sint8 *pch = textMsg + 8;
 		
 
 		gameEffect_attach(cm->mapChannel, cm->player->actor, atoi(pch), 1);
@@ -589,14 +613,14 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	//}
 	if( strcmp(textMsg, ".ccp") == 0 )
 	{
-		dynamicObject_developer_createControlPoint(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
+		controlpoint_create(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ, 0.0f);
 		communicator_systemMessage(cm, "ControlPoint spawned!");
 		return true;
 	}
 	if( memcmp(textMsg, ".state ", 7) == 0 )
 	{
-		unsigned int object;
-		int state;
+		uint32 object;
+		sint32 state;
 		sscanf(textMsg,"%*s %u %i", &object, &state);
 		dynamicObject_forceState(cm->cgm, object, state);
 		return true;
@@ -649,12 +673,12 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			npcData.entityClassID = npc->actor.entityClassId;
 			npcData.currentContextId = cm->mapChannel->mapInfo->contextId;
 			strcpy(npcData.unicodeName, npc->actor.name);
-			for(int i=0; i<SWAPSET_SIZE; i++)
+			for(sint32 i=0; i<SWAPSET_SIZE; i++)
 			{
 				npcData.appearanceData[i].classId = npc->actor.appearanceData[i].classId;
 				npcData.appearanceData[i].hue = npc->actor.appearanceData[i].hue;
 			}
-			dataInterface_NPC_updateNPC(&npcData, NULL, NULL);
+			DataInterface_NPC_updateNPC(&npcData, NULL, NULL);
 			return true;
 		}
 		else
@@ -673,15 +697,15 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		communicator_systemMessage(cm, textMsg);
 		return true;
 	}
-	if( strcmp(textMsg, ".footlocker") == 0 )
-	{
-		dynamicObject_developer_createFootlocker(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
-		communicator_systemMessage(cm, "Spawned a footlocker!");
-		return true;
-	}
+	//if( strcmp(textMsg, ".footlocker") == 0 )
+	//{
+	//	dynamicObject_developer_createFootlocker(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
+	//	communicator_systemMessage(cm, "Spawned a footlocker!");
+	//	return true;
+	//}
 	if( memcmp(textMsg, ".setregion ", 11) == 0 )
 	{
-		int regionId;
+		sint32 regionId;
 		sscanf(textMsg,"%*s %i", &regionId);
 		// Recv_UpdateRegions (568)
 		pym_init(&pms);
@@ -694,7 +718,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	}
 	if( memcmp(textMsg, ".name ", 6) == 0 )
 	{
-		char *pch = textMsg + 6;
+		sint8 *pch = textMsg + 6;
 		//pch = strtok (textMsg+6, " ");
 		//if( pch )
 		if( *pch )
@@ -717,12 +741,12 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	}
 	if( memcmp(textMsg, ".look ", 6) == 0 )
 	{
-		char *pch = textMsg + 6;
+		sint8 *pch = textMsg + 6;
 		pch = strtok (textMsg+6, " ");
 		if( pch )
 		{
-			int itemClassId = 0;
-			unsigned int hue = 0x80808080;
+			sint32 itemClassId = 0;
+			uint32 hue = 0x80808080;
 			sscanf(pch, "%d", &itemClassId);
 			pch = strtok (NULL, " ");
 			if( pch )
@@ -747,34 +771,34 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		}
 		return true;
 	}
-	if( memcmp(textMsg, ".obj ", 5) == 0 )
-	{
-		char *pch = textMsg + 5;
-		if( *pch )
-		{
-			int classId = 0;
-			sscanf(pch, "%d", &classId);
-			dynamicObject_developer_createCustom(cm->mapChannel, classId, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
-			communicator_systemMessage(cm, "Created object");
-		}
-		else
-		{
-			communicator_systemMessage(cm, "Wrong syntax");
-		}
-		return true;
-	}
+	//if( memcmp(textMsg, ".obj ", 5) == 0 )
+	//{
+	//	sint8 *pch = textMsg + 5;
+	//	if( *pch )
+	//	{
+	//		sint32 classId = 0;
+	//		sscanf(pch, "%d", &classId);
+	//		dynamicObject_developer_createCustom(cm->mapChannel, classId, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
+	//		communicator_systemMessage(cm, "Created object");
+	//	}
+	//	else
+	//	{
+	//		communicator_systemMessage(cm, "Wrong syntax");
+	//	}
+	//	return true;
+	//}
 	if(  memcmp(textMsg,".teleport ",10) == 0 )
 	{
-		char cmd[10];
-	    //char *cmdpos = textMsg + 7;
+		sint8 cmd[10];
+	    //sint8 *cmdpos = textMsg + 7;
 
 		typedef struct tloc
 		{
-			int x;
-			int y;
-			int z;
+			sint32 x;
+			sint32 y;
+			sint32 z;
 			float rotation; //not necessary, could add
-			int mapContextId;
+			sint32 mapContextId;
 		};
 
 		tloc telepos = {0};
@@ -811,16 +835,16 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 	if(  memcmp(textMsg,".tport ",7) == 0 )
 	{
 		
-		char cmd[7];
-	    //char *cmdpos = textMsg + 7;
+		sint8 cmd[7];
+	    //sint8 *cmdpos = textMsg + 7;
 
 		typedef struct tloc
 		{
-			int x;
-			int y;
-			int z;
+			sint32 x;
+			sint32 y;
+			sint32 z;
 			float rotation; //not necessary, could add
-			int mapContextId;
+			sint32 mapContextId;
 		};
 
 		tloc telepos = {0};
@@ -870,7 +894,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			EnterCriticalSection(&cm->cgm->cs_general);
 			cellMgr_removeFromWorld(cm);
 			// remove from list
-			for(int i=0; i<cm->mapChannel->playerCount; i++)
+			for(sint32 i=0; i<cm->mapChannel->playerCount; i++)
 			{
 				if( cm == cm->mapChannel->playerList[i] )
 				{
@@ -905,8 +929,8 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			pym_addInt(&pms, telepos.mapContextId);	// gameContextId (alias mapId)
 			pym_addInt(&pms, 0);	// instanceId ( not important for now )
 			// find map version
-			int mapVersion = 0; // default = 0;
-			for(int i=0; i<mapInfoCount; i++)
+			sint32 mapVersion = 0; // default = 0;
+			for(sint32 i=0; i<mapInfoCount; i++)
 			{
 				if( mapInfoArray[i].contextId == telepos.mapContextId )
 				{
@@ -942,7 +966,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 
 				
 			//---search new mapchannel
-			for(int chan=0; chan < global_channelList->mapChannelCount; chan++)
+			for(sint32 chan=0; chan < global_channelList->mapChannelCount; chan++)
 			{
                mapChannel_t *mapChannel = global_channelList->mapChannelArray+chan;
 			   if(mapChannel->mapInfo->contextId == telepos.mapContextId)
@@ -956,10 +980,10 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 			EnterCriticalSection(&cm->mapChannel->criticalSection);
 			mapChannel->playerList[mapChannel->playerCount] = cm;
 			mapChannel->playerCount++;
-			hashTable_set(&mapChannel->ht_socketToClient, (unsigned int)cm->cgm->socket, cm);
+			hashTable_set(&mapChannel->ht_socketToClient, (uint32)cm->cgm->socket, cm);
 			LeaveCriticalSection(&mapChannel->criticalSection);
 			
-			cellMgr_addToWorld(cm); //cellintroducing to player /from players
+			cellMgr_addToWorld(cm); //cellsint32roducing to player /from players
 			// setCurrentContextId (clientMethod.362)
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
@@ -975,19 +999,19 @@ bool communicator_parseCommand(mapChannelClient_t *cm, char *textMsg)
 		return true;
 	}
 
-	// void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int itemClassId, unsigned int hue)
+	// void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, uint32 itemClassId, uint32 hue)
 
 	return false;
 }
 
 
-void communicator_recv_radialChat(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void communicator_recv_radialChat(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	char textMsg[256];
+	sint8 textMsg[256];
 	pym_unpackUnicode(&pums, textMsg, 256);
 	if( pums.unpackErrorEncountered )
 		return;
@@ -1005,7 +1029,7 @@ void communicator_recv_radialChat(mapChannelClient_t *cm, unsigned char *pyStrin
 		return;
 	// build radial chat msg packet
 	pyMarshalString_t pms;
-	//char playerName[256];
+	//sint8 playerName[256];
 	//wsprintf(playerName, "%s %s", cm->player->actor->name, cm->cgm->Accountname);
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -1025,7 +1049,7 @@ void communicator_recv_radialChat(mapChannelClient_t *cm, unsigned char *pyStrin
 	double senderY = cm->player->actor->posY;
 	double senderZ = cm->player->actor->posZ;
 	mapChannel_t *mapChannel = cm->mapChannel;
-	for(int i=0; i<mapChannel->playerCount; i++)
+	for(sint32 i=0; i<mapChannel->playerCount; i++)
 	{
 		mapChannelClient_t *client = mapChannel->playerList[i];
 		if( client->player )
@@ -1041,13 +1065,13 @@ void communicator_recv_radialChat(mapChannelClient_t *cm, unsigned char *pyStrin
 	}
 }
 
-void communicator_recv_shout(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void communicator_recv_shout(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	char textMsg[256];
+	sint8 textMsg[256];
 	pym_unpackUnicode(&pums, textMsg, 256);
 	if( pums.unpackErrorEncountered )
 		return;
@@ -1065,7 +1089,7 @@ void communicator_recv_shout(mapChannelClient_t *cm, unsigned char *pyString, in
 }
 
 
-void communicator_recv_channelChat(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void communicator_recv_channelChat(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyMarshalString_t pms;
 	pyUnmarshalString_t pums;
@@ -1080,12 +1104,12 @@ void communicator_recv_channelChat(mapChannelClient_t *cm, unsigned char *pyStri
 		pym_unpackNoneStruct(&pums);
 	else
 		gameContextId = pym_unpackLongLong(&pums);
-	char textMsg[512];
+	sint8 textMsg[512];
 	pym_unpackUnicode(&pums, textMsg, 512);
 	if( pums.unpackErrorEncountered )
 		return;
 	// get chat channel
-	unsigned int cHash = _communicator_generateDefaultChannelHash(target, cm->mapChannel->mapInfo->contextId, 0);
+	uint32 cHash = _communicator_generateDefaultChannelHash(target, cm->mapChannel->mapInfo->contextId, 0);
 	EnterCriticalSection(&communicator.cs);
 	// find channel
 	chatChannel_t *chatChannel;
@@ -1124,15 +1148,15 @@ void communicator_recv_channelChat(mapChannelClient_t *cm, unsigned char *pyStri
 	LeaveCriticalSection(&communicator.cs);
 }
 
-void communicator_recv_whisper(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void communicator_recv_whisper(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyMarshalString_t pms;
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	char target[128];
-	char msg[512];
+	sint8 target[128];
+	sint8 msg[512];
 	pym_unpackUnicode(&pums, target, sizeof(target));
 	pym_unpackUnicode(&pums, msg, sizeof(msg));
 	if( pums.unpackErrorEncountered )

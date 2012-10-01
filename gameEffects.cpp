@@ -4,13 +4,13 @@
 void _gameEffect_updateMovementMod(mapChannel_t *mapChannel, actor_t *actor)
 {
 	float movementMod = 1.0f; 
-	// check for sprint
+	// check for sprsint32
 	gameEffect_t *gameeffect = actor->activeEffects;
 	while( gameeffect )
 	{
-		if( gameeffect->effectId == EFFECTID_SPRINT )
+		if( gameeffect->effectId == EFFECTID_SPRsint32 )
 		{
-			// apply sprint bonus
+			// apply sprsint32 bonus
 			movementMod += 0.10f;
 			movementMod += (float)gameeffect->effectLevel * 0.10f;
 			break;
@@ -62,9 +62,9 @@ void _gameEffect_removeFromList(actor_t *actor, gameEffect_t *gameEffect)
 /*
 	Attaches a GameEffect (buffs, etc.) to a actor entity.
 */
-void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effectId, int effectLevel, int duration)
+void gameEffect_attach(mapChannel_t *mapChannel, uint32 entityId, sint32 effectId, sint32 effectLevel, sint32 duration)
 {
-	int entityType = entityMgr_getEntityType(entityId);
+	sint32 entityType = entityMgr_getEntityType(entityId);
 	void *entity = entityMgr_get(entityId);
 	if( entity == NULL ) { return; }
 	creature_t *creature = NULL;
@@ -74,7 +74,7 @@ void gameEffect_attach(mapChannel_t *mapChannel, unsigned int entityId, int effe
 	gameEffect_attach(mapChannel, &creature->actor, effectId, effectLevel, duration);
 }
 
-void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, int effectLevel, int duration)
+void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId, sint32 effectLevel, sint32 duration)
 {
 	// check if a effect with the same ID already exists
 	gameEffect_t *link = actor->activeEffects;
@@ -98,11 +98,11 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, (int)gameEffect->effectId);	//typeId
-	pym_addInt(&pms, (int)gameEffect->effectId);	//effectId
-	pym_addInt(&pms, (int)gameEffect->effectLevel);	//level
-	pym_addInt(&pms, (int)0);//sourceId
-	pym_addBool(&pms, (int)true);//announce
+	pym_addInt(&pms, (sint32)gameEffect->effectId);	//typeId
+	pym_addInt(&pms, (sint32)gameEffect->effectId);	//effectId
+	pym_addInt(&pms, (sint32)gameEffect->effectLevel);	//level
+	pym_addInt(&pms, (sint32)0);//sourceId
+	pym_addBool(&pms, (sint32)true);//announce
 	pym_dict_begin(&pms);//tooltipDict
 	// keys:
 	// 'duration'
@@ -119,7 +119,7 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, int effectId, i
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work
-	if( effectId == EFFECTID_SPRINT )
+	if( effectId == EFFECTID_SPRsint32 )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
 }
@@ -136,7 +136,7 @@ void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *
 	// remove from list
 	_gameEffect_removeFromList(actor, gameEffect);
 	// do ability specific work
-	if( gameEffect->effectId == EFFECTID_SPRINT )
+	if( gameEffect->effectId == EFFECTID_SPRsint32 )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
 	// free effect
@@ -147,9 +147,9 @@ void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *
 	Periodically called for all clients in a mapContext
 	Updates and applys effects of abilities or items
 */
-void gameEffect_checkForPlayers(mapChannelClient_t **clients, int count, int passedTime)
+void gameEffect_checkForPlayers(mapChannelClient_t **clients, sint32 count, sint32 passedTime)
 {
-	for(int c=0; c<count; c++)
+	for(sint32 c=0; c<count; c++)
 	{
 		mapChannelClient_t *client = clients[c];
 		if( client->player == NULL )
