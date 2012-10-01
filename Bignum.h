@@ -2,30 +2,30 @@
 #define BignumSize 256	//Wert: 0 - 2^65536 
 //Bignum Sturktur
 typedef struct{
-	unsigned char d[BignumSize];
+	uint8 d[BignumSize];
 }BIGNUM;
 
 
 //Funktionsprototypen
-int Bignum_Reset(BIGNUM *b);
-int Bignum_SetUInt(BIGNUM *a, unsigned int uintval);
-int Bignum_Copy(BIGNUM *src, BIGNUM *dest);
-int Bignum_Add(BIGNUM *a, BIGNUM *b, BIGNUM *c);
-int Bignum_Sub(BIGNUM *result, BIGNUM *b, BIGNUM *c);
-int Bignum_Mul(BIGNUM *result, BIGNUM *b, BIGNUM *c);
-int Bignum_Div(BIGNUM *result, BIGNUM *a, BIGNUM *b);
-int Bignum_Mod(BIGNUM *result, BIGNUM *a, BIGNUM *b);
-int Bignum_ModExp(BIGNUM *result, BIGNUM *b, BIGNUM *e, BIGNUM *n);
-int Bignum_CountBits(BIGNUM *a);
-int Bignum_Half(BIGNUM *a);
-int Bignum_Double(BIGNUM *a);
-int Bignum_Compare(BIGNUM *a, BIGNUM *b);
-int Bignum_IsZero(BIGNUM *a);
-void Bignum_Print(BIGNUM *b);
+sint32 Bignum_Reset(BIGNUM *b);
+sint32 Bignum_SetUsint32(BIGNUM *a, uint32 usint32val);
+sint32 Bignum_Copy(BIGNUM *src, BIGNUM *dest);
+sint32 Bignum_Add(BIGNUM *a, BIGNUM *b, BIGNUM *c);
+sint32 Bignum_Sub(BIGNUM *result, BIGNUM *b, BIGNUM *c);
+sint32 Bignum_Mul(BIGNUM *result, BIGNUM *b, BIGNUM *c);
+sint32 Bignum_Div(BIGNUM *result, BIGNUM *a, BIGNUM *b);
+sint32 Bignum_Mod(BIGNUM *result, BIGNUM *a, BIGNUM *b);
+sint32 Bignum_ModExp(BIGNUM *result, BIGNUM *b, BIGNUM *e, BIGNUM *n);
+sint32 Bignum_CountBits(BIGNUM *a);
+sint32 Bignum_Half(BIGNUM *a);
+sint32 Bignum_Double(BIGNUM *a);
+sint32 Bignum_Compare(BIGNUM *a, BIGNUM *b);
+sint32 Bignum_IsZero(BIGNUM *a);
+void Bignum_Prsint32(BIGNUM *b);
 
-int Bignum_Read(BIGNUM *a, unsigned char *p, int DigitCount);
-int Bignum_Read_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount);
-int Bignum_Write(BIGNUM *a, unsigned char *p, int DigitCount);
-int Bignum_Write_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount);
+sint32 Bignum_Read(BIGNUM *a, uint8 *p, sint32 DigitCount);
+sint32 Bignum_Read_BigEndian(BIGNUM *a, uint8 *p, sint32 DigitCount);
+sint32 Bignum_Write(BIGNUM *a, uint8 *p, sint32 DigitCount);
+sint32 Bignum_Write_BigEndian(BIGNUM *a, uint8 *p, sint32 DigitCount);
 
-int Bignum_GetLen(BIGNUM *a);
+sint32 Bignum_GetLen(BIGNUM *a);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="TabulaGameServer"
 	ProjectGUID="{5AAC9C49-5BFA-49DC-B04C-C695D0E12D79}"
 	RootNamespace="TabulaGameServer"
@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -234,52 +234,52 @@
 						</File>
 					</Filter>
 					<Filter
-						Name="FileMgr"
+						Name="framework"
 						>
 						<File
-							RelativePath=".\fileMgr.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\fileMgr.h"
+							RelativePath=".\framework.h"
 							>
 						</File>
 						<Filter
-							Name="sData"
+							Name="hashtable"
 							>
 							<File
-								RelativePath=".\sData.cpp"
+								RelativePath=".\hashTable.cpp"
 								>
 							</File>
 							<File
-								RelativePath=".\sData.h"
+								RelativePath=".\hashTable.h"
+								>
+							</File>
+							<File
+								RelativePath=".\hashTableSynced.cpp"
 								>
 							</File>
 						</Filter>
-					</Filter>
-					<Filter
-						Name="HashTable"
-						>
-						<File
-							RelativePath=".\hashTable.h"
+						<Filter
+							Name="FileMgr"
 							>
-						</File>
-						<File
-							RelativePath=".\hashTable_string.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\hashTable_StringSynced.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\hashTable_uint32.cpp"
-							>
-						</File>
-						<File
-							RelativePath=".\hashTable_uint32Iterable.cpp"
-							>
-						</File>
+							<File
+								RelativePath=".\fileMgr.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\fileMgr.h"
+								>
+							</File>
+							<Filter
+								Name="sData"
+								>
+								<File
+									RelativePath=".\sData.cpp"
+									>
+								</File>
+								<File
+									RelativePath=".\sData.h"
+									>
+								</File>
+							</Filter>
+						</Filter>
 					</Filter>
 				</Filter>
 				<Filter
@@ -376,6 +376,62 @@
 							RelativePath=".\dynamicObject.h"
 							>
 						</File>
+						<Filter
+							Name="banedropship"
+							>
+							<File
+								RelativePath=".\banedropship.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\banedropship.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="footlocker"
+							>
+						</Filter>
+						<Filter
+							Name="teleporter"
+							>
+						</Filter>
+						<Filter
+							Name="waypoint"
+							>
+							<File
+								RelativePath=".\waypoint.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\waypoint.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="defaultObject"
+							>
+							<File
+								RelativePath=".\defaultObject.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\defaultObject.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="controlpoint"
+							>
+							<File
+								RelativePath=".\controlpoint.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\controlpoint.h"
+								>
+							</File>
+						</Filter>
 					</Filter>
 					<Filter
 						Name="cellMgr"

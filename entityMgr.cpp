@@ -1,11 +1,11 @@
 #include"Global.h"
 
-int ceid_player = 0;
-int ceid_client = 0;
-int ceid_object = 0;
-int ceid_item = 0;
-int ceid_npc = 0;
-int ceid_creature = 0;
+sint32 ceid_player = 0;
+sint32 ceid_client = 0;
+sint32 ceid_object = 0;
+sint32 ceid_item = 0;
+sint32 ceid_npc = 0;
+sint32 ceid_creature = 0;
 CRITICAL_SECTION csEntityMgr;
 
 #define ENTITYID_BASE	0x1000
@@ -66,13 +66,13 @@ unsigned long long entityMgr_getFreeEntityIdForCreature()
 
 
 
-unsigned char entityMgr_getEntityType(unsigned long long entityId)
+uint8 entityMgr_getEntityType(unsigned long long entityId)
 {
 	return entityId & 0xF;
 }
 
 
-HashTable_uint32_t ht_entityTable;
+hashTable_t ht_entityTable;
 
 void entityMgr_registerEntity(unsigned long long entityId, void *entity)
 {
@@ -103,7 +103,7 @@ void entityMgr_init()
 	hashTable_init(&ht_entityTable, 512);
 
 	// get current npc
-	unsigned long long npceid = dataInterface_NPC_getLastNPCEntityID();
+	unsigned long long npceid = DataInterface_NPC_getLastNPCEntityID();
 	if( npceid < ENTITYID_BASE )
 		npceid = ENTITYID_BASE;
 	// ceid_npc

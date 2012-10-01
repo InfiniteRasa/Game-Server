@@ -78,7 +78,7 @@ void npc_test(mapChannelClient_t *client)
 	*/
 }
 
-npc_t* npc_createNPC(mapChannel_t *mapChannel, int classId, char *name)
+npc_t* npc_createNPC(mapChannel_t *mapChannel, sint32 classId, sint8 *name)
 {
 	npc_t *npc = (npc_t*)malloc(sizeof(npc_t));
 	memset(npc, 0, sizeof(npc_t));
@@ -91,7 +91,7 @@ npc_t* npc_createNPC(mapChannel_t *mapChannel, int classId, char *name)
 	return npc;
 }
 
-npc_t* npc_createNPC(mapChannel_t *mapChannel, unsigned long long entityId, int classId, char *name)
+npc_t* npc_createNPC(mapChannel_t *mapChannel, unsigned long long entityId, sint32 classId, sint8 *name)
 {
 	npc_t *npc = (npc_t*)malloc(sizeof(npc_t));
 	memset(npc, 0, sizeof(npc_t));
@@ -112,12 +112,12 @@ void npc_setLocation(npc_t *npc, float x, float y, float z, float rX, float rY)
 	npc->actor.posZ = z;
 }
 
-void npc_setType(npc_t *npc, int npcType)
+void npc_setType(npc_t *npc, sint32 npcType)
 {
 	npc->npcType = npcType;
 }
 
-void npc_setAppearanceEntry(npc_t *npc, int entryIndex, int classId, unsigned int hue)
+void npc_setAppearanceEntry(npc_t *npc, sint32 entryIndex, sint32 classId, uint32 hue)
 {
 	if( entryIndex < 0 || entryIndex >= SWAPSET_SIZE )
 		return;
@@ -193,7 +193,7 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// shit
-	for(int i=6; i<=10; i++)
+	for(sint32 i=6; i<=10; i++)
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
@@ -218,7 +218,7 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	for(int i=0; i<21; i++)
+	for(sint32 i=0; i<21; i++)
 	{
 		if( npc->actor.appearanceData[i].classId == 0 )
 			continue;
@@ -227,17 +227,17 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 		pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
 		// hue
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// test .16
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(npc->actor.appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// end test .16
 		pym_tuple_end(&pms);
@@ -317,7 +317,7 @@ void npc_createNPCOnClient(mapChannelClient_t *client, npc_t *npc)
 	npc_updateConversationStatus(client, npc);
 }
 
-void npc_updateName(mapChannel_t *mapChannel, npc_t *npc, char *newName)
+void npc_updateName(mapChannel_t *mapChannel, npc_t *npc, sint8 *newName)
 {
 	pyMarshalString_t pms;
 	strcpy(npc->actor.name, newName);
@@ -328,10 +328,10 @@ void npc_updateName(mapChannel_t *mapChannel, npc_t *npc, char *newName)
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &npc->actor, npc->entityId, 16, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int itemClassId, unsigned int hue)
+void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, uint32 itemClassId, uint32 hue)
 {
 	pyMarshalString_t pms;
-	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
+	sint32 equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 && equipmentSlotId >= SWAPSET_SIZE )
 		return; // unknown starter item class id
 	npc->actor.appearanceData[equipmentSlotId].classId = itemClassId;
@@ -340,7 +340,7 @@ void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	for(int i=0; i<21; i++)
+	for(sint32 i=0; i<21; i++)
 	{
 		if( npc->actor.appearanceData[i].classId == 0 )
 			continue;
@@ -349,16 +349,16 @@ void npc_updateAppearanceItem(mapChannel_t *mapChannel, npc_t *npc, unsigned int
 			pym_addInt(&pms, npc->actor.appearanceData[i].classId); // classId
 			// hue
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(npc->actor.appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((npc->actor.appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(npc->actor.appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((npc->actor.appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
@@ -375,8 +375,8 @@ void npc_updateConversationStatus(mapChannelClient_t *client, npc_t *npc)
 	pym_tuple_begin(&pms);
 
 	mission_t *missionAvailableList[16];
-	int missionAvailableCount = 16; 
-	int missionCompletableCount = 16; 
+	sint32 missionAvailableCount = 16; 
+	sint32 missionCompletableCount = 16; 
 	if( mission_completeableAvailableForClient(npc->missionList, client, npc, missionAvailableList, &missionAvailableCount) )
 	{
 		// mission available overwrites any other converse state
@@ -423,14 +423,14 @@ void npc_updateConversationStatus(mapChannelClient_t *client, npc_t *npc)
 }
 
 
-void npc_recv_AssignNPCMission(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen) // alias 'AcceptMission'
+void npc_recv_AssignNPCMission(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen) // alias 'AcceptMission'
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
 	unsigned long long entityId = pym_unpackLongLong(&pums);
-	unsigned int missionId = pym_unpackInt(&pums);
+	uint32 missionId = pym_unpackInt(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
 	if( entityMgr_getEntityType(entityId) != ENTITYTYPE_NPC )
@@ -440,12 +440,12 @@ void npc_recv_AssignNPCMission(mapChannelClient_t *client, unsigned char *pyStri
 		return;
 	// check if mission is available
 	mission_t *missionAvailableList[16];
-	int missionAvailableCount = 16; 
+	sint32 missionAvailableCount = 16; 
 	// todo: check for mission completed/update available
 	if( mission_newAvailableForClient(npc->missionList, client, npc, missionAvailableList, &missionAvailableCount) == false )
 		return;
 	mission_t *mission = NULL;
-	for(int i=0; i<missionAvailableCount; i++)
+	for(sint32 i=0; i<missionAvailableCount; i++)
 	{
 		if( missionAvailableList[i] == NULL )
 			continue;
@@ -477,14 +477,14 @@ void npc_recv_AssignNPCMission(mapChannelClient_t *client, unsigned char *pyStri
 	}
 }
 
-void npc_recv_RequestNPCConverse(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void npc_recv_RequestNPCConverse(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int actionId = pym_unpackInt(&pums);
-	int actionArgId = pym_unpackInt(&pums);
+	sint32 actionId = pym_unpackInt(&pums);
+	sint32 actionArgId = pym_unpackInt(&pums);
 	unsigned long long entityId = pym_unpackLongLong(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
@@ -500,7 +500,7 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, unsigned char *pySt
 	pym_dict_begin(&pms);
 
 	mission_t *missionAvailableList[16];
-	int missionAvailableCount; 
+	sint32 missionAvailableCount; 
 	// send greeting
 	pym_addInt(&pms, 0); // key: CONVO_TYPE_GREETING
 	//pym_tuple_begin(&pms); // greeting data
@@ -514,7 +514,7 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, unsigned char *pySt
 			// CONVO_TYPE_MISSIONCOMPLETE (3)
 			pym_addInt(&pms, 3); // key: CONVO_TYPE_MISSIONCOMPLETE
 			pym_dict_begin(&pms); // mission list
-			for(int i=0; i<missionAvailableCount; i++)
+			for(sint32 i=0; i<missionAvailableCount; i++)
 			{
 				mission_t *mission = missionAvailableList[i];
 				if( !mission )
@@ -558,7 +558,7 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, unsigned char *pySt
 			pym_addInt(&pms, 2); // key: CONVO_TYPE_MISSIONDISPENSE
 			pym_dict_begin(&pms); // mission list
 
-				for(int i=0; i<missionAvailableCount; i++)
+				for(sint32 i=0; i<missionAvailableCount; i++)
 				{
 					mission_t *mission = missionAvailableList[i];
 					if( !mission )
@@ -613,7 +613,7 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, unsigned char *pySt
 	netMgr_pythonAddMethodCallRaw(client->cgm, entityId, 433, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void npc_recv_RequestNPCVending(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void npc_recv_RequestNPCVending(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -642,24 +642,24 @@ void npc_recv_RequestNPCVending(mapChannelClient_t *client, unsigned char *pyStr
 
 
 // 1:n
-void npc_cellIntroduceNPCToClients(mapChannel_t *mapChannel, npc_t *npc, mapChannelClient_t **playerList, int playerCount)
+void npc_cellIntroduceNPCToClients(mapChannel_t *mapChannel, npc_t *npc, mapChannelClient_t **playerList, sint32 playerCount)
 {
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		npc_createNPCOnClient(playerList[i], npc);
 	}
 }
 
 // n:1
-void npc_cellIntroduceNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, npc_t **npcList, int npcCount)
+void npc_cellIntroduceNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, npc_t **npcList, sint32 npcCount)
 {
-	for(int i=0; i<npcCount; i++)
+	for(sint32 i=0; i<npcCount; i++)
 	{
 		npc_createNPCOnClient(client, npcList[i]);
 	}
 }
 
-void npc_cellDiscardNPCToClients(mapChannel_t *mapChannel, npc_t *npc, mapChannelClient_t **playerList, int playerCount)
+void npc_cellDiscardNPCToClients(mapChannel_t *mapChannel, npc_t *npc, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	if( !npc )
 		return;
@@ -668,16 +668,16 @@ void npc_cellDiscardNPCToClients(mapChannel_t *mapChannel, npc_t *npc, mapChanne
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, npc->actor.entityId); // entityID
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, 5, 56, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void npc_cellDiscardNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, npc_t **npcList, int npcCount)
+void npc_cellDiscardNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, npc_t **npcList, sint32 npcCount)
 {
 	if( !client )
 		return;
 	pyMarshalString_t pms;
-	for(int i=0; i<npcCount; i++)
+	for(sint32 i=0; i<npcCount; i++)
 	{
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -691,7 +691,7 @@ void npc_cellDiscardNPCsToClient(mapChannel_t *mapChannel, mapChannelClient_t *c
 void _cb_npc_initForMapChannel(void *param, diJob_npcListData_t *jobData)
 {
 	mapChannel_t *mapChannel = (mapChannel_t*)param;
-	for(int i=0; i<jobData->outNpcCount; i++)
+	for(sint32 i=0; i<jobData->outNpcCount; i++)
 	{
 		di_npcData_t *npcData = jobData->outNpcList+i;
 		// create npc
@@ -699,7 +699,7 @@ void _cb_npc_initForMapChannel(void *param, diJob_npcListData_t *jobData)
 		if( npc == NULL )
 			continue;
 		// set npc info
-		for(int a=0; a<SWAPSET_SIZE; a++)
+		for(sint32 a=0; a<SWAPSET_SIZE; a++)
 			npc_setAppearanceEntry(npc, a, npcData->appearanceData[a].classId, npcData->appearanceData[a].hue);
 		npc_setLocation(npc, (float)npcData->posX, (float)npcData->posY, (float)npcData->posZ, 0.0f, 0.0f);
 		npc_setType(npc, NPC_TYPE_NONE);
@@ -714,6 +714,6 @@ void _cb_npc_initForMapChannel(void *param, diJob_npcListData_t *jobData)
 void npc_initForMapChannel(mapChannel_t *mapChannel)
 {
 	mapChannel->loadState = 0;
-	dataInterface_NPC_getNPCList(mapChannel->mapInfo->contextId, _cb_npc_initForMapChannel, mapChannel);
+	DataInterface_NPC_getNPCList(mapChannel->mapInfo->contextId, _cb_npc_initForMapChannel, mapChannel);
 	while( mapChannel->loadState == 0 ) Sleep(100);
 }

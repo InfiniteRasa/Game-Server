@@ -1,0 +1,1 @@
+dynObject_t* controlpoint_create(mapChannel_t *mapChannel, float x, float y, float z, float orientation);

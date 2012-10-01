@@ -11,18 +11,18 @@ typedef union
 	struct  
 	{
 		unsigned long long slot[250+16+5];
-		char activeWeaponDrawer;
+		sint8 activeWeaponDrawer;
 	};
 }inventory_t;
 
 typedef struct  
 {
 	unsigned long long entityId;
-	//unsigned int entityClassId;
-	//unsigned int itemTemplateId;
+	//uint32 entityClassId;
+	//uint32 itemTemplateId;
 	// location info
 	unsigned long long locationEntityId;
-	int locationSlotIndex;
+	sint32 locationSlotIndex;
 	// template
 	itemTemplate_t *itemTemplate;
 }item_t;
@@ -32,14 +32,14 @@ item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
 
-void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
-void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
-void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen);
+void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
+void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestWeaponDraw(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestWeaponStow(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 
 #define INVENTORY_SLOTOFFSET_PLAYER			0
 #define INVENTORY_SLOTOFFSET_EQUIPPED		250

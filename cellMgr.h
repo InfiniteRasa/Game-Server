@@ -4,31 +4,49 @@
 
 #define CELL_BIAS	32768.0f
 
+/*
+ * A map cell trigger area is an box shaped area on the map with callbacks for various player events
+ * Currently supported callbacks are:
+ * Player enters area
+ * Player leaves area
+ * Periodic callback for all players within the area
+ * Main uses:
+ * enter waypoints, keep track of players in a certain region
+ */
+typedef struct  
+{
+	float minBoundX;
+	float minBoundY;
+	float minBoundZ;
+	float maxBoundX;
+	float maxBoundY;
+	float maxBoundZ;
+}mapCellTriggerArea_t;
 
 typedef struct  
 {
-	int cellX;
-	int cellZ;
-	HashTable_uint32Iterable_t ht_playerList; // players currently in this cell
-	HashTable_uint32Iterable_t ht_playerNotifyList; // players that currently see this cell and should be informed about updates
-	HashTable_uint32Iterable_t ht_objectList; // dynamic gameobjects that are in the cell
-	HashTable_uint32Iterable_t ht_npcList; // dynamic npcs that are in the cell
-	HashTable_uint32Iterable_t ht_creatureList; // dynamic creatures that are in the cell
+	sint32 cellX;
+	sint32 cellZ;
+	std::vector<mapChannelClient_t*> ht_playerList; // players currently in this cell
+	std::vector<mapChannelClient_t*> ht_playerNotifyList; // players that currently see this cell and should be informed about updates
+	std::vector<dynObject_t*> ht_objectList; // dynamic gameobjects that are in the cell
+	std::vector<npc_t*> ht_npcList; // dynamic npcs that are in the cell
+	std::vector<creature_t*> ht_creatureList; // dynamic creatures that are in the cell
 }mapCell_t;
 
 typedef struct  
 {
-	int x;
-	int z;
+	sint32 x;
+	sint32 z;
 }mapCellLocation_t;
 
 typedef struct  
 {
-	HashTable_uint32_t ht_cells;
-	int loadedCellCount;
-	int loadedCellLimit;
+	hashTable_t ht_cells;
+	sint32 loadedCellCount;
+	sint32 loadedCellLimit;
 	mapCell_t **loadedCellList;
-	unsigned int time_updateVisibility;
+	uint32 time_updateVisibility;
 }mapCellInfo_t;
 
 
@@ -49,11 +67,11 @@ void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *crea
 // misc
 npc_t *cellMgr_findNPCinViewOf(mapChannelClient_t *aggregator, unsigned long long npcEntityId);
 
-mapCell_t* cellMgr_tryGetCell(mapChannel_t *mapChannel, int x, int z);
-mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, int x, int z);
+mapCell_t* cellMgr_tryGetCell(mapChannel_t *mapChannel, sint32 x, sint32 z);
+mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, sint32 x, sint32 z);
 
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, int *oCount);
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, actor_t *aggregator, int *oCount);
-mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, dynObject_t *aggregator, int *oCount);
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, sint32 *oCount);
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, actor_t *aggregator, sint32 *oCount);
+mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, dynObject_t *aggregator, sint32 *oCount);
 
 void cellMgr_doWork( mapChannel_t *mapChannel );

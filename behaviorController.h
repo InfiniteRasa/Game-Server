@@ -1,8 +1,8 @@
 
 typedef struct  
 {
-	int currentAction;
-	int faction; // 'team'
+	sint32 currentAction;
+	sint32 faction; // 'team'
 	// combat info
 	long long targetEntityId;
 }behaviorState_t;
