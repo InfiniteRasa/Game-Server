@@ -1,8 +1,8 @@
-#include <Windows.h>
-#include <stdio.h>
-#include "Packing.h"
+#include"framework.h"
+#include"Packing.h"
+#include<stdio.h>
 
-void pym_init(pyUnmarshalString_t *pms, unsigned char *rawData, int len)
+void pym_init(pyUnmarshalString_t *pms, uint8 *rawData, sint32 len)
 {
 	pms->buffer = rawData;
 	pms->len = len;
@@ -13,11 +13,11 @@ void pym_init(pyUnmarshalString_t *pms, unsigned char *rawData, int len)
 
 bool pym_unpackTuple_begin(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x80 )
 	{
-		int c = p & 0x0F;
-		int tupleLen;
+		sint32 c = p & 0x0F;
+		sint32 tupleLen;
 		if( c <= 0xC )
 		{
 			tupleLen = c;
@@ -25,17 +25,17 @@ bool pym_unpackTuple_begin(pyUnmarshalString_t *pms)
 		}
 		else if( c == 0xD )
 		{
-			tupleLen = *(unsigned char*)(pms->buffer+pms->idx+1);
+			tupleLen = *(uint8*)(pms->buffer+pms->idx+1);
 			pms->idx += 2;
 		}
 		else if( c == 0xE )
 		{
-			tupleLen = *(unsigned short*)(pms->buffer+pms->idx+1);
+			tupleLen = *(uint16*)(pms->buffer+pms->idx+1);
 			pms->idx += 3;
 		}
 		else
 		{
-			tupleLen = *(unsigned int*)(pms->buffer+pms->idx+1);
+			tupleLen = *(uint32*)(pms->buffer+pms->idx+1);
 			pms->idx += 5;
 		}
 		// add tuple container
@@ -56,11 +56,11 @@ bool pym_unpackTuple_begin(pyUnmarshalString_t *pms)
 
 bool pym_unpackDict_begin(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x60 )
 	{
-		int c = p & 0x0F;
-		int dictSize;
+		sint32 c = p & 0x0F;
+		sint32 dictSize;
 		if( c <= 0xC )
 		{
 			dictSize = c;
@@ -68,17 +68,17 @@ bool pym_unpackDict_begin(pyUnmarshalString_t *pms)
 		}
 		else if( c == 0xD )
 		{
-			dictSize = *(unsigned char*)(pms->buffer+pms->idx+1);
+			dictSize = *(uint8*)(pms->buffer+pms->idx+1);
 			pms->idx += 2;
 		}
 		else if( c == 0xE )
 		{
-			dictSize = *(unsigned short*)(pms->buffer+pms->idx+1);
+			dictSize = *(uint16*)(pms->buffer+pms->idx+1);
 			pms->idx += 3;
 		}
 		else
 		{
-			dictSize = *(unsigned int*)(pms->buffer+pms->idx+1);
+			dictSize = *(uint32*)(pms->buffer+pms->idx+1);
 			pms->idx += 5;
 		}
 		// add dict container
@@ -95,20 +95,20 @@ bool pym_unpackDict_begin(pyUnmarshalString_t *pms)
 	}
 }
 
-int pym_getContainerSize(pyUnmarshalString_t *pms)
+sint32 pym_getContainerSize(pyUnmarshalString_t *pms)
 {
 	if( pms->stackIndex == 0 )
 		return 0;
 	return pms->containerStack[pms->stackIndex-1].size;
 }
 
-int pym_unpackInt(pyUnmarshalString_t *pms)
+sint32 pym_unpackInt(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x10 )
 	{
-		int c = p & 0x0F;
-		int value;
+		sint32 c = p & 0x0F;
+		sint32 value;
 		if( c <= 0xC )
 		{
 			value = c;
@@ -116,17 +116,17 @@ int pym_unpackInt(pyUnmarshalString_t *pms)
 		}
 		else if( c == 0xD )
 		{
-			value = *(signed char*)(pms->buffer+pms->idx+1);
+			value = *(sint8*)(pms->buffer+pms->idx+1);
 			pms->idx += 2;
 		}
 		else if( c == 0xE )
 		{
-			value = *(signed short*)(pms->buffer+pms->idx+1);
+			value = *(sint16*)(pms->buffer+pms->idx+1);
 			pms->idx += 3;
 		}
 		else
 		{
-			value = *(signed int*)(pms->buffer+pms->idx+1);
+			value = *(sint32*)(pms->buffer+pms->idx+1);
 			pms->idx += 5;
 		}
 		// reduce parent
@@ -143,17 +143,17 @@ int pym_unpackInt(pyUnmarshalString_t *pms)
 	else if( (p&0xF0) == 0x20 )
 	{
 		long long value = pym_unpackLongLong(pms);
-		return (int)value;
+		return (sint32)value;
 	}
 	return 0;
 }
 
 long long pym_unpackLongLong(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x20 )
 	{
-		int c = p & 0x0F;
+		sint32 c = p & 0x0F;
 		long long value;
 		if( c <= 0xC )
 		{
@@ -191,14 +191,14 @@ long long pym_unpackLongLong(pyUnmarshalString_t *pms)
 	return 0;
 }
 
-int pym_unpackUnicode(pyUnmarshalString_t *pms, char *dst, int limit)
+sint32 pym_unpackUnicode(pyUnmarshalString_t *pms, sint8 *dst, sint32 limit)
 {
 	// pyUnmarshalString_t *pms
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x50 )
 	{
-		int c = p & 0x0F;
-		int slen;
+		sint32 c = p & 0x0F;
+		sint32 slen;
 		if( c <= 0xC )
 		{
 			slen = c;
@@ -206,24 +206,24 @@ int pym_unpackUnicode(pyUnmarshalString_t *pms, char *dst, int limit)
 		}
 		else if( c == 0xD )
 		{
-			slen = *(unsigned char*)(pms->buffer+pms->idx+1);
+			slen = *(uint8*)(pms->buffer+pms->idx+1);
 			pms->idx += 2;
 		}
 		else if( c == 0xE )
 		{
-			slen = *(unsigned short*)(pms->buffer+pms->idx+1);
+			slen = *(uint16*)(pms->buffer+pms->idx+1);
 			pms->idx += 3;
 		}
 		else
 		{
-			slen = *(unsigned int*)(pms->buffer+pms->idx+1);
+			slen = *(uint32*)(pms->buffer+pms->idx+1);
 			pms->idx += 5;
 		}
 		// read string data
-		int rlen = min(slen,limit-1);
-		for(int i=0; i<rlen; i++)
+		sint32 rlen = min(slen,limit-1);
+		for(sint32 i=0; i<rlen; i++)
 		{
-			dst[i] = (char)pms->buffer[pms->idx+i];
+			dst[i] = (sint8)pms->buffer[pms->idx+i];
 		}
 		dst[rlen] = '\0';
 		pms->idx += slen;
@@ -243,7 +243,7 @@ int pym_unpackUnicode(pyUnmarshalString_t *pms, char *dst, int limit)
 
 float pym_unpackFloat(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( (p&0xF0) == 0x30 )
 	{
 		float value;
@@ -281,7 +281,7 @@ float pym_unpackFloat(pyUnmarshalString_t *pms)
 
 bool pym_unpackBool(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	bool ret = false;
 	if (p == 0x11)
 	{ ret = true; }
@@ -306,13 +306,13 @@ bool pym_unpackBool(pyUnmarshalString_t *pms)
 
 bool pym_unpack_isNoneStruct(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	return p == 0;
 }
 
 bool pym_unpackNoneStruct(pyUnmarshalString_t *pms)
 {
-	unsigned char p = pms->buffer[pms->idx];
+	uint8 p = pms->buffer[pms->idx];
 	if( p )
 		return false;
 	pms->idx++;

@@ -20,13 +20,13 @@ return item;
 578
 00000F81     5A - STORE_NAME          'RequestTooltipForItemTemplateId
 */
-void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) ) { return; }
 
-	unsigned int itemTemplateId = pym_unpackInt(&pums);
+	uint32 itemTemplateId = pym_unpackInt(&pums);
 	itemTemplate_t *itemTemplate = gameData_getItemTemplateById(itemTemplateId);
 	if( itemTemplate == NULL )
 		return; // todo: even answer on a unknown template, else the client will continue to spam us with requests
@@ -114,7 +114,7 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, unsig
 	netMgr_pythonAddMethodCallRaw(client->cgm, 12, 579, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void inventory_removeItem(mapChannelClient_t *client, int inventoryType, int entityId)
+void inventory_removeItem(mapChannelClient_t *client, sint32 inventoryType, sint32 entityId)
 {
 	// removeItem: 88
 	pyMarshalString_t pms;
@@ -126,7 +126,7 @@ void inventory_removeItem(mapChannelClient_t *client, int inventoryType, int ent
 	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 88, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void inventory_addItem(mapChannelClient_t *client, int inventoryType, int entityId, int slotIndex)
+void inventory_addItem(mapChannelClient_t *client, sint32 inventoryType, sint32 entityId, sint32 slotIndex)
 {
 	// addItem 85
 	pyMarshalString_t pms;
@@ -139,7 +139,7 @@ void inventory_addItem(mapChannelClient_t *client, int inventoryType, int entity
 	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 85, pym_getData(&pms), pym_getLen(&pms));
 }
 
-item_t *item_create(itemTemplate_t *itemTemplate)//unsigned int classId, unsigned int templateId)
+item_t *item_create(itemTemplate_t *itemTemplate)//uint32 classId, uint32 templateId)
 {
 	item_t *item = (item_t*)malloc(sizeof(item_t));
 	item->entityId = entityMgr_getFreeEntityIdForItem();
@@ -155,14 +155,14 @@ void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
 {
 	item->locationEntityId = owner->clientEntityId;
 	// find free slot
-	int catIndex = 0;
+	sint32 catIndex = 0;
 	if( item->itemTemplate->type == ITEMTYPE_WEAPON )
 		catIndex = 0;
 	else if( item->itemTemplate->type == ITEMTYPE_ARMOR )
 		catIndex = 0; // 50
 	else
 		__debugbreak();
-	for(int i=0; i<50; i++)
+	for(sint32 i=0; i<50; i++)
 	{
 		if( owner->inventory.slot[catIndex+i] == 0 )
 		{
@@ -180,11 +180,11 @@ void item_setLocationEquippedinventory(item_t *item, mapChannelClient_t *owner)
 
 
 
-int item_findFreePlayerinventorySpace(mapChannelClient_t *owner, int itemType)
+sint32 item_findFreePlayerinventorySpace(mapChannelClient_t *owner, sint32 itemType)
 {
 	if( itemType == ITEMTYPE_WEAPON || itemType == ITEMTYPE_ARMOR )
 	{
-		for(int i=0; i<50; i++)
+		for(sint32 i=0; i<50; i++)
 		{
 			if( owner->inventory.slot[i] == 0 )
 			{
@@ -196,14 +196,14 @@ int item_findFreePlayerinventorySpace(mapChannelClient_t *owner, int itemType)
 }
 
 
-void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int fromSlot = pym_unpackInt(&pums);
-	int toSlot = pym_unpackInt(&pums);
+	sint32 fromSlot = pym_unpackInt(&pums);
+	sint32 toSlot = pym_unpackInt(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
 	// remove item
@@ -223,16 +223,16 @@ void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, unsigned ch
 	// send response
 }
 
-void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	printf("RequestEquipArmor pl0x\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int srcSlot = pym_unpackInt(&pums); // Source Slot
-	int srcInventory = pym_unpackInt(&pums); // Source Inventory
-	int dstSlot = pym_unpackInt(&pums); // Destination Slot
+	sint32 srcSlot = pym_unpackInt(&pums); // Source Slot
+	sint32 srcInventory = pym_unpackInt(&pums); // Source Inventory
+	sint32 dstSlot = pym_unpackInt(&pums); // Destination Slot
 	if( pums.unpackErrorEncountered )
 		return;
 	if( srcInventory != 1 )
@@ -273,15 +273,15 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, unsigned char *pySt
 	manifestation_updateAppearance(client);
 }
 
-void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int srcSlot = pym_unpackInt(&pums);
-	int srcInventory = pym_unpackInt(&pums);
-	int dstSlot = pym_unpackInt(&pums);
+	sint32 srcSlot = pym_unpackInt(&pums);
+	sint32 srcInventory = pym_unpackInt(&pums);
+	sint32 dstSlot = pym_unpackInt(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
 	if( srcInventory != 1 )
@@ -342,15 +342,15 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, unsigned char *pyS
 /*
 	maybe move the weapon related entries to manifestation? // i agree
 */
-void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestArmWeapon(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	// RequestArmWeapon : 507
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int slot = pym_unpackInt(&pums);
-	cm->inventory.activeWeaponDrawer = (char)slot;
+	sint32 slot = pym_unpackInt(&pums);
+	cm->inventory.activeWeaponDrawer = (sint8)slot;
 	// 574 Recv_WeaponDrawerSlot(self, slotNum, bRequested = True):
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -368,7 +368,7 @@ void item_recv_RequestArmWeapon(mapChannelClient_t *cm, unsigned char *pyString,
 	manifestation_updateAppearance(cm);
 }
  
-void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestWeaponDraw(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -386,7 +386,7 @@ void item_recv_RequestWeaponDraw(mapChannelClient_t *client, unsigned char *pySt
 	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestWeaponStow(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -404,7 +404,7 @@ void item_recv_RequestWeaponStow(mapChannelClient_t *client, unsigned char *pySt
 	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void item_recv_RequestWeaponReload(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -574,7 +574,7 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 
 
 
-item_t* item_createFromTemplate(char *name)
+item_t* item_createFromTemplate(sint8 *name)
 {
 	itemTemplate_t *itemTemplate = gameData_getItemTemplateByName(name);
 	if( !itemTemplate )

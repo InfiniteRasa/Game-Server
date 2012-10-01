@@ -15,7 +15,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_addInt(&pms, m->actor->entityId); // actorId
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, 190, pym_getData(&pms), pym_getLen(&pms));
-	printf("registered %d with %d\n", (int)owner->clientEntityId, (int)m->actor->entityId);
+	printf("registered %d with %d\n", (sint32)owner->clientEntityId, (sint32)m->actor->entityId);
 	// set gameMap timeOfDay (Recv_SetSkyTime 198)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -39,17 +39,17 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void manifestation_removeAppearanceItem(manifestation_t *manifestation, int itemClassId)
+void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 itemClassId)
 {
-	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
+	sint32 equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 )
 	return;
 	manifestation->actor->appearanceData[equipmentSlotId-1].classId = 0;
 }
 
-void manifestation_setAppearanceItem(manifestation_t *manifestation, int itemClassId, unsigned int hueAARRGGBB)
+void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 itemClassId, uint32 hueAARRGGBB)
 {
-	int equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
+	sint32 equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 )
 		return;
 	manifestation->actor->appearanceData[equipmentSlotId-1].classId = itemClassId;
@@ -64,7 +64,7 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	for(int i=0; i<21; i++)
+	for(sint32 i=0; i<21; i++)
 	{
 		if( owner->player->actor->appearanceData[i].classId == 0 )
 			continue;
@@ -73,16 +73,16 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 			pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
 			// hue
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(owner->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(owner->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
@@ -102,7 +102,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 
 	manifestation_t *manifestation = (manifestation_t*)malloc(sizeof(manifestation_t));
 	manifestation->actor = (actor_t*)malloc(sizeof(actor_t));
-	for(int i=0; i<SWAPSET_SIZE; i++)
+	for(sint32 i=0; i<SWAPSET_SIZE; i++)
 	{
 		manifestation->actor->appearanceData[i].classId = characterData->appearanceData[i].classId;
 		manifestation->actor->appearanceData[i].hue = characterData->appearanceData[i].hue;
@@ -134,14 +134,14 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
 	// introduce player to myself
-	//manifestation_introducteEntity(mapChannel, manifestation, owner);
+	//manifestation_sint32roducteEntity(mapChannel, manifestation, owner);
 	//// introduce others to new player
 	//EnterCriticalSection(&mapChannel->criticalSection);
-	//for(int i=0; i<mapChannel->playerCount; i++)
+	//for(sint32 i=0; i<mapChannel->playerCount; i++)
 	//{
 	//	if( mapChannel->playerList[i]->player != manifestation )
 	//		if( mapChannel->playerList[i]->player )
-	//			manifestation_introducteEntity(mapChannel, mapChannel->playerList[i]->player, owner);
+	//			manifestation_sint32roducteEntity(mapChannel, mapChannel->playerList[i]->player, owner);
 	//}
 	//LeaveCriticalSection(&mapChannel->criticalSection);
 	// set controller and other local player information
@@ -163,10 +163,10 @@ void manifestation_removePlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	free(owner->player);
 }
 
-void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, int playerCount)
+void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	pyMarshalString_t pms;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		if( playerList[i] == client )
 			continue;
@@ -228,7 +228,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 		// shit
-		for(int i=6; i<=10; i++)
+		for(sint32 i=6; i<=10; i++)
 		{
 			pym_addInt(&pms, i);
 			pym_tuple_begin(&pms);
@@ -253,7 +253,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_dict_begin(&pms);
-		for(int i=0; i<21; i++)
+		for(sint32 i=0; i<21; i++)
 		{
 			if( tempClient->player->actor->appearanceData[i].classId == 0 )
 				continue;
@@ -262,17 +262,17 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 			pym_addInt(&pms, tempClient->player->actor->appearanceData[i].classId); // classId
 			// hue
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			// test .16
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (int)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (int)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(tempClient->player->actor->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			// end test .16
 			pym_tuple_end(&pms);
@@ -360,7 +360,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 	}
 }
 
-void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, int playerCount)
+void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	pyMarshalString_t pms;
 	// create manifestation/actor entity
@@ -370,7 +370,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_addInt(&pms, client->player->actor->entityClassId); // classID
 	pym_addNoneStruct(&pms); // entityData (dunno)
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -425,7 +425,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 
 	// shit
-	for(int i=6; i<=10; i++)
+	for(sint32 i=6; i<=10; i++)
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
@@ -446,7 +446,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 29, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -459,7 +459,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 
 
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -467,7 +467,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	for(int i=0; i<21; i++)
+	for(sint32 i=0; i<21; i++)
 	{
 		if( client->player->actor->appearanceData[i].classId == 0 )
 			continue;
@@ -476,24 +476,24 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, client->player->actor->appearanceData[i].classId); // classId
 		// hue
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// test .16
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (int)(client->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (int)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(client->player->actor->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// end test .16
 		pym_tuple_end(&pms);
 	}
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 27, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -502,7 +502,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addBool(&pms, true); // isPlayer
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 14, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -511,7 +511,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, client->player->level); // level
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 103, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -520,7 +520,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, client->player->classId); // class
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 40, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -529,7 +529,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addUnicode(&pms, client->player->actor->name); // firstName
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 427, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -538,7 +538,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addUnicode(&pms, client->player->actor->family); // lastName
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 16, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -547,7 +547,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, client->player->actor->isRunning);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -558,7 +558,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_addInt(&pms, 23); //power
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 477, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -616,9 +616,9 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, 39);  // id
 		pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
-	//T1_SPRINT
+	//T1_SPRsint32
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRINT
+	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRsint32
 	pym_addInt(&pms, 5);	// level
 	pym_tuple_end(&pms);
 
@@ -628,7 +628,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 548, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -637,7 +637,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	// ability sprint
+	// ability sprsint32
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 401); // id
 	pym_addInt(&pms, 5); // level
@@ -649,7 +649,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -668,7 +668,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_addFloat(&pms, 1.0f);
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 243, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -677,7 +677,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0); // 'FRIENDLY'
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 211, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -686,7 +686,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0xFFFFFFF);
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 710, pym_getData(&pms), pym_getLen(&pms));
 	}
@@ -696,13 +696,13 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	netMovement.posX24b = client->player->actor->posX * 256.0f;
 	netMovement.posY24b = client->player->actor->posY * 256.0f;
 	netMovement.posZ24b = client->player->actor->posZ * 256.0f;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_sendEntityMovement(playerList[i]->cgm, &netMovement);
 	}
 }
 
-void manifestation_cellDiscardClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, int playerCount)
+void manifestation_cellDiscardClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	pyMarshalString_t pms;
 	// destroy manifestation/actor entity
@@ -710,7 +710,7 @@ void manifestation_cellDiscardClientToPlayers(mapChannel_t *mapChannel, mapChann
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, client->player->actor->entityId); // entityID
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		if( playerList[i] == client )
 			continue;
@@ -718,11 +718,11 @@ void manifestation_cellDiscardClientToPlayers(mapChannel_t *mapChannel, mapChann
 	}
 }
 
-void manifestation_cellDiscardPlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, int playerCount)
+void manifestation_cellDiscardPlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	pyMarshalString_t pms;
 	// destroy manifestation/actor entity
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		if( playerList[i]->player == NULL )
 			continue;
@@ -736,7 +736,7 @@ void manifestation_cellDiscardPlayersToClient(mapChannel_t *mapChannel, mapChann
 	}
 }
 
-void manifestation_recv_ToggleRun(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_ToggleRun(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	if( cm->player == NULL )
 		return;
@@ -750,7 +750,7 @@ void manifestation_recv_ToggleRun(mapChannelClient_t *cm, unsigned char *pyStrin
 	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void manifestation_recv_SetTargetId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_SetTargetId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -762,7 +762,7 @@ void manifestation_recv_SetTargetId(mapChannelClient_t *cm, unsigned char *pyStr
 	cm->player->targetEntityId = entityId;
 }
 
-void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	cm->player->targetEntityId = 0;
 }
@@ -773,11 +773,11 @@ void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	int start = cm->player->currentAbilityDrawer;
-	int end = start + 4;
+	sint32 start = cm->player->currentAbilityDrawer;
+	sint32 end = start + 4;
 	//printf("Sending Drawer\n");
 	//printf("Start: %i - End: %i\n", start, end);
-	for (int i = start; i <= end; i++)
+	for (sint32 i = start; i <= end; i++)
 	{
 		if (cm->player->abilityDrawer[i] != 0)
 		{
@@ -801,7 +801,7 @@ void manifestation_SendAbilityDrawerFull(mapChannelClient_t *cm)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_dict_begin(&pms);
-	for (int i = 0; i <= 24; i++)
+	for (sint32 i = 0; i <= 24; i++)
 	{
 		if (cm->player->abilityDrawer[i] != 0)
 		{
@@ -818,14 +818,14 @@ void manifestation_SendAbilityDrawerFull(mapChannelClient_t *cm)
 	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 393, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int slot = pym_unpackInt(&pums);
-	cm->player->currentAbilityDrawer = (char)slot;
+	sint32 slot = pym_unpackInt(&pums);
+	cm->player->currentAbilityDrawer = (sint8)slot;
 	// Recv_AbilityDrawerSlot(self, slotNum, bRequested = True): 394
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -836,21 +836,21 @@ void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, unsigned char 
 	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 394, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	//printf("requesting set ability slot\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	int slot = pym_unpackInt(&pums);
+	sint32 slot = pym_unpackInt(&pums);
 	unsigned long long abilityId = pym_unpackLongLong(&pums);
-	unsigned int abilityLevel = (unsigned int)pym_unpackLongLong(&pums);
+	uint32 abilityLevel = (uint32)pym_unpackLongLong(&pums);
 	if( pums.unpackErrorEncountered )
 		return;
 	// todo: check if ability is available
-	cm->player->abilityDrawer[slot] = (int)abilityId;
-	cm->player->abilityLvDrawer[slot] = (int)abilityLevel;
+	cm->player->abilityDrawer[slot] = (sint32)abilityId;
+	cm->player->abilityLvDrawer[slot] = (sint32)abilityLevel;
 	
 	manifestation_SendAbilityDrawerFull(cm);
 }
@@ -860,7 +860,7 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, unsigned c
 
 /* weapon stats and combat handling */
 
-void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -891,7 +891,7 @@ void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, unsi
 	}
 }
 
-void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -920,8 +920,8 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	//desc: have to use mapchannel-client id instead of player-entity-id because
 	//player-entity-id isnt registered, when new player is created(enter world)
 	
-	int targetType = entityMgr_getEntityType(client->player->targetEntityId);
-	int newTargetEntityId = 0;
+	sint32 targetType = entityMgr_getEntityType(client->player->targetEntityId);
+	sint32 newTargetEntityId = 0;
 	if(targetType == 0) //1:client-type,0=player-type
 	{
         mapCell_t *mapCell = cellMgr_tryGetCell(client->mapChannel, 
@@ -930,9 +930,9 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 		if(mapCell)
 		{
              mapChannelClient_t **playerList = NULL;
-			 int tCount = hashTable_getCount(&mapCell->ht_playerNotifyList);
-			 playerList = (mapChannelClient_t**)hashTable_getValueArray(&mapCell->ht_playerNotifyList);
-			 for(int i=0; i < tCount; i++)
+			 sint32 tCount = mapCell->ht_playerNotifyList.size();
+			 playerList = &mapCell->ht_playerNotifyList[0];
+			 for(sint32 i=0; i < tCount; i++)
 			 {
 
 				 mapChannelClient_t *targetPlayer = playerList[i];
@@ -1008,7 +1008,7 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, unsigned char 
 	}//--if: targed id	
 }
 
-void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_StopAutoFire(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
@@ -1028,14 +1028,14 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, unsigned char *
 	
 }
 
-void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, unsigned char *pyString, int pyStringLen)
+void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
 
-	int keepAliveDelay = pym_unpackInt(&pums);
+	sint32 keepAliveDelay = pym_unpackInt(&pums);
 
 	printf("TODO: "); puts(__FUNCTION__);
 	printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
@@ -1072,7 +1072,7 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 	//netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 206, pym_getData(&pms), pym_getLen(&pms));	
 	// test ... send windup (126)
 	
-	//for(int i=0; i<100; i++)
+	//for(sint32 i=0; i<100; i++)
 	//{
 	//	printf("%d\n", i);
 	//	// _SetCurrentAction
@@ -1088,7 +1088,7 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 }
 
 
-void manifestion_recv_revive(mapChannelClient_t *cm, unsigned char *pyString, int pyStringLen)
+void manifestion_recv_revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	printf("Revive me requested- Size: %d\n", pyStringLen);
 
@@ -1158,4 +1158,4 @@ void manifestion_recv_revive(mapChannelClient_t *cm, unsigned char *pyString, in
 //todo: 1) change everything to broadcast information only to things in sight
 //	  2) tell the entering player about the already logged in players
 //	  3) broadcast movement packets only to players in range..
-// mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, int *oCount)
+// mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, sint32 *oCount)

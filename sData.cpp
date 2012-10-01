@@ -1,9 +1,8 @@
-#include<Windows.h>
-#include"fileMgr.h"
+#include"framework.h"
 
-static char sData_whitespaceList[] = {' ','\t'};
+static sint8 sData_whitespaceList[] = {' ','\t'};
 
-sData_t *sData_open(char *path)
+sData_t *sData_open(sint8 *path)
 {
 	file_t *file = fileMgr_open(path);
 	if( !file )
@@ -22,7 +21,7 @@ void _sData_preloadCategory(sData_t *sData)
 	// release data
 	if( sData->optionLine )
 	{
-		for(int i=0; i<sData->optionLineCount; i++)
+		for(sint32 i=0; i<sData->optionLineCount; i++)
 		{
 			if( sData->optionLine[i].optionName )
 				free(sData->optionLine[i].optionName);
@@ -33,8 +32,8 @@ void _sData_preloadCategory(sData_t *sData)
 	}
 	// count lines
 	fileMgr_setSeek(sData->file, sData->categoryDataOffset);
-	char *line = fileMgr_readLine(sData->file);
-	int lineCount = 0;
+	sint8 *line = fileMgr_readLine(sData->file);
+	sint32 lineCount = 0;
 	while( line )
 	{
 		// todo: trim left
@@ -42,7 +41,7 @@ void _sData_preloadCategory(sData_t *sData)
 		{
 			break;
 		}
-		char *x = line;
+		sint8 *x = line;
 		// skip whitespaces
 		while( *x )
 		{
@@ -77,7 +76,7 @@ void _sData_preloadCategory(sData_t *sData)
 		{
 			break;
 		}
-		char *x = line;
+		sint8 *x = line;
 		// skip whitespaces
 		while( *x )
 		{
@@ -88,10 +87,10 @@ void _sData_preloadCategory(sData_t *sData)
 		// data lines must start with a letter
 		if( (*x >= 'a' && *x <= 'z') || (*x >= 'A' && *x <= 'Z') )
 		{
-			int splitIdx = -1;
-			int tLen = strlen(x);
+			sint32 splitIdx = -1;
+			sint32 tLen = strlen((char*)x);
 			// find '='
-			for(int i=0; i<tLen; i++)
+			for(sint32 i=0; i<tLen; i++)
 			{
 				if( x[i] == '=' )
 				{
@@ -103,38 +102,38 @@ void _sData_preloadCategory(sData_t *sData)
 			{
 				// only name set...
 				// cover with empty data string
-				sData->optionLine[lineCount].optionName = (char*)malloc(tLen+1);
-				for(int p=0; p<tLen; p++)
+				sData->optionLine[lineCount].optionName = (sint8*)malloc(tLen+1);
+				for(sint32 p=0; p<tLen; p++)
 					sData->optionLine[lineCount].optionName[p] = x[p];
 				sData->optionLine[lineCount].optionName[tLen] = '\0';
-				sData->optionLine[lineCount].optionData = (char*)malloc(1);
+				sData->optionLine[lineCount].optionData = (sint8*)malloc(1);
 				sData->optionLine[lineCount].optionData[0] = '\0';
 			}
 			else
 			{
 				// name
-				sData->optionLine[lineCount].optionName = (char*)malloc(splitIdx+1);
-				for(int p=0; p<splitIdx; p++)
+				sData->optionLine[lineCount].optionName = (sint8*)malloc(splitIdx+1);
+				for(sint32 p=0; p<splitIdx; p++)
 					sData->optionLine[lineCount].optionName[p] = x[p];
 				sData->optionLine[lineCount].optionName[splitIdx] = '\0';
 				// skip '='
 				splitIdx++;
 				// data - but skip whitespaces first
-				int whiteSpaceCount = 0;
-				for(int i=0; i<tLen-splitIdx; i++)
+				sint32 whiteSpaceCount = 0;
+				for(sint32 i=0; i<tLen-splitIdx; i++)
 				{
 					if( x[i+splitIdx] != ' ' && x[i+splitIdx] != '\t' )
 						break;
 					whiteSpaceCount++;
 				}
-				sData->optionLine[lineCount].optionData = (char*)malloc(tLen-whiteSpaceCount-splitIdx+1);
-				for(int p=0; p<(tLen-splitIdx-whiteSpaceCount); p++)
+				sData->optionLine[lineCount].optionData = (sint8*)malloc(tLen-whiteSpaceCount-splitIdx+1);
+				for(sint32 p=0; p<(tLen-splitIdx-whiteSpaceCount); p++)
 					sData->optionLine[lineCount].optionData[p] = x[p+splitIdx+whiteSpaceCount];
 				sData->optionLine[lineCount].optionData[tLen-splitIdx-whiteSpaceCount] = '\0';
 			}
 			// cut whitespaces from the name
-			int nameLen = strlen(sData->optionLine[lineCount].optionName);
-			for(int i=nameLen-1; i>0; i--)
+			sint32 nameLen = strlen((char*)sData->optionLine[lineCount].optionName);
+			for(sint32 i=nameLen-1; i>0; i--)
 			{
 				if( sData->optionLine[lineCount].optionName[i] != sData_whitespaceList[0] && sData->optionLine[lineCount].optionName[i] != sData_whitespaceList[1] )
 					break;
@@ -157,7 +156,7 @@ bool sData_nextCategory(sData_t *sData)
 		sData->categoryName = NULL;
 	}
 	fileMgr_setSeek(sData->file, sData->categoryDataOffset);
-	char *line = fileMgr_readLine(sData->file);
+	sint8 *line = fileMgr_readLine(sData->file);
 	while( line )
 	{
 		// todo: trim left
@@ -165,10 +164,10 @@ bool sData_nextCategory(sData_t *sData)
 		{
 			// category beginns
 			sData->categoryDataOffset = fileMgr_getSeek(sData->file);
-			int catLen = min(1024, strlen(line)+1);
-			sData->categoryName = (char*)malloc(catLen);
+			sint32 catLen = min(1024, strlen((char*)line)+1);
+			sData->categoryName = (sint8*)malloc(catLen);
 			// copy name
-			for(int i=0; i<1023; i++) // 1kb is the name length limit
+			for(sint32 i=0; i<1023; i++) // 1kb is the name length limit
 			{
 				sData->categoryName[i] = line[i+1];
 				if( sData->categoryName[i] == ']' )
@@ -192,24 +191,24 @@ bool sData_nextCategory(sData_t *sData)
 	return false;
 }
 
-char *sData_currentCategoryName(sData_t *sData)
+sint8 *sData_currentCategoryName(sData_t *sData)
 {
 	return sData->categoryName;
 }
 
-char *sData_findOption(sData_t *sData, char *optionName)
+sint8 *sData_findOption(sData_t *sData, sint8 *optionName)
 {
-	int len = strlen(optionName);
-	for(int i=0; i<sData->optionLineCount; i++)
+	sint32 len = strlen((char*)optionName);
+	for(sint32 i=0; i<sData->optionLineCount; i++)
 	{
 		bool fit = true;
-		int oLen = strlen(sData->optionLine[i].optionName);
+		sint32 oLen = strlen((char*)sData->optionLine[i].optionName);
 		if( oLen != len )
 			continue;
-		for(int l=0; l<len; l++)
+		for(sint32 l=0; l<len; l++)
 		{
-			char c1 = sData->optionLine[i].optionName[l];
-			char c2 = optionName[l];
+			sint8 c1 = sData->optionLine[i].optionName[l];
+			sint8 c2 = optionName[l];
 			// convert to upper case
 			if( c1 >= 'a' && c1 <= 'z' )
 				c1 += ('A'-'a');
@@ -236,7 +235,7 @@ void sData_close(sData_t *sData)
 	}
 	if( sData->optionLine )
 	{
-		for(int i=0; i<sData->optionLineCount; i++)
+		for(sint32 i=0; i<sData->optionLineCount; i++)
 		{
 			if( sData->optionLine[i].optionName )
 				free(sData->optionLine[i].optionName);

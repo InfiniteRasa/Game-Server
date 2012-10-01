@@ -1,1 +1,1 @@
-SOCKET CreateSocket(unsigned short Port);
+SOCKET CreateSocket(uint16 Port);

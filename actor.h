@@ -2,38 +2,38 @@
 
 typedef struct  
 {
-	unsigned int classId;
-	unsigned int hue;
+	uint32 classId;
+	uint32 hue;
 }actorAppearanceData_t;
 
 typedef struct  
 {
-	int level;
-	int healthCurrent;
-	int healthMax;
-	int healthBonus;
+	sint32 level;
+	sint32 healthCurrent;
+	sint32 healthMax;
+	sint32 healthBonus;
 
 }actorStats_t;
 
 typedef struct _actor_t
 {
-	int entityId;
-	int entityClassId;
-	char name[64];
-	char family[64];
+	sint32 entityId;
+	sint32 entityClassId;
+	sint8 name[64];
+	sint8 family[64];
 	actorStats_t stats;
 	actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? (Because not used by monsters)
 	float posX;
 	float posY;
 	float posZ;
 	float rotation;
-	int attackstyle;
-	int actionid;
+	sint32 attackstyle;
+	sint32 actionid;
 	bool isRunning;
 	bool inCombatMode;
 	mapCellLocation_t cellLocation;
 	gameEffect_t *activeEffects;
-	char state;
+	sint8 state;
 }actor_t;
 
 #define ACTOR_STATE_ALIVE	0

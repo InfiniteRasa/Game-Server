@@ -2,11 +2,11 @@
 #include<stdio.h>
 #include"DataInterface.h"
 
-unsigned int dataInterfaceSpawnpoolId;
+uint32 DataInterfaceSpawnpoolId;
 
-void cb_dataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, void *cb, void *param)
+void cb_DataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, void *cb, void *param)
 {
-	char queryText[1024];
+	sint8 queryText[1024];
 	job->outNpcCount = 0;
 	job->outNpcList = NULL;
 	
@@ -73,24 +73,24 @@ void cb_dataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate npc data
-	int npcCount = mysql_num_rows(dbResult);
+	sint32 npcCount = mysql_num_rows(dbResult);
 	di_npcData_t *npcDataList = (di_npcData_t*)malloc(sizeof(di_npcData_t) * npcCount);
 	//allocate the spawntypes/pools the same way
-	int idx = 0;
+	sint32 idx = 0;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		di_npcData_t *npcData = npcDataList+idx;
 		idx++;
 
 		unsigned long long npc_id;
-		int npc_entityClassId;
-		int npc_currentContextId;
+		sint32 npc_entityClassId;
+		sint32 npc_currentContextId;
 		double npc_posX;
 		double npc_posY;
 		double npc_posZ;
 		double npc_rotation;
 		
-		int idx = 0;
+		sint32 idx = 0;
 		sscanf(dbRow[idx], "%I64u", &npcData->npcID); idx++;
 		strcpy(npcData->unicodeName, dbRow[idx]); idx++;
 		sscanf(dbRow[idx], "%d", &npc_entityClassId); idx++;
@@ -106,7 +106,7 @@ void cb_dataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 		npcData->posZ = npc_posZ;
 		//npcData->rot = npc_rotation;
 
-		for(int i=0; i<21; i++)
+		for(sint32 i=0; i<21; i++)
 		{
 			sscanf(dbRow[idx+0], "%d", &npcData->appearanceData[i].classId);
 			sscanf(dbRow[idx+1], "%u", &npcData->appearanceData[i].hue);
@@ -119,24 +119,24 @@ void cb_dataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 	// do callback param1: mapchannel param2: list of npcdata
 	((void (*)(void*,void*))cb)(param, job);
 	//// free data
-	//for(int i=0; i<16; i++)
+	//for(sint32 i=0; i<16; i++)
 	//{
 	//	free(job->outPreviewData[i]);
 	//}
 	free(npcDataList);
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_NPC_getNPCList(unsigned int mapContextId, void (*cb)(void *param, diJob_npcListData_t *jobData), void *param)
+void DataInterface_NPC_getNPCList(uint32 mapContextId, void (*cb)(void *param, diJob_npcListData_t *jobData), void *param)
 {	
-	diJob_npcListData_t *job = (diJob_npcListData_t*)dataInterface_allocJob(sizeof(diJob_npcListData_t));
+	diJob_npcListData_t *job = (diJob_npcListData_t*)DataInterface_allocJob(sizeof(diJob_npcListData_t));
 	job->mapContextId = mapContextId;
-	dataInterface_queueJob(job, cb_dataInterface_NPC_getNPCList, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_NPC_getNPCList, cb, param);
 }
 
-void cb_dataInterface_NPC_updateNPC(MYSQL *dbCon, diJob_updateNPC_t *job, void *cb, void *param)
+void cb_DataInterface_NPC_updateNPC(MYSQL *dbCon, diJob_updateNPC_t *job, void *cb, void *param)
 {
-	char queryText[1024*4];
+	sint8 queryText[1024*4];
 	di_npcData_t *npcData = job->npcData;
 	// check if npc exists first (maybe should lock table)
 	bool npcAlreadyExists = false;
@@ -297,20 +297,20 @@ void cb_dataInterface_NPC_updateNPC(MYSQL *dbCon, diJob_updateNPC_t *job, void *
 		if( cb )
 			((void (*)(void*,void*))cb)(param, job);
 	}
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
-void dataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
+void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
 {	
-	diJob_updateNPC_t *job = (diJob_updateNPC_t*)dataInterface_allocJob(sizeof(diJob_updateNPC_t));
+	diJob_updateNPC_t *job = (diJob_updateNPC_t*)DataInterface_allocJob(sizeof(diJob_updateNPC_t));
 	job->npcData = npcData;
-	dataInterface_queueJob(job, cb_dataInterface_NPC_updateNPC, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_NPC_updateNPC, cb, param);
 }
 
 //############################# TEST #########################################
-void cb_dataInterface_Entity_updateEntityW(MYSQL *dbCon, diJob_updateEntityW_t *job, void *cb, void *param)
+void cb_DataInterface_Entity_updateEntityW(MYSQL *dbCon, diJob_updateEntityW_t *job, void *cb, void *param)
 {
-	char queryText[4 * 1024];
+	sint8 queryText[4 * 1024];
 	di_entityDataW_t *npcData = job->entityData;
 	// check if npc exists first (maybe should lock table)
 	bool npcAlreadyExists = false;
@@ -472,22 +472,22 @@ void cb_dataInterface_Entity_updateEntityW(MYSQL *dbCon, diJob_updateEntityW_t *
 		if( cb )
 			((void (*)(void*,void*))cb)(param, job);
 	}
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
 
-void dataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
+void DataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
 {	
 		
-	diJob_updateEntityW_t *job = (diJob_updateEntityW_t*)dataInterface_allocJob(sizeof(diJob_updateEntityW_t));
+	diJob_updateEntityW_t *job = (diJob_updateEntityW_t*)DataInterface_allocJob(sizeof(diJob_updateEntityW_t));
 	job->entityData = entityData;
-	dataInterface_queueJob(job, cb_dataInterface_Entity_updateEntityW, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_Entity_updateEntityW, cb, param);
 }
 
 //################################################## test # 2 ##################################################
-void cb_dataInterface_Spawnpool_updateSpawnW2(MYSQL *dbCon, diJob_updateSpawnW2_t *job, void *cb, void *param)
+void cb_DataInterface_Spawnpool_updateSpawnW2(MYSQL *dbCon, diJob_updateSpawnW2_t *job, void *cb, void *param)
 {
-	char queryText[4 * 1024];
+	sint8 queryText[4 * 1024];
 	di_spawnDataW2_t *npcData = job->spawnData;
 	// check if spawnlocation exists first (maybe should lock table)
 	float currentX = npcData->posX;
@@ -543,27 +543,27 @@ void cb_dataInterface_Spawnpool_updateSpawnW2(MYSQL *dbCon, diJob_updateSpawnW2_
 			((void (*)(void*,void*))cb)(param, job);
 	}
 	
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
 
 
-void dataInterface_Spawnpool_updateSpawnW2(di_spawnDataW2_t *spawnData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
+void DataInterface_Spawnpool_updateSpawnW2(di_spawnDataW2_t *spawnData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param)
 {	
 		
-	diJob_updateSpawnW2_t *job = (diJob_updateSpawnW2_t*)dataInterface_allocJob(sizeof(diJob_updateSpawnW2_t));
+	diJob_updateSpawnW2_t *job = (diJob_updateSpawnW2_t*)DataInterface_allocJob(sizeof(diJob_updateSpawnW2_t));
 	job->spawnData = spawnData;
-	dataInterface_queueJob(job, cb_dataInterface_Spawnpool_updateSpawnW2, cb, param);
+	DataInterface_queueJob(job, cb_DataInterface_Spawnpool_updateSpawnW2, cb, param);
 }
 
 //################################################### test3 ##############################################
-void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job, void *cb, void *param)
+void cb_DataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job, void *cb, void *param)
 {
-	char queryText[1024];
+	sint8 queryText[1024];
 	job->scount = 0;
 	job->spawnType = NULL;
 	
 	//__debugbreak();
-	wsprintf(queryText, "SELECT id,maxcreatures,spawnname,creatures,faction,spawnanim,locktime,attackspeed,velocity,attackaction,attakstyle,actionid,melee_damage,range_damage,hitpoints FROM spawntype");
+	wsprintf(queryText, "SELECT id,maxcreatures,spawnname,creatures,faction,spawnanim,locktime,attackspeed,velocity,attackaction,attakstyle,actionid,melee_damage,range_damage,HitPoints FROM spawntype");
 	
 	// execute query
 	if( mysql_query(dbCon, queryText) )
@@ -574,22 +574,22 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate spawn data
-	int spawnCount = mysql_num_rows(dbResult);
+	sint32 spawnCount = mysql_num_rows(dbResult);
 	di_spawnDataW2_t *spawnLocationList = NULL;
 	baseBehavior_baseNode *pNodesList = NULL;
 	di_spawnTypeW2_t *spawnTypeList = (di_spawnTypeW2_t*)malloc(sizeof(di_spawnTypeW2_t) * spawnCount);
 	
 	//allocate the spawntypes/pools the same way
-	int idx = 0;
+	sint32 idx = 0;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		di_spawnTypeW2_t *npcData = spawnTypeList+idx;
 		idx++;
-		int tspawntype,maxcreatures,tspawnanim,tsctiveswawns,tlocktime;
-		int tfaction,tattckspeed,tattckanim,tattackstyle,tactionid,rng_dmg,melee_dmg,hps;
+		sint32 tspawntype,maxcreatures,tspawnanim,tsctiveswawns,tlocktime;
+		sint32 tfaction,tattckspeed,tattckanim,tattackstyle,tactionid,rng_dmg,melee_dmg,hps;
 		float tvelocity;
-		char tlabel[50];
-		char tvariant[70];
+		sint8 tlabel[50];
+		sint8 tvariant[70];
 
 		
 		sscanf(dbRow[0], "%d", &tspawntype);
@@ -621,7 +621,7 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 		sscanf(dbRow[13], "%d", &rng_dmg); 
 		npcData->dmg_range = rng_dmg;
 		sscanf(dbRow[14], "%d", &hps); 
-		npcData->hitpoints = hps;
+		npcData->HitPoints = hps;
 		
         //---get spawnlocations 
 		wsprintf(queryText, "SELECT type,posx,posy,posz,contextid,id FROM spawnpool WHERE type=%d AND contextid=%d", 
@@ -635,7 +635,7 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 		MYSQL_RES *dbResult2 = mysql_store_result(dbCon);
 		MYSQL_ROW dbRow2;
 		//--- allocate spawnlocation data
-		int spawnLocCount = mysql_num_rows(dbResult2);
+		sint32 spawnLocCount = mysql_num_rows(dbResult2);
 
 		npcData->spawnlocCount = spawnLocCount;
 		if(spawnLocCount<= 0)
@@ -644,13 +644,13 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 			continue;
 		}
 		spawnLocationList = (di_spawnDataW2_t*)malloc(sizeof(di_spawnDataW2_t) * spawnLocCount);
-		int cnt2 = 0;
+		sint32 cnt2 = 0;
 		while((dbRow2 = mysql_fetch_row(dbResult2)))
 		{
            di_spawnDataW2_t *t_spawnData = spawnLocationList + cnt2;
 		   cnt2++;
 		   float tposx,tposy,tposz;
-		   int tcontextid,ttype,tid;
+		   sint32 tcontextid,ttype,tid;
 
 		   
 		   sscanf(dbRow2[0],"%d",&ttype);
@@ -665,7 +665,7 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 		   t_spawnData->currentContextId = tcontextid;
 
 		   //--- get pathnodes for current spawnlocation/-point
-		   int tspawnid = 0;
+		   sint32 tspawnid = 0;
 		   sscanf(dbRow2[5],"%d",&tspawnid);
 		   wsprintf(queryText, "SELECT spawnid,contextid,posx,posy,posz,pindex FROM pathnodes WHERE spawnid=%d", 
 			   tspawnid);
@@ -677,15 +677,15 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 			}
 		   MYSQL_RES *dbResult3 = mysql_store_result(dbCon);
 		   MYSQL_ROW dbRow3;
-		   int pathNodeCount = mysql_num_rows(dbResult3);
+		   sint32 pathNodeCount = mysql_num_rows(dbResult3);
 		   pNodesList = (baseBehavior_baseNode*) malloc(sizeof(baseBehavior_baseNode) * pathNodeCount);
-		   int cnt3 = 0;
+		   sint32 cnt3 = 0;
 		   while( dbRow3 = mysql_fetch_row(dbResult3) )
 		   {
               baseBehavior_baseNode *tNode =  pNodesList + cnt3;
 			  cnt3++;
 			  float tx,ty,tz;
-			  int tspawnid,tcontext,tpathindex;
+			  sint32 tspawnid,tcontext,tpathindex;
 			  sscanf(dbRow3[0],"%d",&tspawnid);
 		      sscanf(dbRow3[1],"%d",&tcontextid);
 		      tNode->contextid = tcontextid;
@@ -724,24 +724,24 @@ void cb_dataInterface_Spawn_getSpawnpool(MYSQL *dbCon, diJob_spawnTypeW2_t *job,
 	if(spawnTypeList != NULL)free(spawnTypeList);
 	if(spawnLocationList !=NULL)free(spawnLocationList);
 	if(pNodesList != NULL) free (pNodesList);
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 }
-void dataInterface_Spawn_getSpawnpool(unsigned int mapContextId, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param)
+void DataInterface_Spawn_getSpawnpool(uint32 mapContextId, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param)
 {
  
-  diJob_spawnTypeW2_t *job = (diJob_spawnTypeW2_t*)dataInterface_allocJob(sizeof(diJob_spawnTypeW2_t));
+  diJob_spawnTypeW2_t *job = (diJob_spawnTypeW2_t*)DataInterface_allocJob(sizeof(diJob_spawnTypeW2_t));
   job->mapContextId = mapContextId;
-  dataInterface_queueJob(job, cb_dataInterface_Spawn_getSpawnpool, cb, param);
+  DataInterface_queueJob(job, cb_DataInterface_Spawn_getSpawnpool, cb, param);
 }
 
 //###################### test 4 ###################
-void cb_dataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNodeW2_t *job, void *cb, void *param)
+void cb_DataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNodeW2_t *job, void *cb, void *param)
 {
 
 	__debugbreak();
-	char queryText[4 * 1024];
+	sint8 queryText[4 * 1024];
 	di_pathNodeDataW2_t *pNodeData = job->pnodedata;
-    int tcontextid,tspawnid,tpnodeindex;
+    sint32 tcontextid,tspawnid,tpnodeindex;
 	float tx,ty,tz;
 	tcontextid = pNodeData->currentContextId;
 	tspawnid = pNodeData ->spawntype;
@@ -763,7 +763,7 @@ void cb_dataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNode
 	}
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
-	int spawnCount = mysql_num_rows(dbResult);
+	sint32 spawnCount = mysql_num_rows(dbResult);
 	
 	if(spawnCount)
 	{
@@ -789,17 +789,17 @@ void cb_dataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNode
 	}
 }
 
-void dataInterface_PathNode_setPathnode(di_pathNodeDataW2_t *pnodedata, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param)
+void DataInterface_PathNode_setPathnode(di_pathNodeDataW2_t *pnodedata, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param)
 {
  
-  diJob_updatePathNodeW2_t *job = (diJob_updatePathNodeW2_t*)dataInterface_allocJob(sizeof(diJob_updatePathNodeW2_t));
+  diJob_updatePathNodeW2_t *job = (diJob_updatePathNodeW2_t*)DataInterface_allocJob(sizeof(diJob_updatePathNodeW2_t));
   job->pnodedata = pnodedata;
-  dataInterface_queueJob(job, cb_dataInterface_PathNode_updatePathNode, cb, param);
+  DataInterface_queueJob(job, cb_DataInterface_PathNode_updatePathNode, cb, param);
 }
 
-void cb_dataInterface_NPC_getLastNPCEntityID(MYSQL *dbCon, diJob_getLastNPCEntityID_t *job, void *cb, void *param)
+void cb_DataInterface_NPC_getLastNPCEntityID(MYSQL *dbCon, diJob_getLastNPCEntityID_t *job, void *cb, void *param)
 {
-	char queryText[512];
+	sint8 queryText[512];
 	// find highest entityId of npcs
 	bool npcAlreadyExists = false;
 	sprintf(queryText, "SELECT max(id) FROM npc");
@@ -829,16 +829,16 @@ void cb_dataInterface_NPC_getLastNPCEntityID(MYSQL *dbCon, diJob_getLastNPCEntit
 	// job is freed outside
 }
 
-unsigned long long dataInterface_NPC_getLastNPCEntityID()
+unsigned long long DataInterface_NPC_getLastNPCEntityID()
 {	
-	diJob_getLastNPCEntityID_t *job = (diJob_getLastNPCEntityID_t*)dataInterface_allocJob(sizeof(diJob_getLastNPCEntityID_t));
+	diJob_getLastNPCEntityID_t *job = (diJob_getLastNPCEntityID_t*)DataInterface_allocJob(sizeof(diJob_getLastNPCEntityID_t));
 	job->outEntityId = 0;
 	job->outState = 0;
-	dataInterface_queueJob(job, cb_dataInterface_NPC_getLastNPCEntityID, NULL, NULL);
+	DataInterface_queueJob(job, cb_DataInterface_NPC_getLastNPCEntityID, NULL, NULL);
 	while( job->outState == 0 ) Sleep(10);
 	unsigned long long entityId = job->outEntityId;
 	if( job->outState == 2 ) // error
 		entityId = 0;
-	dataInterface_freeJob(job);
+	DataInterface_freeJob(job);
 	return entityId;
 }

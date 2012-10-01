@@ -3,8 +3,8 @@
 
 typedef struct _packetBuffer_t
 {
-	unsigned char PO_SendBuffer[1024*8];
-	unsigned int PO_CLen;
+	uint8 PO_SendBuffer[1024*8];
+	uint32 PO_CLen;
 }packetBuffer_t;
 
 void PacketOut_ResetGame(packetBuffer_t *pb)
@@ -12,34 +12,34 @@ void PacketOut_ResetGame(packetBuffer_t *pb)
 	pb->PO_CLen = 4;
 }
 
-void PacketOut_AddByte(packetBuffer_t *pb, unsigned char B)
+void PacketOut_AddByte(packetBuffer_t *pb, uint8 B)
 {
 	pb->PO_SendBuffer[pb->PO_CLen] = B;
 	pb->PO_CLen++;
 }
 
-void PacketOut_AddWord(packetBuffer_t *pb, unsigned int D)
+void PacketOut_AddWord(packetBuffer_t *pb, uint32 D)
 {
-	*(unsigned short*)&(pb->PO_SendBuffer[pb->PO_CLen]) = D;
+	*(uint16*)&(pb->PO_SendBuffer[pb->PO_CLen]) = D;
 	pb->PO_CLen += 2;
 }
 
-void PacketOut_AddDword(packetBuffer_t *pb, unsigned int D)
+void PacketOut_AddDword(packetBuffer_t *pb, uint32 D)
 {
-	*(unsigned int*)&(pb->PO_SendBuffer[pb->PO_CLen]) = D;
+	*(uint32*)&(pb->PO_SendBuffer[pb->PO_CLen]) = D;
 	pb->PO_CLen += 4;
 }
 
-void PacketOut_AddMem(packetBuffer_t *pb, unsigned char *d, int len) //Can be optimized
+void PacketOut_AddMem(packetBuffer_t *pb, uint8 *d, sint32 len) //Can be optimized
 {
-	for(int i=0; i<len; i++)
+	for(sint32 i=0; i<len; i++)
 		PacketOut_AddByte(pb, d[i]);
 }
 
 void PacketOut_Send(packetBuffer_t *pb, SOCKET s)
 {
 	//Set 4-byte len
-	*(unsigned int*)pb->PO_SendBuffer = pb->PO_CLen - 4;
+	*(uint32*)pb->PO_SendBuffer = pb->PO_CLen - 4;
 	//Send
 	send(s, (char*)pb->PO_SendBuffer, pb->PO_CLen, 0);
 }
@@ -49,20 +49,20 @@ void PacketOut_Send(packetBuffer_t *pb, SOCKET s)
 
 #define GEN_XOR_BYTE(x) ((x&0xFF)^((x>>8)&0xFF)^((x>>16)&0xFF)^((x>>24)&0xFF))
 
-void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, unsigned int entityId, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, uint32 entityId, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
 	packetBuffer_t SPB;
 	PacketOut_ResetGame(&SPB);
 	//Align bytes [4]
 	PacketOut_AddByte(&SPB, 0x01);
-	int LenBegin = SPB.PO_CLen;
+	sint32 LenBegin = SPB.PO_CLen;
 	//Subsize [2]
 	PacketOut_AddWord(&SPB, 41);
 	//Opcode [2]
 	PacketOut_AddByte(&SPB, 0x00);//Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 	PacketOut_AddByte(&SPB, 1);
 
-	int XORCheck = SPB.PO_CLen;
+	sint32 XORCheck = SPB.PO_CLen;
 	//datablock 1 (header)
 	PacketOut_AddByte(&SPB, 0); //2:6 mask
 	PacketOut_AddByte(&SPB, (7<<1) | (0)); //Opcode and flag --> 7 means the main packet handler
@@ -114,13 +114,13 @@ void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, unsigned int entityId,
 	//Masklike size - we always specify two bytes!
 	PacketOut_AddByte(&SPB, 0xFF); //Size of parameter block
 	PacketOut_AddByte(&SPB, 0xFF); //Size of parameter block
-	int ParamBlockBegin = SPB.PO_CLen; 
+	sint32 ParamBlockBegin = SPB.PO_CLen; 
 	PacketOut_AddByte(&SPB, 'M');
 	PacketOut_AddDword(&SPB, pyObjLen);
 	PacketOut_AddMem(&SPB, pyObjString, pyObjLen);
 	PacketOut_AddByte(&SPB, 0x66);
 
-	int PBLen = SPB.PO_CLen - ParamBlockBegin;
+	sint32 PBLen = SPB.PO_CLen - ParamBlockBegin;
 	if( PBLen > 0xFFF )
 		__debugbreak();
 
@@ -137,34 +137,34 @@ void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, unsigned int entityId,
 	//Not given
 
 	//Align len to 8 (-1)
-	int LenNow = SPB.PO_CLen - LenBegin;
-	int PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
-	for(int x=0; x<PaddingNeeded; x++)
+	sint32 LenNow = SPB.PO_CLen - LenBegin;
+	sint32 PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
+	for(sint32 x=0; x<PaddingNeeded; x++)
 		PacketOut_AddByte(&SPB, '?');
 	//Write len
-	*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
 	EnterCriticalSection(&cgm->cs_send);
-	Tabula_Encrypt2(&cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
 	LeaveCriticalSection(&cgm->cs_send);
 }
 
-void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, int clientCount, unsigned int entityId, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, sint32 clientCount, uint32 entityId, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
 	packetBuffer_t SPB;
 	PacketOut_ResetGame(&SPB);
 	//Align bytes [4]
 	PacketOut_AddByte(&SPB, 0x01);
-	int LenBegin = SPB.PO_CLen;
+	sint32 LenBegin = SPB.PO_CLen;
 	//Subsize [2]
 	PacketOut_AddWord(&SPB, 41);
 	//Opcode [2]
 	PacketOut_AddByte(&SPB, 0x00);//Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 	PacketOut_AddByte(&SPB, 1);
 
-	int XORCheck = SPB.PO_CLen;
+	sint32 XORCheck = SPB.PO_CLen;
 	//datablock 1 (header)
 	PacketOut_AddByte(&SPB, 0); //2:6 mask
 	PacketOut_AddByte(&SPB, (7<<1) | (0)); //Opcode and flag --> 7 means the main packet handler
@@ -216,13 +216,13 @@ void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, int clientCo
 		//Masklike size - we always specify two bytes!
 		PacketOut_AddByte(&SPB, 0xFF); //Size of parameter block
 		PacketOut_AddByte(&SPB, 0xFF); //Size of parameter block
-		int ParamBlockBegin = SPB.PO_CLen; 
+		sint32 ParamBlockBegin = SPB.PO_CLen; 
 		PacketOut_AddByte(&SPB, 'M');
 		PacketOut_AddDword(&SPB, pyObjLen);
 		PacketOut_AddMem(&SPB, pyObjString, pyObjLen);
 		PacketOut_AddByte(&SPB, 0x66);
 
-		int PBLen = SPB.PO_CLen - ParamBlockBegin;
+		sint32 PBLen = SPB.PO_CLen - ParamBlockBegin;
 		if( PBLen > 0xFFF )
 			__debugbreak();
 
@@ -239,18 +239,18 @@ void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, int clientCo
 		//Not given
 
 		//Align len to 8 (-1)
-		int LenNow = SPB.PO_CLen - LenBegin;
-		int PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
-		for(int x=0; x<PaddingNeeded; x++)
+		sint32 LenNow = SPB.PO_CLen - LenBegin;
+		sint32 PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
+		for(sint32 x=0; x<PaddingNeeded; x++)
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
-		*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
-		for(int i=0; i<clientCount; i++)
+		for(sint32 i=0; i<clientCount; i++)
 		{
 			clientGamemain_t *cgm = clientList[i]->cgm;
 			EnterCriticalSection(&cgm->cs_send);
-			Tabula_Encrypt2(&cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+			Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 			PacketOut_Send(&SPB, cgm->socket);
 			cgm->state_bytesSend += SPB.PO_CLen;
 			LeaveCriticalSection(&cgm->cs_send);
@@ -264,14 +264,14 @@ void netMgr_testOpc(clientGamemain_t *cgm)
 	PacketOut_ResetGame(&SPB);
 	//Align bytes [4]
 	PacketOut_AddByte(&SPB, 0x01);
-	int LenBegin = SPB.PO_CLen;
+	sint32 LenBegin = SPB.PO_CLen;
 	//Subsize [2]
 	PacketOut_AddWord(&SPB, 41);
 	//Opcode [2]
 	PacketOut_AddByte(&SPB, 0x00);//Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 	PacketOut_AddByte(&SPB, 1);
 
-	int XORCheck = SPB.PO_CLen;
+	sint32 XORCheck = SPB.PO_CLen;
 	//datablock 1 (header)
 	PacketOut_AddByte(&SPB, 0); //2:6 mask
 	PacketOut_AddByte(&SPB, (5<<1) | (0)); //Opcode and flag --> 5 means the main packet handler
@@ -295,33 +295,33 @@ void netMgr_testOpc(clientGamemain_t *cgm)
 	//PacketOut_AddByte(&SPB, 0x01); //Selection table for opcode 7 --> 00782470   . 83EC 34        SUB ESP,34
 	
 		//Align len to 8 (-1)
-		int LenNow = SPB.PO_CLen - LenBegin;
-		int PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
-		for(int x=0; x<PaddingNeeded; x++)
+		sint32 LenNow = SPB.PO_CLen - LenBegin;
+		sint32 PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
+		for(sint32 x=0; x<PaddingNeeded; x++)
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
-		*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
 		EnterCriticalSection(&cgm->cs_send);
-		Tabula_Encrypt2(&cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+		Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, cgm->socket);
 		cgm->state_bytesSend += SPB.PO_CLen;
 		LeaveCriticalSection(&cgm->cs_send);
 }
 
-void netMgr_entityMovementTest(clientGamemain_t *cgm, unsigned char *pyObjString, int pyObjLen)
+void netMgr_entityMovementTest(clientGamemain_t *cgm, uint8 *pyObjString, sint32 pyObjLen)
 {
 	packetBuffer_t SPB;
 	PacketOut_ResetGame(&SPB);
 	//Align bytes [4]
 	PacketOut_AddByte(&SPB, 0x01);
-	int LenBegin = SPB.PO_CLen;
+	sint32 LenBegin = SPB.PO_CLen;
 	//Subsize [2]
 	PacketOut_AddWord(&SPB, 41);
 	//Opcode [2]
 	PacketOut_AddByte(&SPB, 0x00); //Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 	PacketOut_AddByte(&SPB, 1);   // ?? 0x80
-	int XORCheck = SPB.PO_CLen;
+	sint32 XORCheck = SPB.PO_CLen;
 	//datablock 1 (header)
 	PacketOut_AddByte(&SPB, 0x00); //2:6 mask
 	PacketOut_AddByte(&SPB, (4<<1) | (0)); //Opcode and flag --> 4 movementHandler B
@@ -364,28 +364,28 @@ void netMgr_entityMovementTest(clientGamemain_t *cgm, unsigned char *pyObjString
 	PacketOut_AddByte(&SPB, 0);
 	PacketOut_AddByte(&SPB, 0);
 	PacketOut_AddByte(&SPB, 5);
-	// next (encoded-short)
+	// next (encoded-sint16)
 	PacketOut_AddByte(&SPB, 10);
 	// next (flags?)
 	PacketOut_AddByte(&SPB, 0);
-	// next (encoded-short)
+	// next (encoded-sint16)
 	PacketOut_AddByte(&SPB, 11);
-	// next (encoded-short)
+	// next (encoded-sint16)
 	PacketOut_AddByte(&SPB, 12);
 	// done...
 	//Follower
 	PacketOut_AddByte(&SPB, GEN_XOR_BYTE(SPB.PO_CLen-XORCheck)); XORCheck = SPB.PO_CLen;
 
 	//Align len to 8 (-1)
-	int LenNow = SPB.PO_CLen - LenBegin;
-	int PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
-	for(int x=0; x<PaddingNeeded; x++)
+	sint32 LenNow = SPB.PO_CLen - LenBegin;
+	sint32 PaddingNeeded = (8-((LenNow+1)%8))%8; //+1 because of fixed align bytes at the top
+	for(sint32 x=0; x<PaddingNeeded; x++)
 		PacketOut_AddByte(&SPB, '?');
 	//Write len
-	*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
 	EnterCriticalSection(&cgm->cs_send);
-	Tabula_Encrypt2(&cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
 	LeaveCriticalSection(&cgm->cs_send);
@@ -395,11 +395,11 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 {
 	packetBuffer_t SPB;
 
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		mapChannelClient_t *mc = playerList[i];
 		if( mc->player == NULL )
@@ -409,13 +409,13 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 		PacketOut_ResetGame(&SPB);
 		//Align bytes [4]
 		PacketOut_AddByte(&SPB, 0x01);
-		int LenBegin = SPB.PO_CLen;
+		sint32 LenBegin = SPB.PO_CLen;
 		//Subsize [2]
 		PacketOut_AddWord(&SPB, 41);
 		//Opcode [2]
 		PacketOut_AddByte(&SPB, 0x00); //Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 		PacketOut_AddByte(&SPB, 1);   // ?? 0x80
-		int XORCheck = SPB.PO_CLen;
+		sint32 XORCheck = SPB.PO_CLen;
 		//datablock 1 (header)
 		PacketOut_AddByte(&SPB, 0x00); //2:6 mask
 		PacketOut_AddByte(&SPB, (4<<1) | (0)); //Opcode and flag --> 4 movementHandler B
@@ -448,7 +448,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>16)&0xFF);
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>8)&0xFF);
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>0)&0xFF);
-		// velocity (encoded-short)
+		// velocity (encoded-sint16)
 		if( movement->velocity <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->velocity);
@@ -467,7 +467,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 		//PacketOut_AddByte(&SPB, 10);
 		// next (flags?)
 		PacketOut_AddByte(&SPB, movement->flag);
-		// next-viewX (encoded-short)
+		// next-viewX (encoded-sint16)
 		if( movement->viewX <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->viewX);
@@ -483,7 +483,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 			PacketOut_AddByte(&SPB, ((movement->viewX>>7)&0x7F)|0x80);
 			PacketOut_AddByte(&SPB, movement->viewX>>14);
 		}
-		// next (encoded-short)
+		// next (encoded-sint16)
 		if( movement->viewY <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->viewY);
@@ -502,14 +502,14 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 		// post-checksum
 		PacketOut_AddByte(&SPB, GEN_XOR_BYTE(SPB.PO_CLen-XORCheck)); XORCheck = SPB.PO_CLen;
 		//Alignment
-		int LenNow = SPB.PO_CLen - LenBegin;
-		int PaddingNeeded = (8-((LenNow+1)%8))%8;
-		for(int x=0; x<PaddingNeeded; x++)
+		sint32 LenNow = SPB.PO_CLen - LenBegin;
+		sint32 PaddingNeeded = (8-((LenNow+1)%8))%8;
+		for(sint32 x=0; x<PaddingNeeded; x++)
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
-		*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 		EnterCriticalSection(&mc->cgm->cs_send);
-		Tabula_Encrypt2(&mc->cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+		Tabula_Encrypt2(&mc->cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, mc->cgm->socket);
 		mc->cgm->state_bytesSend += SPB.PO_CLen;
 		LeaveCriticalSection(&mc->cgm->cs_send);
@@ -521,11 +521,11 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 {
 	packetBuffer_t SPB;
 
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(mapChannel, aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		mapChannelClient_t *mc = playerList[i];
 		if( mc->player == NULL )
@@ -533,13 +533,13 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		PacketOut_ResetGame(&SPB);
 		//Align bytes [4]
 		PacketOut_AddByte(&SPB, 0x01);
-		int LenBegin = SPB.PO_CLen;
+		sint32 LenBegin = SPB.PO_CLen;
 		//Subsize [2]
 		PacketOut_AddWord(&SPB, 41);
 		//Opcode [2]
 		PacketOut_AddByte(&SPB, 0x00); //Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 		PacketOut_AddByte(&SPB, 1);   // ?? 0x80
-		int XORCheck = SPB.PO_CLen;
+		sint32 XORCheck = SPB.PO_CLen;
 		//datablock 1 (header)
 		PacketOut_AddByte(&SPB, 0x00); //2:6 mask
 		PacketOut_AddByte(&SPB, (4<<1) | (0)); //Opcode and flag --> 4 movementHandler B
@@ -572,7 +572,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>16)&0xFF);
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>8)&0xFF);
 		PacketOut_AddByte(&SPB, (movement->posZ24b>>0)&0xFF);
-		// velocity (encoded-short)
+		// velocity (encoded-sint16)
 		if( movement->velocity <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->velocity);
@@ -591,7 +591,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		//PacketOut_AddByte(&SPB, 10);
 		// next (flags?)
 		PacketOut_AddByte(&SPB, movement->flag);
-		// next-viewX (encoded-short)
+		// next-viewX (encoded-sint16)
 		if( movement->viewX <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->viewX);
@@ -607,7 +607,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 			PacketOut_AddByte(&SPB, ((movement->viewX>>7)&0x7F)|0x80);
 			PacketOut_AddByte(&SPB, movement->viewX>>14);
 		}
-		// next (encoded-short)
+		// next (encoded-sint16)
 		if( movement->viewY <= 0x7F )
 		{
 			PacketOut_AddByte(&SPB, movement->viewY);
@@ -626,14 +626,14 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		// post-checksum
 		PacketOut_AddByte(&SPB, GEN_XOR_BYTE(SPB.PO_CLen-XORCheck)); XORCheck = SPB.PO_CLen;
 		//Alignment
-		int LenNow = SPB.PO_CLen - LenBegin;
-		int PaddingNeeded = (8-((LenNow+1)%8))%8;
-		for(int x=0; x<PaddingNeeded; x++)
+		sint32 LenNow = SPB.PO_CLen - LenBegin;
+		sint32 PaddingNeeded = (8-((LenNow+1)%8))%8;
+		for(sint32 x=0; x<PaddingNeeded; x++)
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
-		*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 		EnterCriticalSection(&mc->cgm->cs_send);
-		Tabula_Encrypt2(&mc->cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+		Tabula_Encrypt2(&mc->cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, mc->cgm->socket);
 		mc->cgm->state_bytesSend += SPB.PO_CLen;
 		LeaveCriticalSection(&mc->cgm->cs_send);
@@ -648,13 +648,13 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 	PacketOut_ResetGame(&SPB);
 	//Align bytes [4]
 	PacketOut_AddByte(&SPB, 0x01);
-	int LenBegin = SPB.PO_CLen;
+	sint32 LenBegin = SPB.PO_CLen;
 	//Subsize [2]
 	PacketOut_AddWord(&SPB, 41);
 	//Opcode [2]
 	PacketOut_AddByte(&SPB, 0x00); //Packet 0 - if you specify something other than 0(except 0xFF) there will be some additional preleading data?
 	PacketOut_AddByte(&SPB, 1);   // ?? 0x80
-	int XORCheck = SPB.PO_CLen;
+	sint32 XORCheck = SPB.PO_CLen;
 	//datablock 1 (header)
 	PacketOut_AddByte(&SPB, 0x00); //2:6 mask
 	PacketOut_AddByte(&SPB, (4<<1) | (0)); //Opcode and flag --> 4 movementHandler B
@@ -687,7 +687,7 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 	PacketOut_AddByte(&SPB, (movement->posZ24b>>16)&0xFF);
 	PacketOut_AddByte(&SPB, (movement->posZ24b>>8)&0xFF);
 	PacketOut_AddByte(&SPB, (movement->posZ24b>>0)&0xFF);
-	// velocity (encoded-short)
+	// velocity (encoded-sint16)
 	if( movement->velocity <= 0x7F )
 	{
 		PacketOut_AddByte(&SPB, movement->velocity);
@@ -706,7 +706,7 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 	//PacketOut_AddByte(&SPB, 10);
 	// next (flags?)
 	PacketOut_AddByte(&SPB, movement->flag);
-	// next-viewX (encoded-short)
+	// next-viewX (encoded-sint16)
 	if( movement->viewX <= 0x7F )
 	{
 		PacketOut_AddByte(&SPB, movement->viewX);
@@ -722,7 +722,7 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 		PacketOut_AddByte(&SPB, ((movement->viewX>>7)&0x7F)|0x80);
 		PacketOut_AddByte(&SPB, movement->viewX>>14);
 	}
-	// next (encoded-short)
+	// next (encoded-sint16)
 	if( movement->viewY <= 0x7F )
 	{
 		PacketOut_AddByte(&SPB, movement->viewY);
@@ -741,14 +741,14 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 	// post-checksum
 	PacketOut_AddByte(&SPB, GEN_XOR_BYTE(SPB.PO_CLen-XORCheck)); XORCheck = SPB.PO_CLen;
 	//Alignment
-	int LenNow = SPB.PO_CLen - LenBegin;
-	int PaddingNeeded = (8-((LenNow+1)%8))%8;
-	for(int x=0; x<PaddingNeeded; x++)
+	sint32 LenNow = SPB.PO_CLen - LenBegin;
+	sint32 PaddingNeeded = (8-((LenNow+1)%8))%8;
+	for(sint32 x=0; x<PaddingNeeded; x++)
 		PacketOut_AddByte(&SPB, '?');
 	//Write len
-	*(unsigned short*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
+	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 	EnterCriticalSection(&cgm->cs_send);
-	Tabula_Encrypt2(&cgm->tbc2, (unsigned int*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
+	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
 	LeaveCriticalSection(&cgm->cs_send);
@@ -756,48 +756,48 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 
 
 
-void netMgr_pythonAddMethodCallRaw(mapChannel_t *broadCastChannel, unsigned int EntityID, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_pythonAddMethodCallRaw(mapChannel_t *broadCastChannel, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
 	EnterCriticalSection(&broadCastChannel->criticalSection);
-	for(int i=0; i<broadCastChannel->playerCount; i++)
+	for(sint32 i=0; i<broadCastChannel->playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(broadCastChannel->playerList[i]->cgm, EntityID, MethodID, pyObjString, pyObjLen);
 	}
 	LeaveCriticalSection(&broadCastChannel->criticalSection);
 }
 
-void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannelClient_t *aggregator, unsigned int EntityID, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannelClient_t *aggregator, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, EntityID, MethodID, pyObjString, pyObjLen);
 	}
 }
 
-void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel_t *mapChannel, actor_t *aggregator, unsigned int EntityID, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel_t *mapChannel, actor_t *aggregator, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(mapChannel, aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, EntityID, MethodID, pyObjString, pyObjLen);
 	}
 }
 
 
-void netMgr_cellDomain_pythonAddMethodCallRawIgnoreSelf(mapChannelClient_t *aggregator, unsigned int EntityID, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_cellDomain_pythonAddMethodCallRawIgnoreSelf(mapChannelClient_t *aggregator, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		if( playerList[i] == aggregator )
 			return;
@@ -806,13 +806,13 @@ void netMgr_cellDomain_pythonAddMethodCallRawIgnoreSelf(mapChannelClient_t *aggr
 }
 
 
-void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel_t *mapChannel, dynObject_t *aggregator, unsigned int EntityID, unsigned int MethodID, unsigned char *pyObjString, int pyObjLen)
+void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel_t *mapChannel, dynObject_t *aggregator, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
-	int playerCount = 0;
+	sint32 playerCount = 0;
 	mapChannelClient_t **playerList = cellMgr_getNotifiedPlayers(mapChannel, aggregator, &playerCount);
 	if( !playerList || !playerCount )
 		return;
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, EntityID, MethodID, pyObjString, pyObjLen);
 	}

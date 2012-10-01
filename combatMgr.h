@@ -5,14 +5,14 @@
 
 typedef struct _missile_t
 {
-	int type;
-	int damageA;
-	int damageB;
-	int actionId;
-	int argId;
+	sint32 type;
+	sint32 damageA;
+	sint32 damageB;
+	sint32 actionId;
+	sint32 argId;
 	unsigned long long targetEntityId; // the entityId of the destination (it is possible that the object does no more exist on arrival)
 	actor_t* source;
-	int triggerTime; // amount of milliseconds left before the missile is triggered, is decreased on every tick
+	sint32 triggerTime; // amount of milliseconds left before the missile is triggered, is decreased on every tick
 	//_missile_t *previous;
 	//_missile_t *next;
 }missile_t;
@@ -27,11 +27,11 @@ typedef struct
 }missileInfo_t;
 
 void missile_initForMapchannel(mapChannel_t *mapChannel);
-void missile_check(mapChannel_t *mapChannel, int passedTime);
+void missile_check(mapChannel_t *mapChannel, sint32 passedTime);
 
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage);
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage);
 //---Disastorm @88450b338c
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, int type, int damage, float maxRange);
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage, float maxRange);
 #define MISSILE_PISTOL      1
 #define MISSILE_RIFLE      2
 #define MISSILE_NETGUN      10

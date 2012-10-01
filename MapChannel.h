@@ -1,14 +1,16 @@
-#if(_MSC_VER>=1600)
- #define _HAS_ITERATOR_DEBUGGING 0	
-#endif
-
-#include <vector>
 
 typedef struct _mapChannel_t mapChannel_t;
 typedef struct _clientGamemain_t clientGamemain_t;
 typedef struct _manifestation_t manifestation_t;
 
 #define CHANNEL_LIMIT 14
+
+typedef struct  
+{
+	uint64 entityId;
+	sint32 actionId;
+	sint32 actionArg;
+}mapChannelClient_objectUse_t;
 
 typedef struct _mapChannelClient_t
 {
@@ -22,76 +24,84 @@ typedef struct _mapChannelClient_t
 	bool removeFromMap; // should be removed from the map at end of processing
 	bool disconnected; // client disconnected (do not pass to other)
 	// chat
-	unsigned int joinedChannels;
-	unsigned int channelHashes[CHANNEL_LIMIT];
+	uint32 joinedChannels;
+	uint32 channelHashes[CHANNEL_LIMIT];
 	// inventory data
 	inventory_t inventory;
 	// mission data
-	HashTable_uint32Iterable_t mission;
+	hashTable_t mission;
+	// object interaction
+	mapChannelClient_objectUse_t usedObject;
 }mapChannelClient_t;
 
 #define MAPCHANNEL_PLAYERQUEUE 32
 
 typedef struct  
 {
-	int period;
-	int timeLeft;
+	sint32 period;
+	sint32 timeLeft;
 	void *param;
-	bool (*cb)(mapChannel_t *mapChannel, void *param, int timePassed);
+	bool (*cb)(mapChannel_t *mapChannel, void *param, sint32 timePassed);
 }mapChannelTimer_t;
 
 typedef struct  
 {
-int delay;
-int timeLeft;
+sint32 delay;
+sint32 timeLeft;
 manifestation_t* origin;
-int type;
+sint32 type;
 }mapChannelAutoFireTimer_t;
 
+/*
+ * For every map instance, there exists 1 map channel.
+ * But there can exist multiple map instances for a single map.
+ */
 typedef struct _mapChannel_t
 {
 	gameData_mapInfo_t *mapInfo;
 	mapChannelClient_t **playerList;
-	int loadState; // temporary variable used for multithreaded but synchronous operations
-	int playerCount;
-	int playerLimit;
-	HashTable_uint32_t ht_socketToClient; // maps socket to client structure
+	sint32 loadState; // temporary variable used for multithreaded but synchronous operations
+	sint32 playerCount;
+	sint32 playerLimit;
+	hashTable_t ht_socketToClient; // maps socket to client structure
 	// ringbuffer for passed players
 	clientGamemain_t *rb_playerQueue[MAPCHANNEL_PLAYERQUEUE];
-	int rb_playerQueueReadIndex;
-	int rb_playerQueueWriteIndex;
+	sint32 rb_playerQueueReadIndex;
+	sint32 rb_playerQueueWriteIndex;
 	CRITICAL_SECTION criticalSection;
 	// timers
-	unsigned int timer_clientEffectUpdate;
-	unsigned int timer_missileUpdate;
-	unsigned int timer_dynObjUpdate;
-	unsigned int timer_generalTimer;
-	unsigned int timer_controller;
-	mapChannelTimer_t cp_trigger;
+	uint32 timer_clientEffectUpdate;
+	uint32 timer_missileUpdate;
+	uint32 timer_dynObjUpdate;
+	uint32 timer_generalTimer;
+	uint32 timer_controller;
+	//mapChannelTimer_t cp_trigger; 
 	// other timers
 	std::vector<mapChannelAutoFireTimer_t> autoFire_timers;
-	HashTable_uint32Iterable_t ht_timerList; // Todo: relace this with a list implementation
+	std::vector<mapChannelTimer_t*> timerList;
 	// cell data
 	mapCellInfo_t mapCellInfo;
 	// missile data
 	missileInfo_t missileInfo;
 	// dynamic object info ( contains only objects that require regular updates )
-	HashTable_uint32Iterable_t ht_updateObjectList;
+	std::vector<dynObject_workEntry_t*> updateObjectList;
+	// list of all waypoints on this map
+	std::vector<dynObject_t*> waypoints;
 }mapChannel_t;
 
 typedef struct 
 {
 	mapChannel_t *mapChannelArray;
-	int mapChannelCount;
+	sint32 mapChannelCount;
 }mapChannelList_t;
 
 void mapChannel_init();
-void mapChannel_start(int *contextIdList, int contextCount);
-mapChannel_t *mapChannel_findByContextId(int contextId);
+void mapChannel_start(sint32 *contextIdList, sint32 contextCount);
+mapChannel_t *mapChannel_findByContextId(sint32 contextId);
 bool mapChannel_pass(mapChannel_t *mapChannel, clientGamemain_t *cgm);
 
 // timer
-//void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, int timePassed));
-void mapChannel_registerTimer(mapChannel_t *mapChannel, int period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, int timePassed));
-void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, int delay, manifestation_t* origin, int type);
+//void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, sint32 timePassed));
+void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, sint32 timePassed));
+void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, sint32 delay, manifestation_t* origin, sint32 type);
 void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin);

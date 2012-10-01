@@ -1,17 +1,17 @@
 void gameData_load();
 
-int gameData_getEquipmentClassIdSlot(int classId);
-int gameData_getStarterItemTemplateClassId(int templateId);
+sint32 gameData_getEquipmentClassIdSlot(sint32 classId);
+sint32 gameData_getStarterItemTemplateClassId(sint32 templateId);
 
 typedef struct  
 {
-	int contextId;
-	char name[64];
-	int version;
-	int baseRegionId;
+	sint32 contextId;
+	sint8 name[64];
+	sint32 version;
+	sint32 baseRegionId;
 }gameData_mapInfo_t;
 
-extern int mapInfoCount;
+extern sint32 mapInfoCount;
 extern gameData_mapInfo_t *mapInfoArray;
 
 
@@ -21,51 +21,51 @@ extern gameData_mapInfo_t *mapInfoArray;
 
 typedef struct  
 {
-	unsigned int	classId;
-	unsigned int	templateId;
-	char			type;
-	unsigned int	currentHitPoints;
-	unsigned int	maxHitPoints;
-	char*			modifiedBy;
+	uint32	classId;
+	uint32	templateId;
+	sint8			type;
+	uint32	currentHitPoints;
+	uint32	maxHitPoints;
+	sint8*			modifiedBy;
 	bool			hasSellableFlag;
 	bool			hasCharacterUniqueFlag;
 	bool			hasAccountUniqueFlag;
 	bool			hasBoEFlag;
-	char			qualityId;
-	char			boundToCharacter;
-	char			notTradable;
-	char			notPlaceableInLockbox;
-	char			inventoryCategory;
-	unsigned int	clipSize;
-	unsigned int	currentAmmo;
+	sint8			qualityId;
+	sint8			boundToCharacter;
+	sint8			notTradable;
+	sint8			notPlaceableInLockbox;
+	sint8			inventoryCategory;
+	uint32	clipSize;
+	uint32	currentAmmo;
 	float			aimRate;
-	unsigned int	reloadTime;
-	char			altActionId;
-	char			altActionArg;
-	char			aeType;
-	unsigned int	aeRadius;
-	unsigned int	recoilAmount;
-	char			reuseOverride;
-	unsigned int	coolRate;
+	uint32	reloadTime;
+	sint8			altActionId;
+	sint8			altActionArg;
+	sint8			aeType;
+	uint32	aeRadius;
+	uint32	recoilAmount;
+	sint8			reuseOverride;
+	uint32	coolRate;
 	float			heatPerShot;
-	char			toolType;
+	sint8			toolType;
 	bool			isJammed;
-	char			ammoPerShot;
-	unsigned int	minDamage;
-	unsigned int	maxDamage;
-	unsigned int	ammoClassId;
-	char			damageType;
-	int				windupTime;
-	unsigned int	recoveryTime;
-	unsigned int	refireTime;
-	unsigned int	range;
-	unsigned int	altMaxDamage;
-	char			altDamageType;
-	unsigned int	altRange;
-	unsigned int	altAERadius;
-	char			altAEType;
-	char			attackType;
+	sint8			ammoPerShot;
+	uint32	minDamage;
+	uint32	maxDamage;
+	uint32	ammoClassId;
+	sint8			damageType;
+	sint32				windupTime;
+	uint32	recoveryTime;
+	uint32	refireTime;
+	uint32	range;
+	uint32	altMaxDamage;
+	sint8			altDamageType;
+	uint32	altRange;
+	uint32	altAERadius;
+	sint8			altAEType;
+	sint8			attackType;
 }itemTemplate_t;
 
-itemTemplate_t *gameData_getItemTemplateById(unsigned int templateId);
-itemTemplate_t *gameData_getItemTemplateByName(char *name);
+itemTemplate_t *gameData_getItemTemplateById(uint32 templateId);
+itemTemplate_t *gameData_getItemTemplateByName(sint8 *name);

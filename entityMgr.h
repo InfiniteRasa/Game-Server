@@ -14,7 +14,7 @@ unsigned long long entityMgr_getFreeEntityIdForObject();
 unsigned long long entityMgr_getFreeEntityIdForNPC();
 unsigned long long entityMgr_getFreeEntityIdForCreature();
 
-unsigned char entityMgr_getEntityType(unsigned long long entityId);
+uint8 entityMgr_getEntityType(unsigned long long entityId);
 
 void entityMgr_registerEntity(unsigned long long entityId, void *entity);
 void entityMgr_unregisterEntity(unsigned long long entityId);

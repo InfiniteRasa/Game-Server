@@ -30,7 +30,7 @@ void pym_tuple_end(pyMarshalString_t *pms)
 	{
 		__debugbreak();
 	}
-	*(unsigned int*)(pms->buffer+pms->containerStack[pms->stackIdx].startOffset+1) = pms->containerStack[pms->stackIdx].subelements;
+	*(uint32*)(pms->buffer+pms->containerStack[pms->stackIdx].startOffset+1) = pms->containerStack[pms->stackIdx].subelements;
 }
 
 void pym_list_begin(pyMarshalString_t *pms)
@@ -45,7 +45,7 @@ void pym_list_begin(pyMarshalString_t *pms)
 	pms->buffer[pms->idx] = 0x5B; pms->idx++;
 	pms->idx += 4;
 
-	//*(unsigned int*)&(pms->buffer+pms->idx) = 0x00000000; pys->CLen += 4; //Elementcount - Dont forget to update this
+	//*(uint32*)&(pms->buffer+pms->idx) = 0x00000000; pys->CLen += 4; //Elementcount - Dont forget to update this
 
 	pms->stackIdx++;
 }
@@ -57,7 +57,7 @@ void pym_list_end(pyMarshalString_t *pms)
 	{
 		__debugbreak();
 	}
-	*(unsigned int*)(pms->buffer+pms->containerStack[pms->stackIdx].startOffset+1) = pms->containerStack[pms->stackIdx].subelements;
+	*(uint32*)(pms->buffer+pms->containerStack[pms->stackIdx].startOffset+1) = pms->containerStack[pms->stackIdx].subelements;
 }
 
 void pym_dict_begin(pyMarshalString_t *pms)
@@ -82,55 +82,76 @@ void pym_dict_end(pyMarshalString_t *pms)
 	pms->buffer[pms->idx] = 0x30; pms->idx++;
 }
 
-void pym_dict_addKey(pyMarshalString_t *pms, char *s)
+void pym_dict_addKey(pyMarshalString_t *pms, sint8 *s)
 {
-	unsigned int slen = strlen(s);
+	uint32 slen = strlen((char*)s);
 	pms->buffer[pms->idx] = 0x74; pms->idx++;
-	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
+	*(sint32*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
 	// append string data
-	for(unsigned int i=0; i<slen; i++)
+	for(uint32 i=0; i<slen; i++)
 	{
-		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
+		*(sint8*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
 	// increase subelement counter
 	if( pms->stackIdx )
 		pms->containerStack[pms->stackIdx-1].subelements++;
 }
 
-void pym_addInt(pyMarshalString_t *pms, int value)
+void pym_addInt(pyMarshalString_t *pms, sint32 value)
 {
+	// todo: Can be optimized if less than 4 bytes are used (use inidividual prefix bytes)
 	pms->buffer[pms->idx] = 0x69; pms->idx++;
-	*(int*)(pms->buffer+pms->idx) = value; pms->idx += 4;
+	*(sint32*)(pms->buffer+pms->idx) = value; pms->idx += 4;
 	if( pms->stackIdx )
 	{
 		pms->containerStack[pms->stackIdx-1].subelements++;
 	}
 }
 
-void pym_addString(pyMarshalString_t *pms, char *s)
+// Python longs are signed numbers with an arbitrary size (rather than 8, 16, 32 or 64 bit)
+// To improve speed and avoid using bignum libs we use fake longs that are always 64-bit
+void pym_addLong(pyMarshalString_t *pms, long long value)
 {
-	unsigned int slen = strlen(s);
-	pms->buffer[pms->idx] = 's'; pms->idx++;
-	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
-	// append string data
-	for(unsigned int i=0; i<slen; i++)
+	
+	pms->buffer[pms->idx] = 'l'; pms->idx++;
+	*(long*)(pms->buffer+pms->idx) = 5; pms->idx += 4; // number of 'digits' - one digit has 15 bits and is stored as a sint16 (64/15 = 4,2666 --> 5)
+	// write 5 15-bit sint16s
+	for(uint32 i=0; i<5; i++)
 	{
-		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
+		*(sint16*)(pms->buffer+pms->idx) = (value&0x7FFF); pms->idx += 2; // write 15 bits
+		value >>= 15; // get the next 15 bits
+	}
+
+	if( pms->stackIdx )
+	{
+		pms->containerStack[pms->stackIdx-1].subelements++;
+	}
+}
+
+void pym_addString(pyMarshalString_t *pms, sint8 *s)
+{
+	uint32 slen = strlen((char*)s);
+	pms->buffer[pms->idx] = 's'; pms->idx++;
+	*(sint32*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
+	// append string data
+	for(uint32 i=0; i<slen; i++)
+	{
+		*(sint8*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
 	// increase subelement counter
 	if( pms->stackIdx )
 		pms->containerStack[pms->stackIdx-1].subelements++;
 }
 
-void pym_addUnicode(pyMarshalString_t *pms, char *s)
+void pym_addUnicode(pyMarshalString_t *pms, sint8 *s)
 {
-	unsigned int slen = strlen(s);
+	uint32 slen = strlen((char*)s);
 	pms->buffer[pms->idx] = 'u'; pms->idx++;
-	*(int*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
+	*(sint32*)(pms->buffer+pms->idx) = slen; pms->idx += 4;
 	// append string data
-	for(unsigned int i=0; i<slen; i++)
+	for(uint32 i=0; i<slen; i++)
 	{
-		*(char*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
+		*(sint8*)(pms->buffer+pms->idx) = s[i]; pms->idx++;
 	}
 	// increase subelement counter
 	if( pms->stackIdx )
@@ -159,16 +180,16 @@ void pym_addFloat(pyMarshalString_t *pms, float value)
 {
 	pms->buffer[pms->idx] = 0x66; pms->idx++;
 	// convert to string
-	int len = 0;
-	char floatData[128];
-	sprintf(floatData, "%f", value);
+	sint32 len = 0;
+	sint8 floatData[128];
+	sprintf((char*)floatData, "%f", value);
 	// write len
-	len = strlen(floatData);
+	len = strlen((char*)floatData);
 	pms->buffer[pms->idx] = len; pms->idx++;
 	// write float as string
-	for(int i=0; i<len; i++)
+	for(sint32 i=0; i<len; i++)
 	{
-		*(char*)(pms->buffer+pms->idx) = floatData[i]; pms->idx++;
+		*(sint8*)(pms->buffer+pms->idx) = floatData[i]; pms->idx++;
 	}
 	if( pms->stackIdx )
 	{
@@ -176,12 +197,12 @@ void pym_addFloat(pyMarshalString_t *pms, float value)
 	}
 }
 
-unsigned char *pym_getData(pyMarshalString_t *pms)
+uint8 *pym_getData(pyMarshalString_t *pms)
 {
 	return pms->buffer;
 }
 
-unsigned int pym_getLen(pyMarshalString_t *pms)
+uint32 pym_getLen(pyMarshalString_t *pms)
 {
 	return pms->idx;
 }

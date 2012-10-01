@@ -6,10 +6,17 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <math.h>
-#include <stdio.h>
 
-#include "fileMgr.h"
-#include "hashTable.h"
+#if(_MSC_VER>=1600)
+#define _HAS_ITERATOR_DEBUGGING 0	
+#endif
+
+#include <vector>
+#include <list>
+
+//#include "fileMgr.h"
+//#include "hashTable.h"
+#include"framework.h"
 
 #include "DataInterface.h"
 

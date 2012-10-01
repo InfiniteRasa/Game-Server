@@ -1,14 +1,15 @@
 #include<Windows.h>
 #include<stdio.h>
 
-#include "Bignum.h"
+#include"framework.h"
+#include"Bignum.h"
 
 //**************************Bignumfunktionen**************************
 
 //Setzt einen Bignum auf 0
-int Bignum_Reset(BIGNUM *b)
+sint32 Bignum_Reset(BIGNUM *b)
 {
-	int i;
+	sint32 i;
 	//Setze alle Ziffern auf 0
 	for(i=0;i<BignumSize;i++)
 		b->d[i]=0;
@@ -16,12 +17,12 @@ int Bignum_Reset(BIGNUM *b)
 	return 1;
 }
 
-//Setzt einen Bignum auf einen unsigned integer Wert
-int Bignum_SetUInt(BIGNUM *a, unsigned int uintval)
+//Setzt einen Bignum auf einen uint32eger Wert
+sint32 Bignum_SetUsint32(BIGNUM *a, uint32 usint32val)
 {
-	int i;
+	sint32 i;
 
-	*(unsigned int *)&a->d[0] = uintval;
+	*(uint32 *)&a->d[0] = usint32val;
 	//Setze alle restlichen Ziffern auf 0
 	for(i=4;i<BignumSize;i++)
 		a->d[i]=0;
@@ -30,9 +31,9 @@ int Bignum_SetUInt(BIGNUM *a, unsigned int uintval)
 }
 
 //Kopiert einen Bignum (src = dest)
-int Bignum_Copy(BIGNUM *src, BIGNUM *dest)
+sint32 Bignum_Copy(BIGNUM *src, BIGNUM *dest)
 {
-	int i;
+	sint32 i;
 	//Kopiere Ziffern
 	for(i=0;i<BignumSize;i++)
 		dest->d[i] = src->d[i];
@@ -41,18 +42,18 @@ int Bignum_Copy(BIGNUM *src, BIGNUM *dest)
 }
 
 //Addiert zwei Bignums (A = B + C), gibt den Überlauf zurück
-int Bignum_Add(BIGNUM *a, BIGNUM *b, BIGNUM *c)
+sint32 Bignum_Add(BIGNUM *a, BIGNUM *b, BIGNUM *c)
 {
-	unsigned int overflow;
-	int i;
+	uint32 overflow;
+	sint32 i;
 	//Setze overflow Wert auf 0
 	overflow = 0;
 	for(i=0;i<BignumSize;i++)
 	{
 		//Addiere zu overflow die beiden Bignum Ziffern
-		overflow += (unsigned int)b->d[i] + (unsigned int)c->d[i];
+		overflow += (uint32)b->d[i] + (uint32)c->d[i];
 		//Speichere aktuellen Ziffernwert
-		a->d[i] = (unsigned char)(overflow&0xFF);
+		a->d[i] = (uint8)(overflow&0xFF);
 		//Rücke overflow Wert
 		overflow = overflow >> 8;
 	}
@@ -60,18 +61,18 @@ int Bignum_Add(BIGNUM *a, BIGNUM *b, BIGNUM *c)
 }
 
 //Subtrahiert zwei Bignums (Result = B - C), gibt den Überlauf zurück
-int Bignum_Sub(BIGNUM *result, BIGNUM *b, BIGNUM *c)
+sint32 Bignum_Sub(BIGNUM *result, BIGNUM *b, BIGNUM *c)
 {
-	unsigned int overflow;
-	int i;
+	uint32 overflow;
+	sint32 i;
 	//Setze overflow Wert auf 1
 	overflow = 1; //Invertierter Wert für Subtraktion
 	for(i=0;i<BignumSize;i++)
 	{
 		//Addiere zu overflow die beiden Bignum Ziffern b + ~d
-		overflow += (unsigned int)b->d[i] + (unsigned int)((~c->d[i])&0xFF);
+		overflow += (uint32)b->d[i] + (uint32)((~c->d[i])&0xFF);
 		//Speichere aktuellen Ziffernwert
-		result->d[i] = (unsigned char)(overflow&0xFF);
+		result->d[i] = (uint8)(overflow&0xFF);
 		//Rücke overflow Wert
 		overflow = overflow >> 8;
 	}
@@ -79,7 +80,7 @@ int Bignum_Sub(BIGNUM *result, BIGNUM *b, BIGNUM *c)
 }
 
 //Multipliziert zwei Bignums (result = a * b)
-int Bignum_Mul(BIGNUM *result, BIGNUM *a, BIGNUM *b)
+sint32 Bignum_Mul(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 {
 	//Zwischenspeicher für Ziffern-Multiplikationsergebniss
 	BIGNUM storer;
@@ -91,9 +92,9 @@ int Bignum_Mul(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 	Bignum_Copy(b,&o2);
 
 	//Ziffernwertspeicher
-	unsigned int overflow;
-	int i;
-	int i2;
+	uint32 overflow;
+	sint32 i;
+	sint32 i2;
 
 	//Setze result auf 0
 	Bignum_Reset(&resultnew);
@@ -109,7 +110,7 @@ int Bignum_Mul(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 			//Multipliziere Ziffern
 			overflow += (o1.d[i] * o2.d[i2]);
 			//Speichere Ziffer
-			storer.d[i+i2] = (unsigned char)(overflow & 0xFF);
+			storer.d[i+i2] = (uint8)(overflow & 0xFF);
 			//Schiebe Ziffern
 			overflow = overflow >> 8;
 		}
@@ -123,10 +124,10 @@ int Bignum_Mul(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 }
 
 //Dividiert einen Bignum (result = a / c)
-int Bignum_Div(BIGNUM *result, BIGNUM *a, BIGNUM *b)
+sint32 Bignum_Div(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 {
 	BIGNUM o1,o2;
-	int ShiftCount;
+	sint32 ShiftCount;
 	Bignum_Reset(result);
 	Bignum_Copy(a,&o1);
 	Bignum_Copy(b,&o2);
@@ -167,7 +168,7 @@ int Bignum_Div(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 }
 
 //Berechnet den Modulo einer Bignumdivision (result = A%B)
-int Bignum_Mod(BIGNUM *result, BIGNUM *a, BIGNUM *b)
+sint32 Bignum_Mod(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 {
 	BIGNUM factor;
 	//Runde Factor auf a/b*b
@@ -180,12 +181,12 @@ int Bignum_Mod(BIGNUM *result, BIGNUM *a, BIGNUM *b)
 }
 
 //Modulare Exponentiation (result = (B^E)%N)
-int Bignum_ModExp(BIGNUM *result, BIGNUM *b, BIGNUM *e, BIGNUM *n)
+sint32 Bignum_ModExp(BIGNUM *result, BIGNUM *b, BIGNUM *e, BIGNUM *n)
 {
 	BIGNUM p;
 	BIGNUM exponent;
 
-	int BitCount = Bignum_CountBits(e);
+	sint32 BitCount = Bignum_CountBits(e);
 	//Setze p auf 1
 	Bignum_Reset(&p);
 	p.d[0] = 0x01;
@@ -213,11 +214,11 @@ int Bignum_ModExp(BIGNUM *result, BIGNUM *b, BIGNUM *e, BIGNUM *n)
 }
 
 //Gibt einen Bignum hexadezimal aus
-void Bignum_Print(BIGNUM *b)
+void Bignum_Prsint32(BIGNUM *b)
 {
-	char HexDigit[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-	char Output[(2*BignumSize)+2] = {0};
-	int i;
+	sint8 HexDigit[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	sint8 Output[(2*BignumSize)+2] = {0};
+	sint32 i;
 
 	memset((void*)Output, 0x00, (2)*BignumSize+2);
 	for(i=0;i<BignumSize;i++)
@@ -232,11 +233,11 @@ void Bignum_Print(BIGNUM *b)
 }
 
 //Halbiert einen Bignum (a = a / 2)
-int Bignum_Half(BIGNUM *a)
+sint32 Bignum_Half(BIGNUM *a)
 {
-	unsigned char shiftbit;
-	unsigned char newvalue;
-	int i;
+	uint8 shiftbit;
+	uint8 newvalue;
+	sint32 i;
 	//Shiftbit ist 0
 	shiftbit = 0;
 	for(i=BignumSize-1;i>=0;i--)
@@ -253,11 +254,11 @@ int Bignum_Half(BIGNUM *a)
 }
 
 //Verdoppelt einen Bignum (a = a * 2)
-int Bignum_Double(BIGNUM *a)
+sint32 Bignum_Double(BIGNUM *a)
 {
-	unsigned char shiftbit;
-	unsigned char newvalue;
-	int i;
+	uint8 shiftbit;
+	uint8 newvalue;
+	sint32 i;
 	//Shiftbit ist 0
 	shiftbit = 0;
 	for(i=0;i<BignumSize;i++)
@@ -276,10 +277,10 @@ int Bignum_Double(BIGNUM *a)
 //Bignumvergleiche
 
 //Vergleicht zwei Bignums (-1,0,1)
-int Bignum_Compare(BIGNUM *a, BIGNUM *b)
+sint32 Bignum_Compare(BIGNUM *a, BIGNUM *b)
 {
-	unsigned int vergleich;
-	int i;
+	uint32 vergleich;
+	sint32 i;
 	for(i=(BignumSize-1);i>=0;i--)
 	{
 		vergleich = a->d[i] - b->d[i];
@@ -292,9 +293,9 @@ int Bignum_Compare(BIGNUM *a, BIGNUM *b)
 }
 
 //Vergleicht einen Bignum mit 0
-int Bignum_IsZero(BIGNUM *a)
+sint32 Bignum_IsZero(BIGNUM *a)
 {
-	int i;
+	sint32 i;
 	//Für alle Ziffern
 	for(i=0;i<BignumSize;i++)
 		if( a->d[i] )
@@ -304,9 +305,9 @@ int Bignum_IsZero(BIGNUM *a)
 }
 
 //Gibt die Stelle des ersten Bits zurück(Bsp: 0x100 wäre 8)
-int Bignum_CountBits(BIGNUM *a)
+sint32 Bignum_CountBits(BIGNUM *a)
 {
-	int i;
+	sint32 i;
 	
 	for(i=(BignumSize-1)*8;i>=0;i--)
 		if( a->d[i/8]&(1<<(i%8)) )
@@ -315,9 +316,9 @@ int Bignum_CountBits(BIGNUM *a)
 }
 
 //Liest einen Bignum aus dem Speicher
-int Bignum_Read(BIGNUM *a, unsigned char *p, int DigitCount)
+sint32 Bignum_Read(BIGNUM *a, uint8 *p, sint32 DigitCount)
 {
-	int i;
+	sint32 i;
 	Bignum_Reset(a);
 
 	for(i=0;i<DigitCount;i++)
@@ -330,9 +331,9 @@ int Bignum_Read(BIGNUM *a, unsigned char *p, int DigitCount)
 }
 
 //Liest einen Bignum aus dem Speicher im Big Endian Format.
-int Bignum_Read_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount)
+sint32 Bignum_Read_BigEndian(BIGNUM *a, uint8 *p, sint32 DigitCount)
 {
-	int i;
+	sint32 i;
 	Bignum_Reset(a);
 
 	for(i=0;i<DigitCount;i++)
@@ -345,9 +346,9 @@ int Bignum_Read_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount)
 }
 
 //Schreibt einen Bignum in den Speicher
-int Bignum_Write(BIGNUM *a, unsigned char *p, int DigitCount)
+sint32 Bignum_Write(BIGNUM *a, uint8 *p, sint32 DigitCount)
 {
-	int i;
+	sint32 i;
 
 	memset((void*)p, 0x00, DigitCount);
 
@@ -362,9 +363,9 @@ int Bignum_Write(BIGNUM *a, unsigned char *p, int DigitCount)
 
 //Schreibt einen Bignum in den Speicher im Big Endian Format
 //Achtung: Funktioniert nicht ganz fehlerfrei wenn DigitCount > Eigentliche Anzahl der Stellen
-int Bignum_Write_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount)
+sint32 Bignum_Write_BigEndian(BIGNUM *a, uint8 *p, sint32 DigitCount)
 {
-	int i;
+	sint32 i;
 	memset((void*)p, 0x00, DigitCount);
 
 	for(i=0;i<DigitCount;i++)
@@ -377,9 +378,9 @@ int Bignum_Write_BigEndian(BIGNUM *a, unsigned char *p, int DigitCount)
 }
 
 //Gibt die Länge eines Bignum in Byte-Stellen zurück
-int Bignum_GetLen(BIGNUM *a)
+sint32 Bignum_GetLen(BIGNUM *a)
 {
-	int i;
+	sint32 i;
 	
 	for(i=(BignumSize-1);i>=0;i--)
 		if( a->d[i] )

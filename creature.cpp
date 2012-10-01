@@ -2,15 +2,15 @@
 
 typedef struct  
 {
-	HashTable_stringSynced_t ht_creatureType;
+	hashTableSynced_t ht_creatureType;
 }creatureEnv_t;
 
 creatureEnv_t creatureEnv;
 
-void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId);
+void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 weaponId);
 /* creature type */
 
-creatureType_t* creatureType_createCreatureType(int entityClassId, int nameId)
+creatureType_t* creatureType_createCreatureType(sint32 entityClassId, sint32 nameId)
 {
 	creatureType_t *creatureType = (creatureType_t*)malloc(sizeof(creatureType_t));
 	memset(creatureType, 0, sizeof(creatureType_t));
@@ -21,7 +21,7 @@ creatureType_t* creatureType_createCreatureType(int entityClassId, int nameId)
 	return creatureType;
 }
 
-creatureType_t* creatureType_findType(char *typeName)
+creatureType_t* creatureType_findType(sint8 *typeName)
 {
 	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeName);
 	if( creatureType == NULL )
@@ -31,7 +31,7 @@ creatureType_t* creatureType_findType(char *typeName)
 /*
  * Registers the creature layout for use by the creature_createCreature() function
  */
-void creatureType_registerCreatureType(creatureType_t *creatureType, char *name)
+void creatureType_registerCreatureType(creatureType_t *creatureType, sint8 *name)
 {
 	hashTable_set(&creatureEnv.ht_creatureType, name, (void*)creatureType);
 }
@@ -39,14 +39,14 @@ void creatureType_registerCreatureType(creatureType_t *creatureType, char *name)
 /*
  * Sets the maximum health of the creature type. This is also the value that is used when spawning creatures
  */
-void creatureType_setMaxHealth(creatureType_t *creatureType, int maxHealth)
+void creatureType_setMaxHealth(creatureType_t *creatureType, sint32 maxHealth)
 {
 	creatureType->maxHealth = maxHealth;
 }
 
 /* creature */
 
-creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool, int faction)
+creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool, sint32 faction)
 {
 	
 	// allocate and init creature
@@ -104,7 +104,7 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	return creature;
 }
 
-creature_t* creature_createCreature(mapChannel_t *mapChannel, char *typeName, spawnPool_t *spawnPool)
+creature_t* creature_createCreature(mapChannel_t *mapChannel, sint8 *typeName, spawnPool_t *spawnPool)
 {
 	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeName);
 	if( creatureType == NULL )
@@ -193,7 +193,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// shit
-	for(int i=6; i<=10; i++)
+	for(sint32 i=6; i<=10; i++)
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
@@ -328,7 +328,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	
 }
 
-void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int weaponId)
+void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 weaponId)
 {
 	pyMarshalString_t pms;
 	// Recv_AppearanceData (27)
@@ -340,18 +340,18 @@ void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int
 			pym_addInt(&pms, weaponId); // classId
 			pym_tuple_begin(&pms);
 				// hue
-				pym_addInt(&pms, (int)( 0xFF808080			& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 8)	& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 16)	& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 24)	& 0xFF));
+				pym_addInt(&pms, (sint32)( 0xFF808080			& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 16)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 24)	& 0xFF));
 			pym_tuple_end(&pms);
 			// test for .16
 			pym_tuple_begin(&pms);
 				// hue
-				pym_addInt(&pms, (int)( 0xFF808080			& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 8)	& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 16)	& 0xFF));
-				pym_addInt(&pms, (int)((0xFF808080 >> 24)	& 0xFF));
+				pym_addInt(&pms, (sint32)( 0xFF808080			& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 16)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 24)	& 0xFF));
 			pym_tuple_end(&pms);
 			// end test for .16
 		pym_tuple_end(&pms);
@@ -361,24 +361,24 @@ void creature_updateAppearance(clientGamemain_t* cgm, unsigned int entityId, int
 }
 
 // 1:n
-void creature_cellIntroduceCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, int playerCount)
+void creature_cellintroduceCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, sint32 playerCount)
 {
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 	{
 		creature_createCreatureOnClient(playerList[i], creature);
 	}
 }
 
 // n:1
-void creature_cellIntroduceCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, int creatureCount)
+void creature_cellIntroduceCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, sint32 creatureCount)
 {
-	for(int i=0; i<creatureCount; i++)
+	for(sint32 i=0; i<creatureCount; i++)
 	{
 		creature_createCreatureOnClient(client, creatureList[i]);
 	}
 }
 
-void creature_cellDiscardCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, int playerCount)
+void creature_cellDiscardCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, sint32 playerCount)
 {
 	if( !creature )
 		return;
@@ -387,16 +387,16 @@ void creature_cellDiscardCreatureToClients(mapChannel_t *mapChannel, creature_t 
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, creature->actor.entityId); // entityID
 	pym_tuple_end(&pms);
-	for(int i=0; i<playerCount; i++)
+	for(sint32 i=0; i<playerCount; i++)
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, 5, 56, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, int creatureCount)
+void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, sint32 creatureCount)
 {
 	if( !client )
 		return;
 	pyMarshalString_t pms;
-	for(int i=0; i<creatureCount; i++)
+	for(sint32 i=0; i<creatureCount; i++)
 	{
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -410,7 +410,7 @@ void creature_init()
 {
 	hashTable_init(&creatureEnv.ht_creatureType, 65536); // have to set limit high, see below..
 	/*
-		note on internal string hashtable handling - the table can become 'full' and does NOT auto extend the size during runtime
+		note on sint32ernal string hashtable handling - the table can become 'full' and does NOT auto extend the size during runtime
 	    todo: find a way to auto-extend the string hashtable without having to store all strings.
 		idea: base the hashtable on uint32 table (which does auto-extend) and just generate a string seed as the uint32
 	*/
@@ -420,11 +420,11 @@ void creature_init()
 	/* 7078, "Testcreature" */
 
 	//20110728 - thuvvik complete "creature dictionary"
-	int i=0;
+	sint32 i=0;
 	for (i=1; i<65535; i++)
 	{
-		char buffer [50];
-		int n, a=5, b=3;
+		sint8 buffer [50];
+		sint32 n, a=5, b=3;
 		n=sprintf (buffer, "TEST%d", i);
 
 		

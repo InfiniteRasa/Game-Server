@@ -1,0 +1,2 @@
+void banedropship_create(mapChannel_t *mapChannel, float x, float y, float z, sint32 spawnCount, creatureType_t **spawnTypeList, spawnPool_t *spawnPool);
+void banedropship_create(mapChannel_t *mapChannel, float x, float y, float z, sint32 spawnCount, creatureType_t **spawnTypeList);
