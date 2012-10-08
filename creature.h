@@ -22,7 +22,7 @@ typedef struct _creature_t
 	creatureType_t *type;		// the creature 'layout'
 	actor_t			actor;		// the base actor object
 	// stats
-	sint32 currentHealth;
+	//sint32 currentHealth; --> this is already stored in creature.actor.currentHealth
 	sint32 attackspeed;
 	sint32 lastattack;
 	sint32 lastresttime;
@@ -35,7 +35,7 @@ typedef struct _creature_t
 	sint32 faction; // hostile /friendly
 	sint32 wanderstate;
 	sint32 movestate;
-	float wx,wy,wz; 
+	float wx,wy,wz; // target destination (can be far away)
     float wander_dist; // -- wander boundaries 
     baseBehavior_baseNode homePos;  //--- spawn location (used for wander)
     baseBehavior_baseNode *pathnodes; //--entity patrol nodes
@@ -54,6 +54,7 @@ creature_t*			creature_createCreature(mapChannel_t *mapChannel, creatureType_t *
 creatureType_t*		creatureType_findType(sint8 *typeName);
 void				creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY);
 
+void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature, actor_t* killedBy);
 
 // cellMgr related
 void creature_cellintroduceCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, sint32 playerCount);

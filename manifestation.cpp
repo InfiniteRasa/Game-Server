@@ -5,7 +5,9 @@
 */
 
 
-
+/*
+ * Called for the owner of the manifestation when it enters the map (after character selection)
+ */
 void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *owner, manifestation_t *m)
 {
 	pyMarshalString_t pms;
@@ -14,8 +16,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, m->actor->entityId); // actorId
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, 190, pym_getData(&pms), pym_getLen(&pms));
-	printf("registered %d with %d\n", (sint32)owner->clientEntityId, (sint32)m->actor->entityId);
+	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, METHODID_SETCONTROLLEDACTORID, pym_getData(&pms), pym_getLen(&pms));
 	// set gameMap timeOfDay (Recv_SetSkyTime 198)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -37,6 +38,21 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
+	// credits
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 1); // creditType 1 -> fund
+	pym_addInt(&pms, owner->player->credits);
+	pym_tuple_end(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 2); // creditType 2 -> prestige
+	pym_addInt(&pms, owner->player->prestige);
+	pym_tuple_end(&pms);
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_ALLCREDITS, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 itemClassId)
@@ -91,17 +107,42 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 	netMgr_cellDomain_pythonAddMethodCallRaw(owner, owner->player->actor->entityId, 27, pym_getData(&pms), pym_getLen(&pms));
 }
 
+/*
+ * Updates all stats values depending on level, spent attribute points, etc.
+ * Does not send values to clients
+ */
+void manifestation_updateStatsValues(mapChannelClient_t *client)
+{
+	// used reference:
+	// http://zeus.jrq.ch/trcb/ 
+	// body
+	client->player->actor->stats.bodyCurrent = 10 + (client->player->actor->stats.level-1)*2;
+	client->player->actor->stats.bodyCurrentMax = client->player->actor->stats.bodyCurrent;
+	client->player->actor->stats.bodyNormalMax = client->player->actor->stats.bodyCurrent;
+	// mind
+	client->player->actor->stats.mindCurrent = 10 + (client->player->actor->stats.level-1)*2;
+	client->player->actor->stats.mindCurrentMax = client->player->actor->stats.mindCurrent;
+	client->player->actor->stats.mindNormalMax = client->player->actor->stats.mindCurrent;
+	// spirit
+	client->player->actor->stats.spiritCurrent = 10 + (client->player->actor->stats.level-1)*2;
+	client->player->actor->stats.spiritCurrentMax = client->player->actor->stats.spiritCurrent;
+	client->player->actor->stats.spiritNormalMax = client->player->actor->stats.spiritCurrent;
+	// health
+	client->player->actor->stats.healthCurrentMax = client->player->actor->stats.bodyCurrent * 10;
+	client->player->actor->stats.healthNormalMax = client->player->actor->stats.bodyCurrent * 10;
+	client->player->actor->stats.healthCurrent = client->player->actor->stats.healthCurrentMax;
+	// chi/power
+	client->player->actor->stats.chiCurrentMax = 103 + (client->player->actor->stats.spiritCurrent-10) * 5;
+	client->player->actor->stats.chiNormalMax = 103 + (client->player->actor->stats.spiritCurrent-10) * 5;
+	client->player->actor->stats.chiCurrent = client->player->actor->stats.chiCurrentMax;
+}
+
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData)
 {
-	// 20110827 @dennton
-	if( owner ->player != NULL)
-	{
-		manifestation_assignPlayer(mapChannel, owner, owner->player);
-        return;	
-	}
-
 	manifestation_t *manifestation = (manifestation_t*)malloc(sizeof(manifestation_t));
+	memset(manifestation, 0x00, sizeof(manifestation_t));
 	manifestation->actor = (actor_t*)malloc(sizeof(actor_t));
+	memset(manifestation->actor, 0x00, sizeof(actor_t));
 	for(sint32 i=0; i<SWAPSET_SIZE; i++)
 	{
 		manifestation->actor->appearanceData[i].classId = characterData->appearanceData[i].classId;
@@ -109,9 +150,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	}
 	manifestation->controllerUser = owner;
 	manifestation->actor->entityId = entityMgr_getFreeEntityIdForPlayer(); // generate an entityId
-	// todo: should globally register entity
-	
-
+	manifestation->actor->owner = owner;
+	// todo: Read values from db
 	strcpy(manifestation->actor->name, characterData->unicodeName);
 	strcpy(manifestation->actor->family, characterData->unicodeFamily);
 	manifestation->actor->posX = characterData->posX;
@@ -122,17 +162,40 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
-	manifestation->classId = 8; // Grenadier
-	manifestation->level = 50;
+	manifestation->classId = 1; // Recruit
+	/*
+		1: 'RECRUIT',
+		2: 'SOLDIER',
+		3: 'SPECIALIST',
+		4: 'COMMANDO',
+		5: 'RANGER',
+		6: 'SAPPER',
+		7: 'BIOTECHNICIAN',
+		8: 'GRENADIER',
+		9: 'GUARDIAN',
+		10: 'SNIPER',
+		11: 'SPY',
+		12: 'DEMOLITIONIST',
+		13: 'ENGINEER',
+		14: 'MEDIC',
+		15: 'EXOBIOLOGIST'}
+	*/
 	manifestation->actor->isRunning = true;
 	manifestation->actor->inCombatMode = false;
 	manifestation->targetEntityId = 0;
-	manifestation->actor->stats.healthBonus = 21100;
-	manifestation->actor->stats.healthMax = 22800;
-	manifestation->actor->stats.healthCurrent = 22800;
 	manifestation->currentAbilityDrawer = 0;
 	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
+
+	// set stats (should read them from the db)
+	owner->player->actor->stats.level = 1;
+	owner->player->credits = 0;
+	owner->player->prestige = 0;
+	owner->player->experience = 0;
+	manifestation_updateStatsValues(owner);
+	
+
+
 	// introduce player to myself
 	//manifestation_sint32roducteEntity(mapChannel, manifestation, owner);
 	//// introduce others to new player
@@ -182,66 +245,68 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_dict_begin(&pms);
+		// for all attributes the following values are send:
+		// current, currentMax, normalMax, refreshIncrement, refreshPeriod
 		// body
 		pym_addInt(&pms, 1);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 15); // current
-		pym_addInt(&pms, 15); // currentMax
-		pym_addInt(&pms, 15); // normalMax
+		pym_addInt(&pms, client->player->actor->stats.bodyCurrent); // current (current value)
+		pym_addInt(&pms, client->player->actor->stats.bodyCurrentMax); // currentMax (current max)
+		pym_addInt(&pms, client->player->actor->stats.bodyNormalMax); // normalMax (max without bonus)
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 		// mind
 		pym_addInt(&pms, 2);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 10); // currentMax
-		pym_addInt(&pms, 15); // normalMax
+		pym_addInt(&pms, client->player->actor->stats.mindCurrent); // current (current value)
+		pym_addInt(&pms, client->player->actor->stats.mindCurrentMax); // currentMax (current max)
+		pym_addInt(&pms, client->player->actor->stats.mindNormalMax); // normalMax (max without bonus)
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 		// spirit
 		pym_addInt(&pms, 3);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 15); // currentMax
-		pym_addInt(&pms, 10); // normalMax
+		pym_addInt(&pms, client->player->actor->stats.spiritCurrent); // current (current value)
+		pym_addInt(&pms, client->player->actor->stats.spiritCurrentMax); // currentMax (current max)
+		pym_addInt(&pms, client->player->actor->stats.spiritNormalMax); // normalMax (max without bonus)
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 		// health
 		pym_addInt(&pms, 4);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
-	    pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
-		pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
-		pym_addInt(&pms, 35); // refreshIncrement
-		pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
+		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current value)
+	    pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax (current max)
+		pym_addInt(&pms, client->player->actor->stats.healthNormalMax); // normalMax (max without bonus)
+		pym_addInt(&pms, 0); // refreshIncrement
+		pym_addInt(&pms, 0); // refreshPeriod (seconds, float?)
 		pym_tuple_end(&pms);
 		// chi
 		pym_addInt(&pms, 5);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 50); // currentMax
-		pym_addInt(&pms, 100); // normalMax
+		pym_addInt(&pms, client->player->actor->stats.chiCurrent); // current (current value)
+		pym_addInt(&pms, client->player->actor->stats.chiCurrentMax); // currentMax (current max)
+		pym_addInt(&pms, client->player->actor->stats.chiNormalMax); // normalMax (max without bonus)
 		pym_addInt(&pms, 0); // refreshIncrement
 		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
-		// shit
+		// ???
 		for(sint32 i=6; i<=10; i++)
 		{
 			pym_addInt(&pms, i);
 			pym_tuple_begin(&pms);
-			pym_addInt(&pms, 22800); // current
+			pym_addInt(&pms, 0 + i*100); // current
 			pym_addInt(&pms, 22800); // currentMax
 			pym_addInt(&pms, 22800); // normalMax
-			pym_addInt(&pms, 335); // refreshIncrement
-			pym_addInt(&pms, 3); // refreshPeriod
+			pym_addInt(&pms, 0); // refreshIncrement
+			pym_addInt(&pms, 0); // refreshPeriod
 			pym_tuple_end(&pms);
 		}
 		pym_dict_end(&pms);
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 29, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
 		// PreloadData
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -289,7 +354,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set level
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, tempClient->player->level); // level
+		pym_addInt(&pms, tempClient->player->actor->stats.level); // level
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 103, pym_getData(&pms), pym_getLen(&pms));
 		// set class
@@ -381,65 +446,63 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// body
 	pym_addInt(&pms, 1);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 15); // current
-	pym_addInt(&pms, 15); // currentMax
-	pym_addInt(&pms, 15); // normalMax
+	pym_addInt(&pms, client->player->actor->stats.bodyCurrent); // current (current value)
+	pym_addInt(&pms, client->player->actor->stats.bodyCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, client->player->actor->stats.bodyNormalMax); // normalMax (max without bonus)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// mind
 	pym_addInt(&pms, 2);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 15); // current
-	pym_addInt(&pms, 15); // currentMax
-	pym_addInt(&pms, 15); // normalMax
+	pym_addInt(&pms, client->player->actor->stats.mindCurrent); // current (current value)
+	pym_addInt(&pms, client->player->actor->stats.mindCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, client->player->actor->stats.mindNormalMax); // normalMax (max without bonus)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// spirit
 	pym_addInt(&pms, 3);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 15); // current
-	pym_addInt(&pms, 15); // currentMax
-	pym_addInt(&pms, 15); // normalMax
+	pym_addInt(&pms, client->player->actor->stats.spiritCurrent); // current (current value)
+	pym_addInt(&pms, client->player->actor->stats.spiritCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, client->player->actor->stats.spiritNormalMax); // normalMax (max without bonus)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// health
 	pym_addInt(&pms, 4);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current Max, base)
-	pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax (modfierTarget?)
-	pym_addInt(&pms, client->player->actor->stats.healthBonus); // normalMax (current Value)
-	pym_addInt(&pms, 35); // refreshIncrement
-	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
+	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current (current value)
+	pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, client->player->actor->stats.healthNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
 	// chi
 	pym_addInt(&pms, 5);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 50); // currentMax
-	pym_addInt(&pms, 100); // normalMax
+	pym_addInt(&pms, client->player->actor->stats.chiCurrent); // current (current value)
+	pym_addInt(&pms, client->player->actor->stats.chiCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, client->player->actor->stats.chiNormalMax); // normalMax (max without bonus)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
-
-	// shit
+	// misc
 	for(sint32 i=6; i<=10; i++)
 	{
 		pym_addInt(&pms, i);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 22800); // current
-		pym_addInt(&pms, 22800); // currentMax
-		pym_addInt(&pms, 22800); // normalMax
-		pym_addInt(&pms, 335); // refreshIncrement
-		pym_addInt(&pms, 3); // refreshPeriod
+		pym_addInt(&pms, 0 + i*100); // current
+		pym_addInt(&pms, 1000); // currentMax
+		pym_addInt(&pms, 1000); // normalMax
+		pym_addInt(&pms, 0); // refreshIncrement
+		pym_addInt(&pms, 0); // refreshPeriod
 		pym_tuple_end(&pms);
 	}
 	/*
 	Receive the initialization data for the attributes
 	(BODY, MIND, SPIRIT, HEALTH, CHI) of this actor.
-
 	@param attrDict - dict keyed by attr type, containing tuples of 
 	(current, currentMax, normalMax, refreshIncrement, refreshPeriod)
 	*/
@@ -509,7 +572,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, client->player->level); // level
+	pym_addInt(&pms, client->player->actor->stats.level); // level
 	pym_tuple_end(&pms);
 	for(sint32 i=0; i<playerCount; i++)
 	{
@@ -684,7 +747,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// player flags (710)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 0xFFFFFFF);
+	pym_addInt(&pms, 0xFFFFFFF); // actually should be a tuple or list or values?
 	pym_tuple_end(&pms);
 	for(sint32 i=0; i<playerCount; i++)
 	{
@@ -765,6 +828,80 @@ void manifestation_recv_SetTargetId(mapChannelClient_t *cm, uint8 *pyString, sin
 void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	cm->player->targetEntityId = 0;
+}
+
+void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
+{
+	cm->player->credits += credits;
+	// inform owner
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 1); // creditType (1 -> fund)	
+	pym_addInt(&pms, cm->player->credits); // new amount
+	pym_addInt(&pms, credits); // delta
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_UPDATECREDITS, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
+{
+	cm->player->prestige += prestige;
+	// inform owner
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 2); // creditType (2 -> prestige)	
+	pym_addInt(&pms, cm->player->prestige); // new amount
+	pym_addInt(&pms, prestige); // delta
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_UPDATECREDITS, pym_getData(&pms), pym_getLen(&pms));
+}
+
+
+void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
+{
+	cm->player->experience += experience;
+	// inform owner
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_tuple_begin(&pms); // values are packed
+	pym_addInt(&pms, cm->player->experience); // total
+	pym_addInt(&pms, experience); // gained
+	pym_addInt(&pms, experience); // baseGained (maybe the value without all the modifiers?)
+	pym_addInt(&pms, 0); // groupMod
+	pym_addInt(&pms, 0); // streakMod
+	pym_addInt(&pms, 0); // boosterMod
+	pym_addInt(&pms, 0); // wasCritKill
+	pym_addInt(&pms, 0); // wasTeamCritKill
+	pym_tuple_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_EXPERIENCECHANGED, pym_getData(&pms), pym_getLen(&pms));
+	// check for level up 
+	// since we can level up multiple levels at once, check as long as there is a level up possible
+	while( true )
+	{
+		sint32 xpForLevelUp = manifestation_getLevelNeededExperience(cm->player->actor->stats.level+1);
+		if( xpForLevelUp == -1 )
+			return; // no level up possible
+		if( cm->player->experience >= xpForLevelUp )
+		{
+			// level up
+			cm->player->actor->stats.level++;
+			// update stats
+			// inform client of level up
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, cm->player->actor->stats.level); // newLevel
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_LEVELUP, pym_getData(&pms), pym_getLen(&pms));
+			// todo: For all others send Recv_setLevel() to update level display for this player
+		}
+		else
+			break;
+	}
+
 }
 
 void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)
@@ -1097,18 +1234,14 @@ void manifestion_recv_revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyS
 		// remove player from cell
 		cellMgr_removeFromWorld(cm);
 		// rebuild players  health/status /etc..
-		cm->player->actor->stats.healthCurrent = 100;
-		cm->player->actor->stats.healthMax  = 100;
-		
-
-
-
+		cm->player->actor->stats.healthCurrent = cm->player->actor->stats.healthCurrentMax;
+		// todo: use manifestation_updateStatsValues() to reset health?
 		// update health (Recv_UpdateHealth 380) or 285
 		pyMarshalString_t pms;
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current
-		pym_addInt(&pms, cm->player->actor->stats.healthMax); // currentMax
+		pym_addInt(&pms, cm->player->actor->stats.healthCurrentMax); // currentMax
 		pym_addInt(&pms, 0); // refreshAmount
 		pym_addInt(&pms, 0); // whoId
 		pym_tuple_end(&pms);
@@ -1155,7 +1288,51 @@ void manifestion_recv_revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyS
 			cellMgr_addToWorld(cm);
 }
 
-//todo: 1) change everything to broadcast information only to things in sight
-//	  2) tell the entering player about the already logged in players
-//	  3) broadcast movement packets only to players in range..
-// mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannelClient_t *aggregator, sint32 *oCount)
+/*
+ * Calculates the level from the current xp
+ * Returns 1-50
+ */
+sint32 manifestation_getLevelByExperience(sint32 xp)
+{
+	// clamp xp value to valid range
+	xp = min(max(xp,0),103410000);
+	// do binary search to find value fast
+	sint32 arraySize = sizeof(experienceTable)/sizeof(experienceTable[0]);
+	sint32 jumpFactor = arraySize/4;
+	sint32 index = arraySize/2;
+	while( true )
+	{
+		if( xp >= experienceTable[index] && xp < experienceTable[index+1] )
+			return index+1;
+		if( xp < experienceTable[index] )
+		{
+			index -= jumpFactor;
+			jumpFactor /= 2;
+			jumpFactor = max(jumpFactor, 1); // needed since the array does not have a size of 2^n
+		}
+		else
+		{
+			index += jumpFactor;
+			jumpFactor /= 2;
+			jumpFactor = max(jumpFactor, 1); // needed since the array does not have a size of 2^n
+		}
+	}
+	return 1; // cannot be reached
+}
+
+/*
+ * Returns the amount needed to get the given level
+ * level must be in range 1-50
+ * returns -1 if level value impossible
+ * If you want to know how much experience is needed to level up use
+ * manifestation_getLevelNeededExperience(currentLevel+1)
+ */
+sint32 manifestation_getLevelNeededExperience(sint32 level)
+{
+	level--; // -1 as we pass the actual level (1-50) and need to translate it to array index (0-49)
+	if( level < 0 )
+		return -1;
+	if( level > 49 )
+		return -1;
+	return experienceTable[level];
+}

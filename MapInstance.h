@@ -1,3 +1,4 @@
+#include "navmesh.h"
 #include "behaviorController.h"
 #include "actor.h"
 #include "entityMgr.h"

@@ -41,12 +41,12 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		{ creature_t *creature = (creature_t*)entity;
 		targetActor = &creature->actor; }
 		break;
-		case ENTITYTYPE_CLIENT:
-            { 
-				mapChannelClient_t *player = (mapChannelClient_t*)entity;            
-				targetActor = player->player->actor; 
-			}
-            break;
+	case ENTITYTYPE_CLIENT:
+        { 
+			mapChannelClient_t *player = (mapChannelClient_t*)entity;            
+			targetActor = player->player->actor; 
+		}
+        break;
 	default:
 		printf("Can't shoot that object\n");
 		return;
@@ -206,26 +206,12 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		if( creature->actor.state == ACTOR_STATE_DEAD )
 			return;
 										
-		creature->currentHealth -= missile->damageA;
-		if( creature->currentHealth <= 0 )
+		creature->actor.stats.healthCurrent -= missile->damageA;
+		if( creature->actor.stats.healthCurrent <= 0 )
 		{
-			creature->actor.state = ACTOR_STATE_DEAD;
-			// dead!
-			pym_init(&pms);
-			pym_tuple_begin(&pms);
-			pym_list_begin(&pms);
-			pym_addInt(&pms, 5); // dead
-			pym_list_end(&pms);
-			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
 			// fix health
-			creature->currentHealth = 0;
-			// tell spawnpool if set
-			if( creature->spawnPool )
-			{
-				spawnPool_decreaseAliveCreatureCount(mapChannel, creature->spawnPool);
-				spawnPool_increaseDeadCreatureCount(mapChannel, creature->spawnPool);
-			}
+			creature->actor.stats.healthCurrent = 0;
+			creature_handleCreatureKill(mapChannel, creature, missile->source);
 		}
 
 		pym_init(&pms);
@@ -269,7 +255,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		// update health (Recv_UpdateHealth 380)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, creature->currentHealth); // current
+		pym_addInt(&pms, creature->actor.stats.healthCurrent); // current
 		pym_addInt(&pms, creature->type->maxHealth); // currentMax
 		pym_addInt(&pms, 0); // refreshAmount
 		pym_addInt(&pms, 0); // whoId
@@ -381,7 +367,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
-		pym_addInt(&pms, client->player->actor->stats.healthMax); // currentMax
+		pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
 		pym_addInt(&pms, 0); // refreshAmount
 		pym_addInt(&pms, 0); // whoId
 		pym_tuple_end(&pms);

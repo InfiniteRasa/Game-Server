@@ -55,6 +55,7 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	creature->type = creatureType; // direct pointer for fast access to type info
 	creature->actor.entityClassId = creatureType->entityClassId;
 	creature->actor.entityId = entityMgr_getFreeEntityIdForCreature();
+	creature->actor.stats.level = 1; // test
 	if(spawnPool == NULL)
 	{
          creature->actor.attackstyle = 1;  
@@ -66,7 +67,7 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 		 creature->lastagression = 0;
 		 creature->rottime = 350;
 		 creature->range = 26.40f;
-		 creature->currentHealth = creatureType->maxHealth;
+		 creature->actor.stats.healthCurrent = creatureType->maxHealth;
 		 creature->controller.currentAction = 3;
 		 creature->wanderstate = 0; //wanderstate: calc new position
 		 creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
@@ -89,7 +90,7 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	creature->range = 26.40f;
 	//if(faction <= 0) creature->faction = 0;
 	creature->faction = faction; //hostile
-	creature->currentHealth = creatureType->maxHealth;
+	creature->actor.stats.healthCurrent = creatureType->maxHealth;
 	creature->controller.currentAction = 3;
 	creature->wanderstate = 0; //wanderstate: calc new position
 	creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
@@ -179,7 +180,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, creature->type->maxHealth); // current (current Max, base)
 	pym_addInt(&pms, creature->type->maxHealth); // currentMax (modfierTarget?)
-	pym_addInt(&pms, creature->currentHealth); // normalMax (current Value)
+	pym_addInt(&pms, creature->actor.stats.healthCurrent); // normalMax (current Value)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
@@ -309,9 +310,9 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 		netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 	}
 
-	if( creature->currentHealth <= 0 )
+	if( creature->actor.stats.healthCurrent <= 0 )
 	{
-          creature->actor.state = ACTOR_STATE_DEAD;
+        creature->actor.state = ACTOR_STATE_DEAD;
 		// dead!
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -321,11 +322,8 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, &creature->actor, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
 		// fix health
-		creature->currentHealth = 0;
-
+		creature->actor.stats.healthCurrent = 0;
 	}
-
-	
 }
 
 void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 weaponId)
@@ -358,6 +356,46 @@ void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 we
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(cgm, entityId, 27, pym_getData(&pms), pym_getLen(&pms));
+}
+
+/*
+ * Called whenever a creature is killed
+ */
+void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature, actor_t* killedBy)
+{
+	pyMarshalString_t pms;
+	creature->actor.state = ACTOR_STATE_DEAD;
+	// dead
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	pym_addInt(&pms, 5); // dead
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_STATECHANGE, pym_getData(&pms), pym_getLen(&pms));
+	// tell spawnpool if set
+	if( creature->spawnPool )
+	{
+		spawnPool_decreaseAliveCreatureCount(mapChannel, creature->spawnPool);
+		spawnPool_increaseDeadCreatureCount(mapChannel, creature->spawnPool);
+	}
+	// todo: How were credits and experience calculated when multiple players attacked the same creature? Did only the player with the first strike get experience?
+	mapChannelClient_t* cm = killedBy->owner;
+	if( cm )
+	{
+		// give credits
+		sint32 creditsToAdd = creature->actor.stats.level * 5;
+		sint32 creditAddRange = creature->actor.stats.level * 2;
+		creditsToAdd += ((rand()%(creditAddRange*2+1))-creditAddRange);
+		manifestation_GainCredits(cm, creditsToAdd);
+		// give experience
+		sint32 experience = creature->actor.stats.level * 20; // base experience
+		sint32 experienceRange = creature->actor.stats.level * 4;
+		experience += ((rand()%(experienceRange*2+1))-experienceRange);
+		// todo: Depending on level difference reduce experience
+		manifestation_GainExperience(cm, experience);
+	}
+	
 }
 
 // 1:n

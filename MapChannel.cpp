@@ -882,6 +882,7 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 			Sleep(5000);
 			ExitThread(-1);
 		}
+		navmesh_initForMapChannel(mapChannel);
 		dynamicObject_init(mapChannel);
 		mission_initForChannel(mapChannel);
 		npc_initForMapChannel(mapChannel); //---db use

@@ -8,7 +8,7 @@ void _gameEffect_updateMovementMod(mapChannel_t *mapChannel, actor_t *actor)
 	gameEffect_t *gameeffect = actor->activeEffects;
 	while( gameeffect )
 	{
-		if( gameeffect->effectId == EFFECTID_SPRsint32 )
+		if( gameeffect->effectId == EFFECTID_SPRINT )
 		{
 			// apply sprsint32 bonus
 			movementMod += 0.10f;
@@ -119,7 +119,7 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work
-	if( effectId == EFFECTID_SPRsint32 )
+	if( effectId == EFFECTID_SPRINT )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
 }
@@ -136,7 +136,7 @@ void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *
 	// remove from list
 	_gameEffect_removeFromList(actor, gameEffect);
 	// do ability specific work
-	if( gameEffect->effectId == EFFECTID_SPRsint32 )
+	if( gameEffect->effectId == EFFECTID_SPRINT )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
 	// free effect

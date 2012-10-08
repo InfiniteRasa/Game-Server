@@ -7,6 +7,11 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "DetourCommon.h"
+#include "DetourNavMesh.h"
+#include "DetourNavMeshQuery.h"
+
+
 #if(_MSC_VER>=1600)
 #define _HAS_ITERATOR_DEBUGGING 0	
 #endif

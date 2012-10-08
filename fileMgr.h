@@ -29,6 +29,7 @@ sint8 *fileMgr_readLine(file_t *file);
 
 void fileMgr_setSeek(file_t *file, uint32 seek);
 uint32 fileMgr_getSeek(file_t *file);
+uint32 fileMgr_getSize(file_t *file);
 
 // fileMgr extensions
 #include "sData.h"

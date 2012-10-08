@@ -87,6 +87,9 @@ typedef struct _mapChannel_t
 	std::vector<dynObject_workEntry_t*> updateObjectList;
 	// list of all waypoints on this map
 	std::vector<dynObject_t*> waypoints;
+	// navmesh
+	dtNavMesh* navMesh;
+	dtNavMeshQuery* navMeshQuery;
 }mapChannel_t;
 
 typedef struct 

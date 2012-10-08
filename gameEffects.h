@@ -9,7 +9,7 @@ typedef struct _gameEffect_t
 	_gameEffect_t *next;
 }gameEffect_t;
 
-#define EFFECTID_SPRsint32	247
+#define EFFECTID_SPRINT	247
 
 void gameEffect_attach(mapChannel_t *mapChannel, uint32 entityId, sint32 effectId, sint32 effectLevel, sint32 duration = 5000);
 void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId, sint32 effectLevel, sint32 duration = 5000);

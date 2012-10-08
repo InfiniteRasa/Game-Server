@@ -35,7 +35,7 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyS
 		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
 	case 401: // Sprsint32
-		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRsint32, actionArgId, 5000);
+		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId, 5000);
 		return;
 	default:
 		printf("Unknown Ability: ID %i ArgID %i Target %u64\n", actionId, actionArgId, targetEntityId);

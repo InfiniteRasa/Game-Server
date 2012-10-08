@@ -280,6 +280,66 @@
 								</File>
 							</Filter>
 						</Filter>
+						<Filter
+							Name="recast"
+							>
+							<File
+								RelativePath=".\DetourAlloc.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourAlloc.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourAssert.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourCommon.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourCommon.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMesh.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMesh.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMeshBuilder.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMeshBuilder.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMeshQuery.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNavMeshQuery.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNode.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourNode.h"
+								>
+							</File>
+							<File
+								RelativePath=".\DetourStatus.h"
+								>
+							</File>
+						</Filter>
 					</Filter>
 				</Filter>
 				<Filter
@@ -530,6 +590,18 @@
 						</File>
 						<File
 							RelativePath=".\behaviorController.h"
+							>
+						</File>
+					</Filter>
+					<Filter
+						Name="navmesh"
+						>
+						<File
+							RelativePath=".\navmesh.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\navmesh.h"
 							>
 						</File>
 					</Filter>

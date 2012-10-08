@@ -454,7 +454,49 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		communicator_systemMessage(cm, textMsg);
 		return true;
 	}
-	
+	if( memcmp(textMsg,".catchme",8) == 0 )
+	{
+		// make all creatures in range run to the player
+		sint32 minX = (sint32)(((cm->player->actor->posX-256.0f) / CELL_SIZE) + CELL_BIAS);
+		sint32 minZ = (sint32)(((cm->player->actor->posZ-256.0f) / CELL_SIZE) + CELL_BIAS);
+		sint32 maxX = (sint32)(((cm->player->actor->posX+256.0f+(CELL_SIZE-0.0001f)) / CELL_SIZE) + CELL_BIAS);
+		sint32 maxZ = (sint32)(((cm->player->actor->posZ+256.0f+(CELL_SIZE-0.0001f)) / CELL_SIZE) + CELL_BIAS);
+		// check all cells for creatures
+		for(sint32 ix=minX; ix<=maxX; ix++)
+		{
+			for(sint32 iz=minZ; iz<=maxZ; iz++)
+			{
+				mapCell_t *nMapCell = cellMgr_getCell(cm->mapChannel, ix, iz);
+				if( nMapCell )
+				{
+					if( nMapCell->ht_creatureList.empty() )
+						continue;
+					std::vector<creature_t*>::iterator itr = nMapCell->ht_creatureList.begin();
+					while (itr != nMapCell->ht_creatureList.end())
+					{
+						creature_t *creature = itr[0];
+						++itr;
+						// update combat/wanter state and movement
+						creature->controller.pathLength	= 0;
+						creature->controller.pathIndex = 0;
+						creature->wx = cm->player->actor->posX;
+						creature->wy = cm->player->actor->posY;
+						creature->wz = cm->player->actor->posZ;
+						creature->wanderstate = 1;
+						creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+					}			
+				}
+			}
+		}
+	}
+	if( memcmp(textMsg, ".givexp ", 8) == 0 )
+	{
+		sint8 *pch = textMsg + 8;
+		sint32 xp = atoi(pch);
+		if( xp > 0 )
+			manifestation_GainExperience(cm, xp);
+		return true;
+	}
 	if( memcmp(textMsg,".animtest ",10) == 0 )
 	{
 		    //__debugbreak();

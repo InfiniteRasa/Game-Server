@@ -181,3 +181,8 @@ uint32 fileMgr_getSeek(file_t *file)
 {
 	return SetFilePointer(file->hFile, 0, NULL, FILE_CURRENT);
 }
+
+uint32 fileMgr_getSize(file_t *file)
+{
+	return GetFileSize(file->hFile, NULL);
+}
