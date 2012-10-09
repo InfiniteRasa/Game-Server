@@ -36,6 +36,19 @@ typedef struct
 	// todo: Regeneration rates
 }actorStats_t;
 
+/*
+	BODY = 1
+	MIND = 2
+	SPIRIT = 3
+	HEALTH = 4
+	CHI = 5
+	POWER = 6
+	AWARE = 7
+	ARMOR = 8
+	SPEED = 9
+	REGEN = 10
+*/
+
 typedef struct _actor_t
 {
 	sint32 entityId;

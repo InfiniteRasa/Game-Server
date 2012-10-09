@@ -53,6 +53,36 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_ALLCREDITS, pym_getData(&pms), pym_getLen(&pms));
+	// advancement stats (level, experiencePoints, attributes, trainPts, skillPts)
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, owner->player->actor->stats.level); // level
+	pym_addInt(&pms, owner->player->experience); // experiencePoints
+	sint32 availableAttributePoints = owner->player->actor->stats.level * 2 - 2;
+	availableAttributePoints -= owner->player->spentAttributePoints_body;
+	availableAttributePoints -= owner->player->spentAttributePoints_mind;
+	availableAttributePoints -= owner->player->spentAttributePoints_spirit;
+	availableAttributePoints = max(availableAttributePoints, 0);
+	pym_addInt(&pms, availableAttributePoints); // attributePoints
+	pym_addInt(&pms, 0); // trainPoints (are not used by the client?)
+	sint32 availableSkillPoints = manifestation_getSkillPointsAvailable(owner);
+	pym_addInt(&pms, availableSkillPoints); // skillPts
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_ADVANCEMENTSTATS, pym_getData(&pms), pym_getLen(&pms));
+	// set skills
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	for(sint32 i=0; i<SKILL_COUNT; i++)
+	{
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, skillIdx2ID[i]);			// id
+		pym_addInt(&pms, owner->player->skill[i]);	// level
+		pym_tuple_end(&pms);
+	}
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 itemClassId)
@@ -108,33 +138,46 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 }
 
 /*
- * Updates all stats values depending on level, spent attribute points, etc.
+ * Updates all attributes depending on level, spent attribute points, etc.
  * Does not send values to clients
+ * If fullreset is true, the current values of each attribute are set to the maximum
  */
-void manifestation_updateStatsValues(mapChannelClient_t *client)
+void manifestation_updateStatsValues(mapChannelClient_t *client, bool fullreset)
 {
 	// used reference:
 	// http://zeus.jrq.ch/trcb/ 
-	// body
-	client->player->actor->stats.bodyCurrent = 10 + (client->player->actor->stats.level-1)*2;
-	client->player->actor->stats.bodyCurrentMax = client->player->actor->stats.bodyCurrent;
-	client->player->actor->stats.bodyNormalMax = client->player->actor->stats.bodyCurrent;
+	// http://tabularasavault.ign.com/View.php?view=Other.Detail&id=2
+
+	client->player->actor->stats.bodyNormalMax = 10 + (client->player->actor->stats.level-1)*2 + client->player->spentAttributePoints_body;
+	sint32 bodyBonus = 0;
+	client->player->actor->stats.bodyCurrentMax = client->player->actor->stats.bodyNormalMax + bodyBonus;
+	client->player->actor->stats.bodyCurrent = client->player->actor->stats.bodyCurrentMax;
 	// mind
-	client->player->actor->stats.mindCurrent = 10 + (client->player->actor->stats.level-1)*2;
-	client->player->actor->stats.mindCurrentMax = client->player->actor->stats.mindCurrent;
-	client->player->actor->stats.mindNormalMax = client->player->actor->stats.mindCurrent;
+	client->player->actor->stats.mindNormalMax = 10 + (client->player->actor->stats.level-1)*2 + client->player->spentAttributePoints_mind;
+	sint32 mindBonus = 0;
+	client->player->actor->stats.mindCurrentMax = client->player->actor->stats.mindNormalMax + mindBonus;
+	client->player->actor->stats.mindCurrent = client->player->actor->stats.mindCurrentMax;
 	// spirit
-	client->player->actor->stats.spiritCurrent = 10 + (client->player->actor->stats.level-1)*2;
-	client->player->actor->stats.spiritCurrentMax = client->player->actor->stats.spiritCurrent;
-	client->player->actor->stats.spiritNormalMax = client->player->actor->stats.spiritCurrent;
+	client->player->actor->stats.spiritNormalMax = 10 + (client->player->actor->stats.level-1)*2 + client->player->spentAttributePoints_spirit;
+	sint32 spiritBonus = 0;
+	client->player->actor->stats.spiritCurrentMax = client->player->actor->stats.spiritNormalMax + spiritBonus;
+	client->player->actor->stats.spiritCurrent = client->player->actor->stats.spiritCurrentMax;
 	// health
-	client->player->actor->stats.healthCurrentMax = client->player->actor->stats.bodyCurrent * 10;
-	client->player->actor->stats.healthNormalMax = client->player->actor->stats.bodyCurrent * 10;
-	client->player->actor->stats.healthCurrent = client->player->actor->stats.healthCurrentMax;
+	client->player->actor->stats.healthNormalMax = 100 + (client->player->actor->stats.level-1)*2*8 + client->player->spentAttributePoints_body*6;
+	sint32 healthBonus = 0;
+	client->player->actor->stats.healthCurrentMax = client->player->actor->stats.healthNormalMax + healthBonus;
+	if( fullreset)
+		client->player->actor->stats.healthCurrent = client->player->actor->stats.healthCurrentMax;
+	else
+		client->player->actor->stats.healthCurrent = min(client->player->actor->stats.healthCurrent, client->player->actor->stats.healthCurrentMax);
 	// chi/power
-	client->player->actor->stats.chiCurrentMax = 103 + (client->player->actor->stats.spiritCurrent-10) * 5;
-	client->player->actor->stats.chiNormalMax = 103 + (client->player->actor->stats.spiritCurrent-10) * 5;
-	client->player->actor->stats.chiCurrent = client->player->actor->stats.chiCurrentMax;
+	client->player->actor->stats.chiNormalMax = 100 + (client->player->actor->stats.level-1)*2*4 + client->player->spentAttributePoints_spirit*3;
+	sint32 chiBonus = 0;
+	client->player->actor->stats.chiCurrentMax = client->player->actor->stats.chiNormalMax + chiBonus;
+	if( fullreset)
+		client->player->actor->stats.chiCurrent = client->player->actor->stats.chiCurrentMax;
+	else
+		client->player->actor->stats.chiCurrent = min(client->player->actor->stats.chiCurrent, client->player->actor->stats.chiCurrentMax);
 }
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData)
@@ -187,27 +230,19 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
 
+	// validate skills (Recruit skills start at level 1)
+	owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS]);
+	owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND]);
+	owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING]);
+	owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR]);
+	owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);
+
 	// set stats (should read them from the db)
 	owner->player->actor->stats.level = 1;
 	owner->player->credits = 0;
 	owner->player->prestige = 0;
 	owner->player->experience = 0;
-	manifestation_updateStatsValues(owner);
-	
-
-
-	// introduce player to myself
-	//manifestation_sint32roducteEntity(mapChannel, manifestation, owner);
-	//// introduce others to new player
-	//EnterCriticalSection(&mapChannel->criticalSection);
-	//for(sint32 i=0; i<mapChannel->playerCount; i++)
-	//{
-	//	if( mapChannel->playerList[i]->player != manifestation )
-	//		if( mapChannel->playerList[i]->player )
-	//			manifestation_sint32roducteEntity(mapChannel, mapChannel->playerList[i]->player, owner);
-	//}
-	//LeaveCriticalSection(&mapChannel->criticalSection);
-	// set controller and other local player information
+	manifestation_updateStatsValues(owner, true);
 
 	
 	communicator_loginOk(mapChannel, owner);
@@ -381,18 +416,6 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, tempClient->player->actor->isRunning);
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 96, pym_getData(&pms), pym_getLen(&pms));
-		// set skills
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-		pym_list_begin(&pms);
-		// skill firearms
-			pym_tuple_begin(&pms);
-				pym_addInt(&pms, 1);  // id
-				pym_addInt(&pms, 5);// level
-			pym_tuple_end(&pms);
-		pym_list_end(&pms);
-		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 548, pym_getData(&pms), pym_getLen(&pms));
 		// Recv_WorldLocationDescriptor (243)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -401,7 +424,7 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, tempClient->player->actor->posY); // y 
 		pym_addInt(&pms, tempClient->player->actor->posZ); // z 
 		pym_tuple_end(&pms); 
-		pym_tuple_begin(&pms); // rotation quaterninion
+		pym_tuple_begin(&pms); // rotation quaternion
 		pym_addFloat(&pms, 0.0f);
 		pym_addFloat(&pms, 0.0f);
 		pym_addFloat(&pms, 0.0f);
@@ -513,7 +536,6 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 29, pym_getData(&pms), pym_getLen(&pms));
 	}
-
 	// PreloadData
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -625,97 +647,28 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 477, pym_getData(&pms), pym_getLen(&pms));
 	}
-	// set skills (see skillData.pyo)
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_list_begin(&pms);
-		// skill firearms
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 4);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	// skill firearms
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 1);  // id
-	pym_addInt(&pms, 5);	// level
-		pym_tuple_end(&pms);
-	// skill hand to hand
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 8);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	//	T1_RECRUIT_MOTOR_ASSIST_ARMOR
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 19);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	//T2_SOLDIER_REFLECTIVE_ARMOR
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 21);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	//T2_SOLDIER_RAGE
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 147);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	// T2_SOLDIER_MACHINE_GUN
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 22);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	// T3_COMMANDO_LAUNCHER
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 24);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	// T4_GRENADIER_PROPELLANT
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 40);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	//	T3_COMMANDO_GRAVITON_ARMOR
-	pym_tuple_begin(&pms);
-		pym_addInt(&pms, 39);  // id
-		pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-	//T1_SPRsint32
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 165);  // T1_RECRUIT_SPRsint32
-	pym_addInt(&pms, 5);	// level
-	pym_tuple_end(&pms);
-
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 49);  // T1_RECRUIT_LIGHTNING
-	pym_addInt(&pms, 1);// level
-	pym_tuple_end(&pms);
-	pym_list_end(&pms);
-	pym_tuple_end(&pms);
-	for(sint32 i=0; i<playerCount; i++)
-	{
-		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 548, pym_getData(&pms), pym_getLen(&pms));
-	}
 	// Recv_Abilities (id: 10, desc: must only be sent for the local manifestation)
-	// set skills
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_list_begin(&pms);
-	// ability sprsint32
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 401); // id
-	pym_addInt(&pms, 5); // level
-	pym_tuple_end(&pms);
-	// ability lightning
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 194); // id
-	pym_addInt(&pms, 1); // level
-	pym_tuple_end(&pms);
-	pym_list_end(&pms);
-	pym_tuple_end(&pms);
-	for(sint32 i=0; i<playerCount; i++)
-	{
-		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
-	}
+	// We dont need to send ability data to every client, but only the owner (which is done in manifestation_assignPlayer)
+	// Skills -> Everything that the player can learn via the skills menu (Sprint, Firearms...) Abilities -> Every skill gained by logos?
+	//pym_init(&pms);
+	//pym_tuple_begin(&pms);
+	//pym_list_begin(&pms);
+	//// ability sprint
+	//pym_tuple_begin(&pms);
+	//pym_addInt(&pms, 401); // id
+	//pym_addInt(&pms, 5); // level
+	//pym_tuple_end(&pms);
+	//// ability lightning
+	//pym_tuple_begin(&pms);
+	//pym_addInt(&pms, 194); // id
+	//pym_addInt(&pms, 1); // level
+	//pym_tuple_end(&pms);
+	//pym_list_end(&pms);
+	//pym_tuple_end(&pms);
+	//for(sint32 i=0; i<playerCount; i++)
+	//{
+	//	netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
+	//}
 	// Recv_WorldLocationDescriptor (243)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -861,6 +814,8 @@ void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
 
 void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 {
+	if( cm->player->actor->stats.level >= 50 )
+		return; // cannot gain xp over level 50
 	cm->player->experience += experience;
 	// inform owner
 	pyMarshalString_t pms;
@@ -880,7 +835,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_EXPERIENCECHANGED, pym_getData(&pms), pym_getLen(&pms));
 	// check for level up 
 	// since we can level up multiple levels at once, check as long as there is a level up possible
-	while( true )
+	while( cm->player->actor->stats.level < 50 )
 	{
 		sint32 xpForLevelUp = manifestation_getLevelNeededExperience(cm->player->actor->stats.level+1);
 		if( xpForLevelUp == -1 )
@@ -897,11 +852,235 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 			pym_tuple_end(&pms);
 			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_LEVELUP, pym_getData(&pms), pym_getLen(&pms));
 			// todo: For all others send Recv_setLevel() to update level display for this player
+			// update stats
+			// todo
+			// update available allocation points (attributes, trainPts, skillPts)
+			manifestation_SendAvailableAllocationPoints(cm);
 		}
 		else
 			break;
 	}
 
+}
+
+/*
+ * Called when the client changes one or more of the primary attributes
+ */
+void manifestation_recv_AllocateAttributePoints(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	if( !pym_unpackTuple_begin(&pums) ) // values double packed
+		return;
+	sint32 body = pym_unpackInt(&pums);
+	sint32 mind = pym_unpackInt(&pums);
+	sint32 spirit = pym_unpackInt(&pums);
+	// calculate points available
+	sint32 availableAttributePoints = cm->player->actor->stats.level * 2 - 2;
+	availableAttributePoints -= cm->player->spentAttributePoints_body;
+	availableAttributePoints -= cm->player->spentAttributePoints_mind;
+	availableAttributePoints -= cm->player->spentAttributePoints_spirit;
+	availableAttributePoints = max(availableAttributePoints, 0);
+	// validate values
+	body = max(0, body);
+	mind = max(0, mind);
+	spirit = max(0, spirit);
+	if( (body+mind+spirit) > availableAttributePoints )
+	{
+		// trying to spend more points than available, cheater?
+		return;
+	}
+	// update values
+	cm->player->spentAttributePoints_body += body;
+	cm->player->spentAttributePoints_mind += mind;
+	cm->player->spentAttributePoints_spirit += spirit;
+	// send updated allocation points
+	manifestation_SendAvailableAllocationPoints(cm);
+	// update stats
+	manifestation_updateStatsValues(cm, false);
+	// send stats update
+	pyMarshalString_t pms;
+
+	// set attributes - Recv_AttributeInfo (29)
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	// body
+	pym_addInt(&pms, 1);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.bodyCurrent); // current (current value)
+	pym_addInt(&pms, cm->player->actor->stats.bodyCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, cm->player->actor->stats.bodyNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod
+	pym_tuple_end(&pms);
+	// mind
+	pym_addInt(&pms, 2);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.mindCurrent); // current (current value)
+	pym_addInt(&pms, cm->player->actor->stats.mindCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, cm->player->actor->stats.mindNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod
+	pym_tuple_end(&pms);
+	// spirit
+	pym_addInt(&pms, 3);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.spiritCurrent); // current (current value)
+	pym_addInt(&pms, cm->player->actor->stats.spiritCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, cm->player->actor->stats.spiritNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod
+	pym_tuple_end(&pms);
+	// health
+	pym_addInt(&pms, 4);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current (current value)
+	pym_addInt(&pms, cm->player->actor->stats.healthCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, cm->player->actor->stats.healthNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod (seconds, float?)
+	pym_tuple_end(&pms);
+	// chi
+	pym_addInt(&pms, 5);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.chiCurrent); // current (current value)
+	pym_addInt(&pms, cm->player->actor->stats.chiCurrentMax); // currentMax (current max)
+	pym_addInt(&pms, cm->player->actor->stats.chiNormalMax); // normalMax (max without bonus)
+	pym_addInt(&pms, 0); // refreshIncrement
+	pym_addInt(&pms, 0); // refreshPeriod
+	pym_tuple_end(&pms);
+	// misc
+	for(sint32 i=6; i<=10; i++)
+	{
+		pym_addInt(&pms, i);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 0 + i*100); // current
+		pym_addInt(&pms, 1000); // currentMax
+		pym_addInt(&pms, 1000); // normalMax
+		pym_addInt(&pms, 0); // refreshIncrement
+		pym_addInt(&pms, 0); // refreshPeriod
+		pym_tuple_end(&pms);
+	}
+	/*
+	Receive the initialization data for the attributes
+	(BODY, MIND, SPIRIT, HEALTH, CHI) of this actor.
+	@param attrDict - dict keyed by attr type, containing tuples of 
+	(current, currentMax, normalMax, refreshIncrement, refreshPeriod)
+	*/
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	// send to all clients in range
+	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
+}
+
+void manifestation_SendAvailableAllocationPoints(mapChannelClient_t *cm)
+{
+	// update available allocation points (attributes, trainPts, skillPts)
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	sint32 availableAttributePoints = cm->player->actor->stats.level * 2 - 2;
+	availableAttributePoints -= cm->player->spentAttributePoints_body;
+	availableAttributePoints -= cm->player->spentAttributePoints_mind;
+	availableAttributePoints -= cm->player->spentAttributePoints_spirit;
+	availableAttributePoints = max(availableAttributePoints, 0);
+	pym_addInt(&pms, availableAttributePoints); // attributePoints
+	pym_addInt(&pms, 0); // trainPoints (are not used by the client?)
+	sint32 availableSkillPoints = manifestation_getSkillPointsAvailable(cm);
+	// todo: Subtract skill points
+	pym_addInt(&pms, availableSkillPoints); // skillPts
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_AVAILABLEALLOCATIONPOINTS, pym_getData(&pms), pym_getLen(&pms));
+}
+
+uint8 requiredSkillLevelPoints[6] = {0,1,3,6,10,15};
+
+sint32 manifestation_getSkillPointsAvailable(mapChannelClient_t *cm)
+{
+	sint32 pointsAvailable = (cm->player->actor->stats.level-1)*2;
+	// subtract spent skill levels
+	pointsAvailable += 5; // add five points because of the recruit skills that start at level 1
+	for(sint32 i=0; i<SKILL_COUNT; i++)
+	{
+		sint32 skillLevel = cm->player->skill[i];
+		if( skillLevel < 0 || skillLevel > 5 )
+			continue; // should not be possible
+		pointsAvailable -= requiredSkillLevelPoints[skillLevel];
+	}
+	return max(0, pointsAvailable);
+}
+
+/*
+ * Called when the client spends skill points
+ */
+void manifestation_recv_LevelSkills(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	sint32 listLen = pym_unpackList_begin(&pums);
+	if( listLen < 0 )
+		return; // error unpacking list
+	sint32 skillPointsAvailable = manifestation_getSkillPointsAvailable(cm);
+	sint8 skillLevelupArray[SKILL_COUNT] = {0}; // used to temporarily safe skill level updates
+	for(sint32 i=0; i<listLen; i++)
+	{
+		if( !pym_unpackTuple_begin(&pums) )
+			return; // invalid marshal data
+		sint32 skillId = pym_unpackInt(&pums);
+		sint32 skillLevelNew = pym_unpackInt(&pums);
+		if( pums.unpackErrorEncountered )
+			break;
+		// get skill index
+		sint32 skillIndex = manifestation_getSkillIndexById(skillId);
+		if( skillIndex == -1 )
+		{
+			printf("manifestation_recv_LevelSkills: Invalid skillID received. Modified or outdated client?\n");
+			return;
+		}
+		sint32 oldSkillLevel = cm->player->skill[skillIndex];
+		sint32 newSkillLevel = skillLevelNew;
+		if( newSkillLevel < oldSkillLevel || newSkillLevel > 5 )
+		{
+			printf("manifestation_recv_LevelSkills: Invalid skill level received\n");
+			return;
+		}
+		sint32 additionalSkillPointsRequired = requiredSkillLevelPoints[newSkillLevel] - requiredSkillLevelPoints[oldSkillLevel];
+		skillPointsAvailable -= additionalSkillPointsRequired;
+		skillLevelupArray[skillIndex] = newSkillLevel - oldSkillLevel;
+	}
+	// do we have enough skill points for the skill level ups?
+	if( skillPointsAvailable < 0 )
+	{
+		printf("manifestation_recv_LevelSkills: Not enough skill points. Modified or outdated client?\n");
+		return;
+	}
+	// everything ok, update skills!
+	for(sint32 i=0; i<SKILL_COUNT; i++)
+	{
+		cm->player->skill[i] += skillLevelupArray[i];
+	}
+	// send skill update to client
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	for(sint32 i=0; i<SKILL_COUNT; i++)
+	{
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, skillIdx2ID[i]);			// id
+		pym_addInt(&pms, cm->player->skill[i]);	// level
+		pym_tuple_end(&pms);
+	}
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(&cm, 1, cm->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
+	// update allocation points
+	manifestation_SendAvailableAllocationPoints(cm);
 }
 
 void manifestation_SendAbilityDrawerBar(mapChannelClient_t *cm)

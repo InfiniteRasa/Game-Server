@@ -446,12 +446,7 @@ void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelC
 
 void creature_init()
 {
-	hashTable_init(&creatureEnv.ht_creatureType, 65536); // have to set limit high, see below..
-	/*
-		note on sint32ernal string hashtable handling - the table can become 'full' and does NOT auto extend the size during runtime
-	    todo: find a way to auto-extend the string hashtable without having to store all strings.
-		idea: base the hashtable on uint32 table (which does auto-extend) and just generate a string seed as the uint32
-	*/
+	hashTable_init(&creatureEnv.ht_creatureType, 128);
 
 
 	// init test creature

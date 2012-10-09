@@ -54,6 +54,52 @@ bool pym_unpackTuple_begin(pyUnmarshalString_t *pms)
 	}
 }
 
+/*
+ * Tries to unpack a list
+ * Returns the number of items in this list or -1 on error
+ */
+sint32 pym_unpackList_begin(pyUnmarshalString_t *pms)
+{
+	uint8 p = pms->buffer[pms->idx];
+	if( (p&0xF0) == 0x70 )
+	{
+		sint32 c = p & 0x0F;
+		sint32 listLen;
+		if( c <= 0xC )
+		{
+			listLen = c;
+			pms->idx++;
+		}
+		else if( c == 0xD )
+		{
+			listLen = *(uint8*)(pms->buffer+pms->idx+1);
+			pms->idx += 2;
+		}
+		else if( c == 0xE )
+		{
+			listLen = *(uint16*)(pms->buffer+pms->idx+1);
+			pms->idx += 3;
+		}
+		else
+		{
+			listLen = *(uint32*)(pms->buffer+pms->idx+1);
+			pms->idx += 5;
+		}
+		// add list container
+		pms->containerStack[pms->stackIndex].type = 'l';
+		pms->containerStack[pms->stackIndex].size = listLen;
+		pms->containerStack[pms->stackIndex].subelementsLeft = listLen;
+		// dont reduce parent yet
+		pms->stackIndex++;
+		return listLen;
+	}
+	else
+	{
+		pms->unpackErrorEncountered = true;
+		return -1;
+	}
+}
+
 bool pym_unpackDict_begin(pyUnmarshalString_t *pms)
 {
 	uint8 p = pms->buffer[pms->idx];

@@ -451,6 +451,12 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 
 	switch( methodID )
 	{
+	case METHODID_ALLOCATEATTRIBUTEPOINTS:
+		manifestation_recv_AllocateAttributePoints(cm, pyString, pyStringLen);
+		return;
+	case METHODID_LEVELSKILLS:
+		manifestation_recv_LevelSkills(cm, pyString, pyStringLen);
+		return;
 	case METHODID_WHISPER: // Whisper
 		communicator_recv_whisper(cm, pyString, pyStringLen);
 		return;
@@ -464,7 +470,7 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 		mapChannel_recv_mapLoaded(cm, pyString, pyStringLen);
 		return;
 	case 129: // Ping
-		// ignore (todo)
+		// todo
 		return;
 	case METHODID_REQUESTTOGGLERUN: // ToggleRun
 		manifestation_recv_ToggleRun(cm, pyString, pyStringLen);
@@ -1035,6 +1041,9 @@ void mapChannel_start(sint32 *contextIdList, sint32 contextCount)
 	RtlZeroMemory(mapList->mapChannelArray, sizeof(mapChannel_t)*contextCount);
 	for(sint32 i=0; i<contextCount; i++)
 	{
+		// call constructor to init std::vectors
+		new(&mapList->mapChannelArray[i]) mapChannel_t();
+
 		sint32 f = -1;
 		// find by context
 		for(sint32 m=0; m<mapInfoCount; m++)

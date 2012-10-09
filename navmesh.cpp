@@ -34,7 +34,7 @@ void navmesh_initForMapChannel(mapChannel_t *mapChannel)
 	file_t* navMetaFile = fileMgr_open(navmeshFilePath);
 	if( navMetaFile == NULL )
 	{
-		printf("Failed to load NavMesh meta file\n");
+		printf("Failed to load NavMesh meta file. Pathfinding AI disabled\n");
 		return;
 	}
 	tr_navmesh_meta_t meta = {0};

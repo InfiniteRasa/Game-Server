@@ -34,7 +34,7 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyS
 		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 40);
 		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
-	case 401: // Sprsint32
+	case 401: // Sprint
 		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId, 5000);
 		return;
 	default:

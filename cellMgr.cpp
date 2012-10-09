@@ -21,8 +21,10 @@ mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, sint32 x, sint32 z)
 	if( mapCell == NULL )
 	{
 		// create cell
-		mapCell = (mapCell_t*)malloc(sizeof(mapCell_t));
-		RtlZeroMemory(mapCell, sizeof(mapCell_t));
+		//mapCell = (mapCell_t*)malloc(sizeof(mapCell_t));
+		//RtlZeroMemory(mapCell, sizeof(mapCell_t));
+		//mapCell->ht_npcList.
+		mapCell = new mapCell_t;
 		// init cell
 		//hashTable_init(&mapCell->ht_playerList, 8);
 		//hashTable_init(&mapCell->ht_playerNotifyList, 8);

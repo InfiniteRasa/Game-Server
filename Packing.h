@@ -19,7 +19,8 @@ typedef struct
 
 typedef struct  
 {
-	uint8 buffer[1024];
+	uint8 buffer[2048];
+	sint32 bufferSize;
 	sint32 idx;
 	containerStackEntry_t containerStack[16];
 	sint32 stackIdx;
@@ -71,6 +72,7 @@ typedef struct
 
 void pym_init(pyUnmarshalString_t *pms, uint8 *rawData, sint32 len);
 bool pym_unpackTuple_begin(pyUnmarshalString_t *pms);
+sint32 pym_unpackList_begin(pyUnmarshalString_t *pms);
 bool pym_unpackDict_begin(pyUnmarshalString_t *pms);
 sint32 pym_getContainerSize(pyUnmarshalString_t *pms);
 sint32 pym_unpackInt(pyUnmarshalString_t *pms);

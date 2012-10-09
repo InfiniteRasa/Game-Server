@@ -277,7 +277,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature)
 				endPos[2] = creature->wz;	
 				creature->controller.pathIndex = 0;
 				creature->controller.pathLength = navmesh_getPath(mapChannel, startPos, endPos, creature->controller.path, false);
-				printf("creature: Calculated path with %d nodes\n", creature->controller.pathLength);
+				// printf("creature: Calculated path with %d nodes\n", creature->controller.pathLength);
 				if( creature->controller.pathLength == 0 )
 				{
 					// path could not be generated or too short
