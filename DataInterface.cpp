@@ -25,6 +25,7 @@ struct
 	sint8 *ServerIP;
 	sint32 ServerIPHex;
 	sint32 ServerPort;
+	sint32 ID;
 }AuthInfo;
 
 
@@ -106,8 +107,6 @@ void _DataInterface_initWorkerThread(sint32 index)
 	wt->queueWriteIndex = 0;
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_DataInterface_work, wt, 0, NULL);
 }
-
-
 
 void DataInterface_init()
 {
@@ -199,6 +198,12 @@ void DataInterface_init()
 	{ printf("[Game Server] Port option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
 	AuthInfo.ServerPort = atoi(option);
 
+	// ID
+	option = sData_findOption(config, "ID");
+	if( option == NULL )
+	{ printf("[Game Server] ID option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
+	AuthInfo.ID = atoi(option);
+
 	sData_close(config);
 
 
@@ -229,10 +234,10 @@ void DataInterface_registerServerForAuth()
 {
 
 	sint8 queryText1[1024];
-	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host=INET_ATON('%s') AND port ='%i'  LIMIT 1", AuthInfo.ServerIP, AuthInfo.ServerPort);
+	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host=INET_ATON('%s') AND port='%i' AND server_id='%i'  LIMIT 1", AuthInfo.ServerIP, AuthInfo.ServerPort, AuthInfo.ID);
 	if( mysql_query(AuthInfo.mysql_as, queryText1) )
 	{
-		printf("MySQL: Error in query\n");
+		printf("MySQL: Error checking server entry\n");
 		Sleep(1000*60);
 		return;
 	}
@@ -241,20 +246,20 @@ void DataInterface_registerServerForAuth()
 	dbRow = mysql_fetch_row(dbResult);
 	if (dbRow != NULL)
 	{
-		printf("The server is already registered in the database\n");
+		printf("MySQL: The server is already registered in the database\n");
 		return;
 	}
 	
 	sint8 queryText2[1024];
 	wsprintf(queryText2, "INSERT INTO game_servers ("
 	"`server_id`,`host`,`port`,`age_limit`,`pk_flag`,`current_users`,`max_users`,`status`,`static`)"
-	" VALUES(234,INET_ATON('%s'),%i,18,0,0,10,1,1);", AuthInfo.ServerIP, AuthInfo.ServerPort);
+	" VALUES(%i,INET_ATON('%s'),%i,18,0,0,10,1,1);", AuthInfo.ID, AuthInfo.ServerIP, AuthInfo.ServerPort);
 	if( mysql_query(AuthInfo.mysql_as, queryText2) )
 	{
-		printf("Error registering the server in the database\n");
+		printf("MySQL: Error registering the server in the database\n");
 		while(1) Sleep(1000);	
 	}
-	printf("The server has been registered in the database\n");
+	printf("MySQL: The server has been registered in the database\n");
 	return;
 }
 

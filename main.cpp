@@ -241,12 +241,13 @@ sint32 main()
 		else
 			break;
 	}while(1);*/
-	printf("Connecting to database...\n");
+	printf("Connecting to database...");
 	DataInterface_init();
 	DataInterface_registerServerForAuth();
+	printf("Done\n");
 	printf("Loading game data...\n");
 	gameData_load();
-	printf("running\n");
+	printf("Data loaded\n");
 	// init other
 	entityMgr_init();
 	communicator_init();
@@ -260,10 +261,12 @@ sint32 main()
 		contextIdList[i] = mapInfoArray[i].contextId;
 	mapChannel_start(contextIdList, mapInfoCount);
 	free(contextIdList);
+	// ToDo: wait for mapchannel threads to finish loading [no priority]
 	//Start mainserver
 	DWORD p1 = 'NONE';
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)GameMain_Run, &p1, 0, 0);
 	//Main socket handler loop
+	printf("Main socket handler ready\n");
 	FD_SET fd;
 	timeval sTimeout;
 	sTimeout.tv_sec = 1;

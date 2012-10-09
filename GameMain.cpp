@@ -131,6 +131,7 @@ sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *
 /***************** Main ******************/
 sint32 GameMain_Run(void *p1)
 {
+	printf("Game socket handler ready\n");
 	InitializeCriticalSection(&CS_CMgr);
 
 	//Main socket handler loop
@@ -365,14 +366,15 @@ sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len)
 			if( memcmp(data+pIdx, "1.16.5.0", versionLen) ) // 1.11.6.0 - 1.16.5.0
 				wrongVersion = true;
 		}
-		pIdx += versionLen;
 		
 		if( wrongVersion ) 
 		{ 
-			printf("Client version missmatch\n"); 
+			printf("Client version missmatch: Server: %s Client: %s\n", "1.16.5.0", data+pIdx); 
 			closesocket(cgm->socket);
 			return 0;
 		}
+
+		pIdx += versionLen;
 			// return 0;//__debugbreak(); // shit has wrong version
 		
 		uint8 ukn02_4 = *(uint8*)(data+pIdx); pIdx++;

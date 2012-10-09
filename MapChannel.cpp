@@ -872,7 +872,7 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 
 	// init mapchannel
 	//
-	printf("init mapchannels..\n");
+	printf("Initializing MapChannel...\n");
 	for(sint32 chan=0; chan<channelList->mapChannelCount; chan++)
 	{
 		mapChannel_t *mapChannel = channelList->mapChannelArray+chan;
