@@ -845,6 +845,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\VersionInfo.rc"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
