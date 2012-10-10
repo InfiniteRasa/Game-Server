@@ -260,7 +260,7 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_addInt(&pms, 0); // refreshAmount
 		pym_addInt(&pms, 0); // whoId
 		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, 380, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_UPDATEHEALTH, pym_getData(&pms), pym_getLen(&pms));
 	}
 	else if( targetType == ENTITYTYPE_CLIENT )
 	{
@@ -368,12 +368,12 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
 		pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
-		pym_addInt(&pms, 0); // refreshAmount
+		pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
 		pym_addInt(&pms, 0); // whoId
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
 												 client->player->actor, 
-			                                     client->player->actor->entityId, 380, 
+			                                     client->player->actor->entityId, METHODID_UPDATEHEALTH, 
 												 pym_getData(&pms), pym_getLen(&pms));
 	}
 	else

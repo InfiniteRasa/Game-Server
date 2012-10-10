@@ -75,6 +75,7 @@ typedef struct _mapChannel_t
 	uint32 timer_dynObjUpdate;
 	uint32 timer_generalTimer;
 	uint32 timer_controller;
+	uint32 timer_playerUpdate;
 	//mapChannelTimer_t cp_trigger; 
 	// other timers
 	std::vector<mapChannelAutoFireTimer_t> autoFire_timers;

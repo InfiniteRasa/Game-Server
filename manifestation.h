@@ -228,6 +228,7 @@ void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige);
 void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience);
 void manifestation_recv_AllocateAttributePoints(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void manifestation_SendAvailableAllocationPoints(mapChannelClient_t *cm);
+void manifestation_buildAttributeInfoPacket(mapChannelClient_t *client, pyMarshalString_t* pms);
 void manifestation_recv_LevelSkills(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 sint32 manifestation_getSkillPointsAvailable(mapChannelClient_t *cm);
 
@@ -251,6 +252,9 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount);
 void manifestation_cellDiscardClientToPlayers(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount);
 void manifestation_cellDiscardPlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount);
+
+// update callback
+void manifestation_updatePlayer(mapChannelClient_t* mapChannelClient, sint32 tick);
 
 /*
  * Amount of experience needed to reach the given level

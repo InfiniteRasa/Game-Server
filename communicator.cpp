@@ -370,6 +370,23 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		communicator_systemMessage(cm, "pathnodes deactivated");
 		return true;
 	}
+	if( memcmp(textMsg,".hurtme",7) == 0)
+	{
+       cm->player->actor->stats.healthCurrent /= 2;
+	   pyMarshalString_t pms;
+	   pym_init(&pms);
+	   pym_tuple_begin(&pms);
+	   pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current
+	   pym_addInt(&pms, cm->player->actor->stats.healthCurrentMax); // currentMax
+	   pym_addFloat(&pms, cm->player->actor->stats.regenHealthPerSecond); // refreshAmount
+	   pym_addInt(&pms, 0); // whoId
+	   pym_tuple_end(&pms);
+	   netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
+		   cm->player->actor, 
+		   cm->player->actor->entityId, METHODID_UPDATEHEALTH, 
+		   pym_getData(&pms), pym_getLen(&pms));
+		return true;
+	}
     /*if( memcmp(textMsg,".gameobject ",12) == 0 )
 	{
 		 sint8 cmd[12];

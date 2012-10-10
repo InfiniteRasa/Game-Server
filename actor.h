@@ -13,6 +13,10 @@ typedef struct
 typedef struct  
 {
 	sint32 level;
+	// regen rate
+	sint32 regenRateCurrentMax;
+	sint32 regenRateNormalMax; // regen rate without bonus
+	float regenHealthPerSecond; // health regen per second
 	// health
 	sint32 healthCurrent;
 	sint32 healthCurrentMax;

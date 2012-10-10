@@ -987,6 +987,15 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 					controller_mapChannelThink(mapChannel);
 					mapChannel->timer_controller += 250;
 				}
+				if( (currentTime - mapChannel->timer_playerUpdate) >= 1000 )
+				{
+					uint32 playerUpdateTick = currentTime - mapChannel->timer_playerUpdate;
+					mapChannel->timer_playerUpdate = currentTime;
+					for(uint32 i=0; i<mapChannel->playerCount; i++)
+					{
+						manifestation_updatePlayer(mapChannel->playerList[i], playerUpdateTick);
+					}
+				}
 				if( (currentTime - mapChannel->timer_generalTimer) >= 100 )
 				{
 					sint32 timePassed = 100;
@@ -1066,6 +1075,7 @@ void mapChannel_start(sint32 *contextIdList, sint32 contextCount)
 		mapList->mapChannelArray[i].timer_dynObjUpdate = GetTickCount();
 		mapList->mapChannelArray[i].timer_generalTimer = GetTickCount();
 		mapList->mapChannelArray[i].timer_controller = GetTickCount();
+		mapList->mapChannelArray[i].timer_playerUpdate = GetTickCount();
 		mapList->mapChannelArray[i].playerCount = 0;
 		mapList->mapChannelArray[i].playerLimit = 128;
 		mapList->mapChannelArray[i].playerList = (mapChannelClient_t**)malloc(sizeof(mapChannelClient_t*)*mapList->mapChannelArray[i].playerLimit);

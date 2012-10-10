@@ -454,7 +454,7 @@ sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *
 {
 	// check if 'O'
 	if( *pyString != 'O' )
-		__debugbreak(); // oh shit...
+		__debugbreak(); // unsupported python marshaling mode, this is a huge problem...
 	pyString++; pyStringLen--;
 
 	switch( methodID )

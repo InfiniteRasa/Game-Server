@@ -178,9 +178,9 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// health
 	pym_addInt(&pms, 4);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->type->maxHealth); // current (current Max, base)
+	pym_addInt(&pms, creature->actor.stats.healthCurrent); // current (current Max, base)
 	pym_addInt(&pms, creature->type->maxHealth); // currentMax (modfierTarget?)
-	pym_addInt(&pms, creature->actor.stats.healthCurrent); // normalMax (current Value)
+	pym_addInt(&pms, creature->type->maxHealth); // normalMax (current Value)
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
 	pym_tuple_end(&pms);
@@ -208,7 +208,6 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 29, pym_getData(&pms), pym_getLen(&pms));
-
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -389,13 +388,12 @@ void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature,
 		creditsToAdd += ((rand()%(creditAddRange*2+1))-creditAddRange);
 		manifestation_GainCredits(cm, creditsToAdd);
 		// give experience
-		sint32 experience = creature->actor.stats.level * 20; // base experience
-		sint32 experienceRange = creature->actor.stats.level * 4;
+		sint32 experience = creature->actor.stats.level * 100; // base experience
+		sint32 experienceRange = creature->actor.stats.level * 10;
 		experience += ((rand()%(experienceRange*2+1))-experienceRange);
 		// todo: Depending on level difference reduce experience
 		manifestation_GainExperience(cm, experience);
 	}
-	
 }
 
 // 1:n

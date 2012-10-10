@@ -223,13 +223,13 @@ void pym_addFloat(pyMarshalString_t *pms, float value)
 	sint32 len = 0;
 	sint8 floatData[128];
 	sprintf((char*)floatData, "%f", value);
+	len = strlen((char*)floatData);
 	if( pms->idx+1+1+len > pms->bufferSize )
 	{
 		printf("%s: Exceeding buffer size, cannot write marshal data\n", __FUNCTION__);
 	}
 	pms->buffer[pms->idx] = 0x66; pms->idx++;
 	// write len
-	len = strlen((char*)floatData);
 	pms->buffer[pms->idx] = len; pms->idx++;
 	// write float as string
 	for(sint32 i=0; i<len; i++)
