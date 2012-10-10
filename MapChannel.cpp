@@ -896,7 +896,7 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 		spawnPool_initForMapChannel(mapChannel); //---todo:db use -done
 		controller_initForMapChannel(mapChannel);
 		teleporter_initForMapChannel(mapChannel); //---load teleporters
-		printf("Map: [%s]\n",mapChannel->mapInfo->name);
+		printf("  Map: [%s]\n",mapChannel->mapInfo->name);
 	}
 
 	//---init entity position grid

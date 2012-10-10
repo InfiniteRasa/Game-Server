@@ -145,7 +145,7 @@ void _gameData_loadItemTemplates()
 			ExitProcess(-1);
 		}
 		sint8 *catName = sData_currentCategoryName(it);
-		printf("it: %s\n", catName);
+		printf("  IT: %s\n", catName);
 
 		sint8 *s_ClassId = sData_findOption(it, (sint8*)"classId");
 		sint8 *s_templateId = sData_findOption(it, (sint8*)"templateId");

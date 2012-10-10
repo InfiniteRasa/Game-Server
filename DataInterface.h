@@ -1,5 +1,6 @@
-#include"framework.h"
-#include<mysql.h>
+#include "framework.h"
+#include <mysql/mysql.h>
+#include "INIParser.h"
 
 #define WORKER_QUEUELENGTH	128 // jobs at max
 #define WORKER_THREADS		1
@@ -353,6 +354,7 @@ void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionL
 
 /* extra */
 void DataInterface_registerServerForAuth();
+uint32 DataInterface_IPtoHex();
 uint32 DataInterface_getMyIP();
 sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asiOut);
 

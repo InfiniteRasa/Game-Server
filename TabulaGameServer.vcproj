@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TabulaGameServer"
 	ProjectGUID="{5AAC9C49-5BFA-49DC-B04C-C695D0E12D79}"
 	RootNamespace="TabulaGameServer"
@@ -40,7 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)\mysql\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\3rdparty\&quot;"
+				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -59,7 +60,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libmysql.lib ws2_32.lib"
-				AdditionalLibraryDirectories="$(SolutionDir)\mysql\"
+				AdditionalLibraryDirectories="$(SolutionDir)\3rdparty\mysql\"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -87,7 +88,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -112,7 +113,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="$(SolutionDir)\mysql\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\3rdparty\&quot;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -130,7 +131,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libmysql.lib ws2_32.lib"
-				AdditionalLibraryDirectories="$(SolutionDir)\mysql\"
+				AdditionalLibraryDirectories="$(SolutionDir)\3rdparty\mysql\"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -167,6 +168,14 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath=".\INIParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\INIParser.h"
+				>
+			</File>
 			<Filter
 				Name="GameMain"
 				>
@@ -752,6 +761,86 @@
 				</File>
 				<File
 					RelativePath=".\gameData\starterItemTemplateClassIds.txt"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="3rdparty"
+			>
+			<Filter
+				Name="recastnavigation"
+				>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourAlloc.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourAlloc.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourAssert.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourCommon.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMesh.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMesh.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMeshBuilder.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMeshBuilder.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMeshQuery.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNavMeshQuery.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNode.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourNode.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\recastnavigation\DetourStatus.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="minINI"
+				>
+				<File
+					RelativePath=".\3rdparty\minINI\minGlue.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\minINI\minIni.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdparty\minINI\minIni.h"
 					>
 				</File>
 			</Filter>

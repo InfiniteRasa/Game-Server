@@ -231,20 +231,8 @@ sint32 main()
 	printf("\xBA     Experimental Branch @ InfiniteRasa    \xBA\n");
 	printf("\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\n");
 
-	/*do
-	{
-		if( !AuthServerUtil_Register() )
-		{
-			printf("Auth: Register failed, retry...\n");
-			Sleep(5000);
-		}
-		else
-			break;
-	}while(1);*/
-	printf("Connecting to database...");
 	DataInterface_init();
 	DataInterface_registerServerForAuth();
-	printf("Done\n");
 	printf("Loading game data...\n");
 	gameData_load();
 	printf("Data loaded\n");

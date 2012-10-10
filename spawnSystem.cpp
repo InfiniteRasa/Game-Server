@@ -227,8 +227,8 @@ void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnTypeW2_t *jobData)
 			spawnPool_t *tPool = spawnPool+sp;
 
 			//---allocate pathnodes for current spawnpoint
-	        tPool->pathnodes = (baseBehavior_baseNode*) malloc(sizeof(baseBehavior_baseNode) * (locationlist+sp)->nodeCount);
-			tPool->pathnodes = (locationlist+sp)->pathnodes;
+	        //tPool->pathnodes = (baseBehavior_baseNode*) malloc(sizeof(baseBehavior_baseNode) * (locationlist+sp)->nodeCount);
+			//tPool->pathnodes = (locationlist+sp)->pathnodes;
 			//tPool->maxQueueLength = npcData->activeSpawnCount; //simultaneously used spawns
 			tPool->spawnLocationLockTime = npcData->locktime;
 			tPool->spawnAnimationType = npcData->anim_type;

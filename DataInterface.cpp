@@ -7,34 +7,39 @@ DataInterfaceWorkerThread_t workerThread[WORKER_THREADS];
 
 struct  
 {
-	sint8 *dbHost;
-	sint8 *dbUser;
-	sint8 *dbName;
-	sint8 *dbPass;
-	sint32	 dbPort;
-}dbConInfo;
+	sint8* dbHost;
+	sint8* dbUser;
+	sint8* dbName;
+	sint8* dbPass;
+	sint32 dbPort;
+} dbConInfo;
 
-struct  
+struct GSInfo
 {
-	MYSQL *mysql_as;
-	sint8 *dbHost;
-	sint8 *dbUser;
-	sint8 *dbName;
-	sint8 *dbPass;
-	sint32	 dbPort;
-	sint8 *ServerIP;
+	sint8* ServerIP;
 	sint32 ServerIPHex;
 	sint32 ServerPort;
 	sint32 ID;
-}AuthInfo;
+};
+
+struct  
+{
+	MYSQL*		  mysql_as;
+	sint8*		  dbHost;
+	sint8*		  dbUser;
+	sint8*	      dbName;
+	sint8*		  dbPass;
+	sint32		  dbPort;
+	struct GSInfo gsInfo;
+} AuthInfo;
 
 
 
 MYSQL* _DataInterface_gs_connect()
 {
-	MYSQL *     dbHandle;
+	MYSQL* dbHandle;
 	dbHandle = mysql_init(0);
-	MYSQL *dbHandleErr = dbHandle;
+	MYSQL* dbHandleErr = dbHandle;
 	dbHandle = mysql_real_connect(dbHandle, dbConInfo.dbHost,
 								  dbConInfo.dbUser, dbConInfo.dbPass,  
 								  dbConInfo.dbName, dbConInfo.dbPort, 0, 0);     
@@ -52,9 +57,9 @@ MYSQL* _DataInterface_gs_connect()
 
 MYSQL* _DataInterface_as_connect()
 {
-	MYSQL *     dbHandle;
+	MYSQL* dbHandle;
 	dbHandle = mysql_init(0);
-	MYSQL *dbHandleErr = dbHandle;
+	MYSQL* dbHandleErr = dbHandle;
 	dbHandle = mysql_real_connect(dbHandle, AuthInfo.dbHost,
 								  AuthInfo.dbUser, AuthInfo.dbPass,  
 								  AuthInfo.dbName, AuthInfo.dbPort, 0, 0);     
@@ -110,111 +115,52 @@ void _DataInterface_initWorkerThread(sint32 index)
 
 void DataInterface_init()
 {
-	// read connect config details
-	sData_t *config = sData_open("config.txt");
-	sData_nextCategory(config);
+	printf("Reading configuration file...\n\n");
+	INIParser* Parser = new INIParser("config.ini");
+	// Game Server Database
+	dbConInfo.dbHost = strdup(Parser->GetString("Game Server Database", "dbHost", "localhost").c_str());
+	dbConInfo.dbPort = Parser->GetInt("Game Server Database", "dbPort", 10061);
+	dbConInfo.dbName = strdup(Parser->GetString("Game Server Database", "dbName", "ir_gameserver").c_str());
+	dbConInfo.dbUser = strdup(Parser->GetString("Game Server Database", "dbUser", "root").c_str());
+	dbConInfo.dbPass = strdup(Parser->GetString("Game Server Database", "dbPass", "usbw").c_str());
+	// Auth Server Database
+	AuthInfo.dbHost = strdup(Parser->GetString("Auth Server Database", "dbHost", "localhost").c_str());
+	AuthInfo.dbPort = Parser->GetInt("Auth Server Database", "dbPort", 10061);
+	AuthInfo.dbName = strdup(Parser->GetString("Auth Server Database", "dbName", "ir_authentication").c_str());
+	AuthInfo.dbUser = strdup(Parser->GetString("Auth Server Database", "dbUser", "root").c_str());
+	AuthInfo.dbPass = strdup(Parser->GetString("Auth Server Database", "dbPass", "usbw").c_str());
+	// Game  Server options
+	AuthInfo.gsInfo.ServerIP	= strdup(Parser->GetString("Game Server", "IPAddress", "127.0.0.1").c_str());
+	AuthInfo.gsInfo.ServerIPHex = DataInterface_IPtoHex();
+	AuthInfo.gsInfo.ServerPort	= Parser->GetInt("Game Server", "Port", 8001);
+	AuthInfo.gsInfo.ID			= Parser->GetInt("Game Server", "ID", 234);
 
-	// host
-	sint8 *option = sData_findOption(config, "DBHOST");
-	if( option == NULL )
-	{ printf("[Game Server Database] dbHost option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	dbConInfo.dbHost = strdup(option);
+	delete Parser;
 
-	// port
-	option = sData_findOption(config, "DBPORT");
-	if( option == NULL )
-	{ printf("[Game Server Database] dbPort option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	dbConInfo.dbPort = atoi(option);
+	printf("  GSDB Host: %s\n", dbConInfo.dbHost);
+	printf("  GSDB Port: %d\n", dbConInfo.dbPort);
+	printf("  GSDB Name: %s\n", dbConInfo.dbName);
+	printf("  GSDB User: %s\n", dbConInfo.dbUser);
+	printf("  GSDB Pass: %s\n\n", dbConInfo.dbPass);
 
-	// dbName
-	option = sData_findOption(config, "DBNAME");
-	if( option == NULL )
-	{ printf("[Game Server Database] dbName option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	dbConInfo.dbName = strdup(option);
+	printf("  ASDB Host: %s\n", AuthInfo.dbHost);
+	printf("  ASDB Port: %d\n", AuthInfo.dbPort);
+	printf("  ASDB Name: %s\n", AuthInfo.dbName);
+	printf("  ASDB User: %s\n", AuthInfo.dbUser);
+	printf("  ASDB Pass: %s\n\n", AuthInfo.dbPass);
 
-	// dbUser
-	option = sData_findOption(config, "DBUSER");
-	if( option == NULL )
-	{ printf("[Game Server Database] dbUser option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	dbConInfo.dbUser = strdup(option);
+	printf("  Server ID: %d\n", AuthInfo.gsInfo.ID);
+	printf("  Server IP: %s\n", AuthInfo.gsInfo.ServerIP);
+	printf("  Server Port: %d\n\n", AuthInfo.gsInfo.ServerPort);
 
-	// dbPass
-	option = sData_findOption(config, "DBPASS");
-	if( option == NULL )
-	{ printf("[Game Server Database] dbPass option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	dbConInfo.dbPass = strdup(option);
-
-	// Next Category ////////////////////////////////////////////////////////////////////////////////////
-	sData_nextCategory(config);
-
-	// host
-	option = sData_findOption(config, "DBHOST");
-	if( option == NULL )
-	{ printf("[Auth Server Database] dbHost option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.dbHost = strdup(option);
-
-	// port
-	option = sData_findOption(config, "DBPORT");
-	if( option == NULL )
-	{ printf("[Auth Server Database] dbPort option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.dbPort = atoi(option);
-
-	// dbName
-	option = sData_findOption(config, "DBNAME");
-	if( option == NULL )
-	{ printf("[Auth Server Database] dbName option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.dbName = strdup(option);
-
-	// dbUser
-	option = sData_findOption(config, "DBUSER");
-	if( option == NULL )
-	{ printf("[Auth Server Database] dbUser option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.dbUser = strdup(option);
-
-	// dbPass
-	option = sData_findOption(config, "DBPASS");
-	if( option == NULL )
-	{ printf("[Auth Server Database] dbPass option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.dbPass = strdup(option);
-
-	// Next Category ////////////////////////////////////////////////////////////////////////////////////
-	sData_nextCategory(config);
-
-	// IP Address
-	option = sData_findOption(config, "IPAddress");
-	if( option == NULL )
-	{ printf("[Game Server] IPAddress option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.ServerIP = strdup(option);
-
-	// IP Address Hex
-	option = sData_findOption(config, "IPAddressHex");
-	if( option == NULL )
-	{ printf("[Game Server] IPAddressHex option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	sscanf(option, "%x", &AuthInfo.ServerIPHex); 
-
-	// Port
-	option = sData_findOption(config, "Port");
-	if( option == NULL )
-	{ printf("[Game Server] Port option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.ServerPort = atoi(option);
-
-	// ID
-	option = sData_findOption(config, "ID");
-	if( option == NULL )
-	{ printf("[Game Server] ID option missing in config.txt\n"); Sleep(1000*10); ExitProcess(-2); }
-	AuthInfo.ID = atoi(option);
-
-	sData_close(config);
-
-
+	printf("Connecting to Game Server Database...\n");
 	MYSQL *mysql_gs = _DataInterface_gs_connect();
-	if( !mysql_gs )
-		ExitProcess(-1);
+	if( !mysql_gs ) { ExitProcess(-1); }
 	mysql_close(mysql_gs);
 
+	printf("Connecting to Auth Server Database...\n");
 	AuthInfo.mysql_as = _DataInterface_as_connect();
-	if( !AuthInfo.mysql_as )
-		ExitProcess(-1);
+	if( !AuthInfo.mysql_as ) { ExitProcess(-1); }
 
 	for(sint32 i=0; i<WORKER_THREADS; i++)
 		_DataInterface_initWorkerThread(i);
@@ -234,7 +180,7 @@ void DataInterface_registerServerForAuth()
 {
 
 	sint8 queryText1[1024];
-	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host=INET_ATON('%s') AND port='%i' AND server_id='%i'  LIMIT 1", AuthInfo.ServerIP, AuthInfo.ServerPort, AuthInfo.ID);
+	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host='%s' AND port='%i' AND server_id='%i'  LIMIT 1", AuthInfo.gsInfo.ServerIP, AuthInfo.gsInfo.ServerPort, AuthInfo.gsInfo.ID);
 	if( mysql_query(AuthInfo.mysql_as, queryText1) )
 	{
 		printf("MySQL: Error checking server entry\n");
@@ -253,7 +199,7 @@ void DataInterface_registerServerForAuth()
 	sint8 queryText2[1024];
 	wsprintf(queryText2, "INSERT INTO game_servers ("
 	"`server_id`,`host`,`port`,`age_limit`,`pk_flag`,`current_users`,`max_users`,`status`,`static`)"
-	" VALUES(%i,INET_ATON('%s'),%i,18,0,0,10,1,1);", AuthInfo.ID, AuthInfo.ServerIP, AuthInfo.ServerPort);
+	" VALUES(%i,'%s',%i,18,0,0,10,1,1);", AuthInfo.gsInfo.ID, AuthInfo.gsInfo.ServerIP, AuthInfo.gsInfo.ServerPort);
 	if( mysql_query(AuthInfo.mysql_as, queryText2) )
 	{
 		printf("MySQL: Error registering the server in the database\n");
@@ -263,9 +209,18 @@ void DataInterface_registerServerForAuth()
 	return;
 }
 
+// 127.0.0.1 -> 1.0.0.127 -> 0x0100007F
+uint32 DataInterface_IPtoHex()
+{
+	uint32 a, b, c, d, ret;
+	sscanf(AuthInfo.gsInfo.ServerIP, "%d.%d.%d.%d", &a, &b, &c, &d);
+	ret = a | (b<<8) | (c<<16) | (d<<24);
+	return ret;
+}
+
 uint32 DataInterface_getMyIP()
 {
-	return (uint32)AuthInfo.ServerIPHex;
+	return (uint32)AuthInfo.gsInfo.ServerIPHex;
 }
 
 sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asiOut)
