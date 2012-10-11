@@ -20,7 +20,7 @@ typedef struct
 
 struct
 {
-	CRITICAL_SECTION cs;
+	TMutex cs;
 	hashTable_t ht_playersByName;
 	hashTable_t ht_playersByEntityId; // todo, add support for uint64 hashtable
 	hashTable_t ht_channelsBySeed;
@@ -29,8 +29,8 @@ struct
 
 void communicator_registerPlayer(mapChannelClient_t *client)
 {
-	EnterCriticalSection(&communicator.cs);
-	EnterCriticalSection(&client->cgm->cs_general);
+	Thread::LockMutex(&communicator.cs);
+	Thread::LockMutex(&client->cgm->cs_general);
 	sint8 upperCase[256];
 	sint8 *from = client->player->actor->name;
 	for(sint32 i=0; i<255; i++)
@@ -48,14 +48,14 @@ void communicator_registerPlayer(mapChannelClient_t *client)
 	upperCase[255] = '\0';
 	hashTable_set(&communicator.ht_playersByName, upperCase, (void*)client);
 	hashTable_set(&communicator.ht_playersByEntityId, client->clientEntityId, (void*)client);
-	LeaveCriticalSection(&client->cgm->cs_general);
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&client->cgm->cs_general);
+	Thread::UnlockMutex(&communicator.cs);
 }
 
 void communicator_unregisterPlayer(mapChannelClient_t *client)
 {
-	EnterCriticalSection(&communicator.cs);
-	EnterCriticalSection(&client->cgm->cs_general);
+	Thread::LockMutex(&communicator.cs);
+	Thread::LockMutex(&client->cgm->cs_general);
 	sint8 upperCase[256];
 	if( client->player )
 	{
@@ -76,13 +76,13 @@ void communicator_unregisterPlayer(mapChannelClient_t *client)
 		hashTable_set(&communicator.ht_playersByName, upperCase, NULL);
 		hashTable_set(&communicator.ht_playersByEntityId, client->clientEntityId, (void*)NULL);
 	}
-	LeaveCriticalSection(&client->cgm->cs_general);
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&client->cgm->cs_general);
+	Thread::UnlockMutex(&communicator.cs);
 }
 
 mapChannelClient_t *communicator_findPlayerByName(sint8 *name)
 {
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	sint8 upperCase[256];
 	for(sint32 i=0; i<255; i++)
 	{
@@ -98,7 +98,7 @@ mapChannelClient_t *communicator_findPlayerByName(sint8 *name)
 	}
 	upperCase[255] = '\0';
 	mapChannelClient_t *client = (mapChannelClient_t*)hashTable_get(&communicator.ht_playersByName, upperCase);
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 	return client;
 }
 
@@ -148,7 +148,7 @@ void communicator_playerChangeMap(mapChannelClient_t *client)
 void communicator_playerExitMap(mapChannelClient_t *client)
 {
 	// remove client from all channels
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	for(sint32 i=0; i<client->joinedChannels; i++)
 	{
 		chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, client->channelHashes[i]);
@@ -183,7 +183,7 @@ void communicator_playerExitMap(mapChannelClient_t *client)
 		}
 	}
 	client->joinedChannels = 0;
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 }
 
 uint32 _communicator_generateDefaultChannelHash(uint32 channelId, uint32 mapContextId, uint32 instanceId)
@@ -195,7 +195,7 @@ uint32 _communicator_generateDefaultChannelHash(uint32 channelId, uint32 mapCont
 
 void _communicator_addClientToChannel(mapChannelClient_t *client, uint32 cHash)
 {
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, cHash);
 	if( chatChannel )
 	{
@@ -217,17 +217,17 @@ void _communicator_addClientToChannel(mapChannelClient_t *client, uint32 cHash)
 			chatChannel->firstPlayer = newLink;
 		}
 	}
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 }
 
 void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, sint32 channelId)
 {
 	pyMarshalString_t pms;
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	// check if we can join channel
 	if( client->joinedChannels >= CHANNEL_LIMIT )
 	{
-		LeaveCriticalSection(&communicator.cs);
+		Thread::UnlockMutex(&communicator.cs);
 		return; // todo, send error to client
 	}
 	// generate channel hash
@@ -253,7 +253,7 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, sint32 cha
 	client->joinedChannels++;
 	// add client to channel
 	_communicator_addClientToChannel(client, cHash);
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 	// send ChatChannelJoined
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -265,7 +265,7 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, sint32 cha
 
 void communicator_leaveChannel(mapChannelClient_t *client, sint32 channelId)
 {
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	for(sint32 i=0; i<client->joinedChannels; i++)
 	{
 		chatChannel_t *chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, client->channelHashes[i]);
@@ -305,7 +305,7 @@ void communicator_leaveChannel(mapChannelClient_t *client, sint32 channelId)
 			}
 		}
 	}
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 	__debugbreak(); // todo - send ChannelLeft notify
 }
 
@@ -950,7 +950,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			//unregister player
 			//communicator_unregisterPlayer(cm);
 			//remove visible entity
-			EnterCriticalSection(&cm->cgm->cs_general);
+			Thread::LockMutex(&cm->cgm->cs_general);
 			cellMgr_removeFromWorld(cm);
 			// remove from list
 			for(sint32 i=0; i<cm->mapChannel->playerCount; i++)
@@ -969,7 +969,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 					break;
 				}
 			}
-			LeaveCriticalSection(&cm->cgm->cs_general);
+			Thread::UnlockMutex(&cm->cgm->cs_general);
 			//entityMgr_unregisterEntity(cm->player->actor->entityId);
 			
 			//cm->cgm->mapLoadSlotId = cm->tempCharacterData->slotIndex;
@@ -1036,11 +1036,11 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			}
 
 			mapChannel_t *mapChannel = cm->mapChannel;
-			EnterCriticalSection(&cm->mapChannel->criticalSection);
+			Thread::LockMutex(&cm->mapChannel->criticalSection);
 			mapChannel->playerList[mapChannel->playerCount] = cm;
 			mapChannel->playerCount++;
 			hashTable_set(&mapChannel->ht_socketToClient, (uint32)cm->cgm->socket, cm);
-			LeaveCriticalSection(&mapChannel->criticalSection);
+			Thread::UnlockMutex(&mapChannel->criticalSection);
 			
 			cellMgr_addToWorld(cm); //cellsint32roducing to player /from players
 			// setCurrentContextId (clientMethod.362)
@@ -1169,7 +1169,7 @@ void communicator_recv_channelChat(mapChannelClient_t *cm, uint8 *pyString, sint
 		return;
 	// get chat channel
 	uint32 cHash = _communicator_generateDefaultChannelHash(target, cm->mapChannel->mapInfo->contextId, 0);
-	EnterCriticalSection(&communicator.cs);
+	Thread::LockMutex(&communicator.cs);
 	// find channel
 	chatChannel_t *chatChannel;
 	chatChannel = (chatChannel_t*)hashTable_get(&communicator.ht_channelsBySeed, cHash);
@@ -1204,7 +1204,7 @@ void communicator_recv_channelChat(mapChannelClient_t *cm, uint8 *pyString, sint
 		//	0000000C     7D - STORE_FAST          'gameContextId'
 
 	}
-	LeaveCriticalSection(&communicator.cs);
+	Thread::UnlockMutex(&communicator.cs);
 }
 
 void communicator_recv_whisper(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
@@ -1258,7 +1258,7 @@ void communicator_recv_whisper(mapChannelClient_t *cm, uint8 *pyString, sint32 p
 
 void communicator_init()
 {
-	InitializeCriticalSection(&communicator.cs);
+	Thread::InitMutex(&communicator.cs);
 	hashTable_init(&communicator.ht_playersByName, 2048); // 2048 players at max
 	hashTable_init(&communicator.ht_channelsBySeed, 16); // 16 entries per default, more available (uint32 hashtable automatically expands)
 	hashTable_init(&communicator.ht_playersByEntityId, 16);

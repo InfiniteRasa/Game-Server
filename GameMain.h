@@ -7,8 +7,8 @@ sint32 GameMain_Run(void *p1);
 typedef struct _clientGamemain_t
 {
 	SOCKET socket;
-	CRITICAL_SECTION cs_send;
-	CRITICAL_SECTION cs_general;
+	TMutex cs_send;
+	TMutex cs_general;
 	uint8 RecvBuffer[8*1024];
 	uint32 RecvState;
 	uint32 RecvSize;

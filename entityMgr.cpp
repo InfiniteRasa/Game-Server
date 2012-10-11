@@ -6,61 +6,61 @@ sint32 ceid_object = 0;
 sint32 ceid_item = 0;
 sint32 ceid_npc = 0;
 sint32 ceid_creature = 0;
-CRITICAL_SECTION csEntityMgr;
+TMutex csEntityMgr;
 
 #define ENTITYID_BASE	0x1000
 
 unsigned long long entityMgr_getFreeEntityIdForClient()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_client*16 + ENTITYTYPE_CLIENT;
 	ceid_client++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
 unsigned long long entityMgr_getFreeEntityIdForPlayer()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_player*16 + ENTITYTYPE_PLAYER;
 	ceid_player++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
 unsigned long long entityMgr_getFreeEntityIdForItem()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_item*16 + ENTITYTYPE_ITEM;
 	ceid_item++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
 unsigned long long entityMgr_getFreeEntityIdForObject()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_object*16 + ENTITYTYPE_OBJECT;
 	ceid_object++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
 unsigned long long entityMgr_getFreeEntityIdForNPC()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_npc*16 + ENTITYTYPE_NPC;
 	ceid_npc++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
 unsigned long long entityMgr_getFreeEntityIdForCreature()
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	unsigned long long eid = ENTITYID_BASE + ceid_creature*16 + ENTITYTYPE_CREATURE;
 	ceid_creature++;
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return eid;
 }
 
@@ -76,30 +76,30 @@ hashTable_t ht_entityTable;
 
 void entityMgr_registerEntity(unsigned long long entityId, void *entity)
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	hashTable_set(&ht_entityTable, entityId, entity);
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 }
 
 void entityMgr_unregisterEntity(unsigned long long entityId)
 {
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	hashTable_set(&ht_entityTable, entityId, NULL);
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 }
 
 void *entityMgr_get(unsigned long long entityId)
 {
 	void *v = NULL;
-	EnterCriticalSection(&csEntityMgr);
+	Thread::LockMutex(&csEntityMgr);
 	v = hashTable_get(&ht_entityTable, entityId);
-	LeaveCriticalSection(&csEntityMgr);
+	Thread::UnlockMutex(&csEntityMgr);
 	return v;
 }
 
 void entityMgr_init()
 {
-	InitializeCriticalSection(&csEntityMgr);	
+	Thread::InitMutex(&csEntityMgr);	
 	hashTable_init(&ht_entityTable, 512);
 
 	// get current npc

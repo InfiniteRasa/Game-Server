@@ -19,7 +19,7 @@ void hashTable_init(hashTableSynced_t *hashTable, sint32 itemLimit)
 		// hashTable->entrys[i].originalValue = 0xFFFFFFFF;
 		// hashTable->entrys[i].item = NULL;
 	}
-	InitializeCriticalSection(&hashTable->criticalSection);
+	Thread::InitMutex(&hashTable->criticalSection);
 }
 
 void hashTable_destroy(hashTableSynced_t *hashTable)
@@ -31,7 +31,7 @@ void hashTable_destroy(hashTableSynced_t *hashTable)
 
 void hashTable_clear(hashTableSynced_t *hashTable)
 {
-	EnterCriticalSection(&hashTable->criticalSection);
+	Thread::LockMutex(&hashTable->criticalSection);
 	hashTable->count = 0;
 	for(uint32 i=0; i<hashTable->size; i++)
 	{
@@ -39,7 +39,7 @@ void hashTable_clear(hashTableSynced_t *hashTable)
 		hashTable->itemKeyArray[i] = 0;
 		hashTable->itemValueArray[i] = 0;
 	}
-	LeaveCriticalSection(&hashTable->criticalSection);
+	Thread::UnlockMutex(&hashTable->criticalSection);
 }
 
 void hashTable_enlarge(hashTableSynced_t *hashTable)
@@ -93,7 +93,7 @@ void _hashTable_updateReference(hashTableSynced_t *hashTable, uint32 key, sint32
 
 bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 {
-	EnterCriticalSection(&hashTable->criticalSection);
+	Thread::LockMutex(&hashTable->criticalSection);
 	DWORD hashA = key + key*3 + key*7 + key*11;
 	// get entry
 	sint32 index = hashA%hashTable->size;
@@ -117,10 +117,10 @@ bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 			}
 			else
 			{
-				LeaveCriticalSection(&hashTable->criticalSection);
+				Thread::UnlockMutex(&hashTable->criticalSection);
 				return false;
 			}
-			LeaveCriticalSection(&hashTable->criticalSection);
+			Thread::UnlockMutex(&hashTable->criticalSection);
 			return true;
 		}
 		else if( hashTable->itemKeyArray[ridx-1] == key )
@@ -145,7 +145,7 @@ bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 			//	hashTable->entrys[index].itemIndex = -1; // mark as deleted
 			//	hashTable->count--;
 			//}
-			LeaveCriticalSection(&hashTable->criticalSection);
+			Thread::UnlockMutex(&hashTable->criticalSection);
 			return true;
 		}	
 		index++;
@@ -154,7 +154,7 @@ bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 	// no free entry
 	hashTable_enlarge(hashTable);
 	bool result = hashTable_set(hashTable, key, item);
-	LeaveCriticalSection(&hashTable->criticalSection);
+	Thread::UnlockMutex(&hashTable->criticalSection);
 	return result;
 }
 
@@ -176,7 +176,7 @@ bool hashTable_set(hashTableSynced_t *hashTable, sint8 *key, void *item)
 
 void *hashTable_get(hashTableSynced_t *hashTable, uint32 key)
 {
-	EnterCriticalSection(&hashTable->criticalSection);
+	Thread::LockMutex(&hashTable->criticalSection);
 	DWORD hashA = key + key*3 + key*7 + key*11;
 	// get entry
 	if( hashTable->size == 0 )
@@ -187,7 +187,7 @@ void *hashTable_get(hashTableSynced_t *hashTable, uint32 key)
 		sint32 ridx = hashTable->entrys[index].itemIndex;
 		if( !ridx )
 		{
-			LeaveCriticalSection(&hashTable->criticalSection);
+			Thread::UnlockMutex(&hashTable->criticalSection);
 			return NULL;
 		}
 		if( ridx != -1 )
@@ -200,7 +200,7 @@ void *hashTable_get(hashTableSynced_t *hashTable, uint32 key)
 		index++;
 		index %= hashTable->size;
 	}
-	LeaveCriticalSection(&hashTable->criticalSection);
+	Thread::UnlockMutex(&hashTable->criticalSection);
 	return NULL;
 }
 

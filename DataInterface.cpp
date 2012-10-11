@@ -110,7 +110,8 @@ void _DataInterface_initWorkerThread(sint32 index)
 	wt->dbCon = _DataInterface_gs_connect();
 	wt->queueReadIndex = 0;
 	wt->queueWriteIndex = 0;
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_DataInterface_work, wt, 0, NULL);
+	//CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_DataInterface_work, wt, 0, NULL);
+	Thread::New(NULL, (THREAD_ROUTINE)_DataInterface_work, wt);
 }
 
 void DataInterface_init()

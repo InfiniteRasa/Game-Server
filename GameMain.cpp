@@ -1,6 +1,6 @@
 #include "Global.h"
 
-CRITICAL_SECTION CS_CMgr;
+TMutex CS_CMgr;
 
 
 #define MAX_GAMEMAIN_CLIENTS 512
@@ -12,18 +12,18 @@ clientGamemain_t *ClientMgr_AddToGameMain(SOCKET s)
 {
 	if( ClientsGameMainCount >= MAX_GAMEMAIN_CLIENTS )
 		return 0;
-	EnterCriticalSection(&CS_CMgr);
+	Thread::LockMutex(&CS_CMgr);
 	//Reset struct
 	memset((void*)&Clients_GameMain[ClientsGameMainCount], 0x00, sizeof(clientGamemain_t));
 	//Set socket
 	Clients_GameMain[ClientsGameMainCount].socket = s;
 	// init critical sections
-	InitializeCriticalSection(&Clients_GameMain[ClientsGameMainCount].cs_send);
-	InitializeCriticalSection(&Clients_GameMain[ClientsGameMainCount].cs_general);
+	Thread::InitMutex(&Clients_GameMain[ClientsGameMainCount].cs_send);
+	Thread::InitMutex(&Clients_GameMain[ClientsGameMainCount].cs_general);
 	//Increase count and return struct
 	ClientsGameMainCount++;
 	clientGamemain_t *rs = &Clients_GameMain[ClientsGameMainCount-1];
-	LeaveCriticalSection(&CS_CMgr);
+	Thread::UnlockMutex(&CS_CMgr);
 	return rs;
 }
 
@@ -38,11 +38,11 @@ sint32 _ClientMgr_GetIndexGameMain(SOCKET s)
 
 void ClientMgr_RemoveFromGameMain(SOCKET s)
 {
-	EnterCriticalSection(&CS_CMgr);
+	Thread::LockMutex(&CS_CMgr);
 	sint32 Idx = _ClientMgr_GetIndexGameMain(s);
 	if( Idx == -1 )
 	{
-		LeaveCriticalSection(&CS_CMgr);
+		Thread::UnlockMutex(&CS_CMgr);
 		return; //No existing element
 	}
 	if( (Idx+1) >= ClientsGameMainCount )
@@ -56,7 +56,7 @@ void ClientMgr_RemoveFromGameMain(SOCKET s)
 		memcpy((void*)&Clients_GameMain[Idx], (void*)&Clients_GameMain[ClientsGameMainCount-1], sizeof(clientGamemain_t));
 		ClientsGameMainCount--;
 	}
-	LeaveCriticalSection(&CS_CMgr);
+	Thread::UnlockMutex(&CS_CMgr);
 }
 
 // remove but do not disconnect! must only be called by the GameMain thread
@@ -132,7 +132,7 @@ sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *
 sint32 GameMain_Run(void *p1)
 {
 	printf("Game socket handler ready\n");
-	InitializeCriticalSection(&CS_CMgr);
+	Thread::InitMutex(&CS_CMgr);
 
 	//Main socket handler loop
 	FD_SET fd;
@@ -180,7 +180,7 @@ void GameMain_PassClientToCharacterSelection(clientGamemain_t *cgm)
 		//free(cgm);
 		return;
 	}
-	EnterCriticalSection(&CS_CMgr);
+	Thread::LockMutex(&CS_CMgr);
 	//Reset struct
 	memcpy((void*)&Clients_GameMain[ClientsGameMainCount], (void*)cgm, sizeof(clientGamemain_t));
 	// set state
@@ -189,7 +189,7 @@ void GameMain_PassClientToCharacterSelection(clientGamemain_t *cgm)
 	charMgr_initCharacterSelection(&Clients_GameMain[ClientsGameMainCount]);
 	//Increase count and return struct
 	ClientsGameMainCount++;
-	LeaveCriticalSection(&CS_CMgr);
+	Thread::UnlockMutex(&CS_CMgr);
 }
 
 sint32 GameMain_ReadCallback(clientGamemain_t *cgm)

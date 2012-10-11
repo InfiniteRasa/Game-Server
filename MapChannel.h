@@ -68,7 +68,7 @@ typedef struct _mapChannel_t
 	clientGamemain_t *rb_playerQueue[MAPCHANNEL_PLAYERQUEUE];
 	sint32 rb_playerQueueReadIndex;
 	sint32 rb_playerQueueWriteIndex;
-	CRITICAL_SECTION criticalSection;
+	TMutex criticalSection;
 	// timers
 	uint32 timer_clientEffectUpdate;
 	uint32 timer_missileUpdate;

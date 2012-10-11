@@ -252,7 +252,8 @@ sint32 main()
 	// ToDo: wait for mapchannel threads to finish loading [no priority]
 	//Start mainserver
 	DWORD p1 = 'NONE';
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)GameMain_Run, &p1, 0, 0);
+	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)GameMain_Run, &p1, 0, 0);
+	Thread::New(NULL, (THREAD_ROUTINE)GameMain_Run, &p1);
 	//Main socket handler loop
 	printf("Main socket handler ready\n");
 	FD_SET fd;

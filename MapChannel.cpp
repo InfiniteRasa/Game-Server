@@ -24,7 +24,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			//unregister player
 			//communicator_unregisterPlayer(cm);
 			//remove visible entity
-			EnterCriticalSection(&player->cgm->cs_general);
+			Thread::LockMutex(&player->cgm->cs_general);
 			cellMgr_removeFromWorld(player);
 			// remove from list
 			for(sint32 i=0; i<player->mapChannel->playerCount; i++)
@@ -43,7 +43,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 					break;
 				}
 			}
-			LeaveCriticalSection(&player->cgm->cs_general);
+			Thread::UnlockMutex(&player->cgm->cs_general);
 				
 			//############## map loading stuff ##############
 			// send PreWonkavate (clientMethod.134)
@@ -106,11 +106,11 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			}
 
 			mapChannel_t *mapChannel = player->mapChannel;
-			EnterCriticalSection(&player->mapChannel->criticalSection);
+			Thread::LockMutex(&player->mapChannel->criticalSection);
 			mapChannel->playerList[mapChannel->playerCount] = player;
 			mapChannel->playerCount++;
 			hashTable_set(&mapChannel->ht_socketToClient, (uint32)player->cgm->socket, player);
-			LeaveCriticalSection(&mapChannel->criticalSection);
+			Thread::UnlockMutex(&mapChannel->criticalSection);
 			
 			player->player->actor->posX = destX; 
 			player->player->actor->posY = destY;
@@ -248,11 +248,11 @@ void _cb_mapChannel_addNewPlayer(void *param, diJob_characterData_t *jobData)
 		mc->tempCharacterData->missionStateData = NULL;
 	}
 	// add to player to mapChannel (synced)
-	EnterCriticalSection(&mapChannel->criticalSection);
+	Thread::LockMutex(&mapChannel->criticalSection);
 	mapChannel->playerList[mapChannel->playerCount] = mc;
 	mapChannel->playerCount++;
 	hashTable_set(&mapChannel->ht_socketToClient, (uint32)mc->cgm->socket, mc);
-	LeaveCriticalSection(&mapChannel->criticalSection);
+	Thread::UnlockMutex(&mapChannel->criticalSection);
 }
 
 void mapChannel_addNewPlayer(mapChannel_t *mapChannel, clientGamemain_t *cgm)
@@ -287,7 +287,7 @@ void mapChannel_removePlayer(mapChannelClient_t *client)
 	entityMgr_unregisterEntity(client->clientEntityId);
 
 	communicator_unregisterPlayer(client);
-	EnterCriticalSection(&client->cgm->cs_general);
+	Thread::LockMutex(&client->cgm->cs_general);
 	cellMgr_removeFromWorld(client);
 	manifestation_removePlayerCharacter(client->mapChannel, client);
 	if( client->disconnected == false )
@@ -310,7 +310,7 @@ void mapChannel_removePlayer(mapChannelClient_t *client)
 		}
 	}
 	// delete data
-	LeaveCriticalSection(&client->cgm->cs_general);
+	Thread::UnlockMutex(&client->cgm->cs_general);
 	free(client->cgm);
 	free(client);
 }
@@ -1079,13 +1079,14 @@ void mapChannel_start(sint32 *contextIdList, sint32 contextCount)
 		mapList->mapChannelArray[i].playerCount = 0;
 		mapList->mapChannelArray[i].playerLimit = 128;
 		mapList->mapChannelArray[i].playerList = (mapChannelClient_t**)malloc(sizeof(mapChannelClient_t*)*mapList->mapChannelArray[i].playerLimit);
-		InitializeCriticalSection(&mapList->mapChannelArray[i].criticalSection);
+		Thread::InitMutex(&mapList->mapChannelArray[i].criticalSection);
 		mapList->mapChannelCount++;
 		// register mapChannel
 		hashTable_set(&ht_mapChannelsByContextId, contextIdList[i], &mapList->mapChannelArray[i]);
 	}
 	// start the thread!
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)mapChannel_worker, (LPVOID)mapList, 0, NULL);
+	//CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)mapChannel_worker, (LPVOID)mapList, 0, NULL);
+	Thread::New(NULL, (THREAD_ROUTINE)mapChannel_worker, mapList);
 }
 
 void mapChannel_init()

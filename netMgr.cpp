@@ -144,11 +144,11 @@ void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, uint32 entityId, uint3
 	//Write len
 	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
-	EnterCriticalSection(&cgm->cs_send);
+	Thread::LockMutex(&cgm->cs_send);
 	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
-	LeaveCriticalSection(&cgm->cs_send);
+	Thread::UnlockMutex(&cgm->cs_send);
 }
 
 void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, sint32 clientCount, uint32 entityId, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
@@ -249,11 +249,11 @@ void netMgr_pythonAddMethodCallRaw(mapChannelClient_t **clientList, sint32 clien
 		for(sint32 i=0; i<clientCount; i++)
 		{
 			clientGamemain_t *cgm = clientList[i]->cgm;
-			EnterCriticalSection(&cgm->cs_send);
+			Thread::LockMutex(&cgm->cs_send);
 			Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 			PacketOut_Send(&SPB, cgm->socket);
 			cgm->state_bytesSend += SPB.PO_CLen;
-			LeaveCriticalSection(&cgm->cs_send);
+			Thread::UnlockMutex(&cgm->cs_send);
 		}
 }
 
@@ -302,11 +302,11 @@ void netMgr_testOpc(clientGamemain_t *cgm)
 		//Write len
 		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
-		EnterCriticalSection(&cgm->cs_send);
+		Thread::LockMutex(&cgm->cs_send);
 		Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, cgm->socket);
 		cgm->state_bytesSend += SPB.PO_CLen;
-		LeaveCriticalSection(&cgm->cs_send);
+		Thread::UnlockMutex(&cgm->cs_send);
 }
 
 void netMgr_entityMovementTest(clientGamemain_t *cgm, uint8 *pyObjString, sint32 pyObjLen)
@@ -384,11 +384,11 @@ void netMgr_entityMovementTest(clientGamemain_t *cgm, uint8 *pyObjString, sint32
 	//Write len
 	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
 
-	EnterCriticalSection(&cgm->cs_send);
+	Thread::LockMutex(&cgm->cs_send);
 	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
-	LeaveCriticalSection(&cgm->cs_send);
+	Thread::UnlockMutex(&cgm->cs_send);
 }
 
 void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCompressedMovement_t *movement, bool skipOwner)
@@ -508,11 +508,11 @@ void netMgr_cellDomain_sendEntityMovement(mapChannelClient_t *aggregator, netCom
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
 		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
-		EnterCriticalSection(&mc->cgm->cs_send);
+		Thread::LockMutex(&mc->cgm->cs_send);
 		Tabula_Encrypt2(&mc->cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, mc->cgm->socket);
 		mc->cgm->state_bytesSend += SPB.PO_CLen;
-		LeaveCriticalSection(&mc->cgm->cs_send);
+		Thread::UnlockMutex(&mc->cgm->cs_send);
 	}
 }
 
@@ -632,11 +632,11 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 			PacketOut_AddByte(&SPB, '?');
 		//Write len
 		*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
-		EnterCriticalSection(&mc->cgm->cs_send);
+		Thread::LockMutex(&mc->cgm->cs_send);
 		Tabula_Encrypt2(&mc->cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 		PacketOut_Send(&SPB, mc->cgm->socket);
 		mc->cgm->state_bytesSend += SPB.PO_CLen;
-		LeaveCriticalSection(&mc->cgm->cs_send);
+		Thread::UnlockMutex(&mc->cgm->cs_send);
 	}
 }
 
@@ -747,23 +747,23 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 		PacketOut_AddByte(&SPB, '?');
 	//Write len
 	*(uint16*)&SPB.PO_SendBuffer[LenBegin] = SPB.PO_CLen - LenBegin;
-	EnterCriticalSection(&cgm->cs_send);
+	Thread::LockMutex(&cgm->cs_send);
 	Tabula_Encrypt2(&cgm->tbc2, (uint32*)(&SPB.PO_SendBuffer[4]), SPB.PO_CLen-4);
 	PacketOut_Send(&SPB, cgm->socket);
 	cgm->state_bytesSend += SPB.PO_CLen;
-	LeaveCriticalSection(&cgm->cs_send);
+	Thread::UnlockMutex(&cgm->cs_send);
 }
 
 
 
 void netMgr_pythonAddMethodCallRaw(mapChannel_t *broadCastChannel, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {
-	EnterCriticalSection(&broadCastChannel->criticalSection);
+	Thread::LockMutex(&broadCastChannel->criticalSection);
 	for(sint32 i=0; i<broadCastChannel->playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(broadCastChannel->playerList[i]->cgm, EntityID, MethodID, pyObjString, pyObjLen);
 	}
-	LeaveCriticalSection(&broadCastChannel->criticalSection);
+	Thread::UnlockMutex(&broadCastChannel->criticalSection);
 }
 
 void netMgr_cellDomain_pythonAddMethodCallRaw(mapChannelClient_t *aggregator, uint32 EntityID, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)

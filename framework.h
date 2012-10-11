@@ -3,6 +3,7 @@
 // The typedefs for the type short-forms
 // An hashtable implementation
 // Stuff to read files and configuration files
+// Thread abstraction
 
 #ifndef __SALSALIB
 #define __SALSALIB
@@ -21,6 +22,7 @@ typedef signed short 	sint16;
 typedef unsigned char 	uint8;
 typedef char 			sint8;	// not declared as signed char to avoid incompatibilities between strings of sint8* and char*
 
+#include "ThreadsUtils.h"
 #include "fileMgr.h"
 #include "hashTable.h"
 

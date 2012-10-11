@@ -33,7 +33,7 @@ typedef struct
 	void **itemValueArray;
 	uint32 size;
 	uint32 count;
-	CRITICAL_SECTION criticalSection;
+	TMutex criticalSection;
 }hashTableSynced_t;
 
 void hashTable_init(hashTableSynced_t *hashTable, sint32 itemLimit);

@@ -2,8 +2,8 @@
 
 typedef struct  
 {
-	CRITICAL_SECTION cs;
-	CRITICAL_SECTION cs_missionList; // synchronous access to any npc mission list
+	TMutex cs;
+	TMutex cs_missionList; // synchronous access to any npc mission list
 	hashTable_t ht_mission;
 	/*
 		Important notice:
@@ -17,7 +17,7 @@ missionEnv_t missionEnv;
 
 void mission_init()
 {
-	InitializeCriticalSection(&missionEnv.cs);
+	Thread::InitMutex(&missionEnv.cs);
 }
 
 void mission_initForClient(mapChannelClient_t *client)
@@ -56,17 +56,17 @@ void _cb_mission_initForChannel(void *param, diJob_missionListData_t *jobData)
 bool missionsLoaded = false;
 void mission_initForChannel(mapChannel_t *mapChannel)
 {
-	EnterCriticalSection(&missionEnv.cs);
+	Thread::LockMutex(&missionEnv.cs);
 	if( missionsLoaded == true )
 	{
-		LeaveCriticalSection(&missionEnv.cs);
+		Thread::UnlockMutex(&missionEnv.cs);
 		return;
 	}
 	missionsLoaded = true;
 	mapChannel->loadState = 0;
 	DataInterface_Mission_getMissionList(_cb_mission_initForChannel, mapChannel);
 	while( mapChannel->loadState == 0 ) Sleep(10);
-	LeaveCriticalSection(&missionEnv.cs);
+	Thread::UnlockMutex(&missionEnv.cs);
 }
 
 missionList_t *mission_generateMissionListForNPC(npc_t *npc)
