@@ -252,7 +252,9 @@ void communicator_joinDefaultLocalChannel(mapChannelClient_t *client, sint32 cha
 	client->channelHashes[client->joinedChannels] = cHash;
 	client->joinedChannels++;
 	// add client to channel
+#ifdef USE_PTHREADS
 	Thread::UnlockMutex(&communicator.cs); // pthread specific
+#endif
 	_communicator_addClientToChannel(client, cHash);
 	Thread::UnlockMutex(&communicator.cs);
 	// send ChatChannelJoined

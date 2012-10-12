@@ -153,7 +153,9 @@ bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 	}
 	// no free entry
 	hashTable_enlarge(hashTable);
+#ifdef USE_PTHREADS
 	Thread::UnlockMutex(&hashTable->criticalSection); // pthread specific
+#endif
 	bool result = hashTable_set(hashTable, key, item);
 	Thread::UnlockMutex(&hashTable->criticalSection);
 	return result;
