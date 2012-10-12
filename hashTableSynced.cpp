@@ -153,6 +153,7 @@ bool hashTable_set(hashTableSynced_t *hashTable, uint32 key, void *item)
 	}
 	// no free entry
 	hashTable_enlarge(hashTable);
+	Thread::UnlockMutex(&hashTable->criticalSection); // pthread specific
 	bool result = hashTable_set(hashTable, key, item);
 	Thread::UnlockMutex(&hashTable->criticalSection);
 	return result;
@@ -180,7 +181,10 @@ void *hashTable_get(hashTableSynced_t *hashTable, uint32 key)
 	DWORD hashA = key + key*3 + key*7 + key*11;
 	// get entry
 	if( hashTable->size == 0 )
+	{
+		Thread::UnlockMutex(&hashTable->criticalSection);
 		return NULL; // hashTable not initialized or empty
+	}
 	sint32 index = hashA%hashTable->size;
 	for(sint32 i=0; i<MAXSCAN_LENGTH; i++) 
 	{
@@ -194,6 +198,7 @@ void *hashTable_get(hashTableSynced_t *hashTable, uint32 key)
 		{
 			if( hashTable->itemKeyArray[ridx-1] == key )
 			{
+				Thread::UnlockMutex(&hashTable->criticalSection);
 				return hashTable->itemValueArray[ridx-1];
 			}
 		}

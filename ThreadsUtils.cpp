@@ -1,12 +1,12 @@
 #include "ThreadsUtils.h"
 
-#ifdef USE_PTHREADS_NOT_WORKING
-	void Thread::InitMutex(TMutex* Mutex)		{ pthread_mutex_init(Mutex, NULL); }
+#ifdef USE_PTHREADS
+void Thread::InitMutex(TMutex* Mutex)			{ pthread_mutex_init(Mutex, NULL); }
 	void Thread::DestroyMutex(TMutex* Mutex)	{ pthread_mutex_destroy(Mutex); }
 	void Thread::LockMutex(TMutex* Mutex)		{ pthread_mutex_lock(Mutex); }
 	void Thread::UnlockMutex(TMutex* Mutex)		{ pthread_mutex_unlock(Mutex); }
 #else
-	void Thread::InitMutex(TMutex* Mutex)		{ InitializeCriticalSection(Mutex); }
+void Thread::InitMutex(TMutex* Mutex)			{ InitializeCriticalSection(Mutex); }
 	void Thread::DestroyMutex(TMutex* Mutex)	{ DeleteCriticalSection(Mutex); }
 	void Thread::LockMutex(TMutex* Mutex)		{ EnterCriticalSection(Mutex); }
 	void Thread::UnlockMutex(TMutex* Mutex)		{ LeaveCriticalSection(Mutex); }

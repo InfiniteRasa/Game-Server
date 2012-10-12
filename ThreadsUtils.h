@@ -13,7 +13,7 @@
 #define THREADRET void*
 #define THREAD_ROUTINE THREADRET (*)(void*)
 #define THREAD_ROUTINE2 THREADRET (*function)(void*)
-#define TMutex CRITICAL_SECTION // pthread_mutex_t
+#define TMutex pthread_mutex_t
 #else
 #include <windows.h>
 #define thread_id DWORD // use uint32, long?
