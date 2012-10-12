@@ -1,10 +1,5 @@
 #include"global.h"
 
-extern sint32 gridL1;
-extern  sint32 gridL2;
-extern sint32 gridCount;
-extern sint32** entityPosGrid;
-
 extern dynObjectType_t dynObjectType_banedropship;
 
 typedef struct  
@@ -131,15 +126,6 @@ bool banedropship_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 			srand(GetTickCount());
 			sint32 srnd = rand() % 5;
 			creature_setLocation(creature, dynObject->x+(float)srnd, dynObject->y, dynObject->z+(float)srnd, 0.0f, 0.0f);
-			//--add creature to position grid
-			entityPosGrid[gridCount] = new sint32[gridL2];
-			entityPosGrid[gridCount][0] = mapChannel->mapInfo->contextId;
-			entityPosGrid[gridCount][1] = creature->actor.entityId;
-			entityPosGrid[gridCount][2] = creature ->actor.posX;
-			entityPosGrid[gridCount][3] = creature ->actor.posZ;	
-			entityPosGrid[gridCount][4] =  baneDropshipData->spawnPool->faction;		
-			gridCount+= 1;
-			if(gridCount >  gridL1) gridCount = gridL1;
 			cellMgr_addToWorld(mapChannel, creature);
 
 		}

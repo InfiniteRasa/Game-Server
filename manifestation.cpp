@@ -725,6 +725,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 			pym_addInt(&pms, cm->player->actor->stats.level); // newLevel
 			pym_tuple_end(&pms);
 			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_LEVELUP, pym_getData(&pms), pym_getLen(&pms));
+			// todo: Send Recv_DisplayClientMessage with PM_LEVEL_INCREASED to display text for level up
 			// todo: For all others send Recv_setLevel() to update level display for this player
 			// update stats
 			manifestation_updateStatsValues(cm, true);

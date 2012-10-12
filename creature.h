@@ -7,20 +7,35 @@ typedef struct _creatureType_t
 	sint32 entityClassId;
 	// stats info
 	sint32 maxHealth;
-	sint32 RangeMissile;
-	sint32 MeleeMissile;
+	//sint32 RangeMissile;
+	//sint32 MeleeMissile;
+	struct
+	{
+		sint32 damageMin;
+		sint32 damageMax;
+		sint32 missile;
+	}meleeAttack;
+	struct
+	{
+		sint32 damageMin;
+		sint32 damageMax;
+		sint32 missile;
+	}rangeAttack;
+
 }creatureType_t;
 
 creatureType_t*		creatureType_createCreatureType(sint32 entityClassId, sint32 nameId);
 void				creatureType_registerCreatureType(creatureType_t *creatureType, sint8 *name);
 void				creatureType_setMaxHealth(creatureType_t *creatureType, sint32 maxHealth);
 
-/* creature */
+#define CREATURE_LOCATION_UPDATE_TIME	(1500) // update cell location every 1500ms
 
+/* creature */
 typedef struct _creature_t
 {
 	creatureType_t *type;		// the creature 'layout'
 	actor_t			actor;		// the base actor object
+	sint32 updatePositionCounter; // decreases, when it hits 0 and the cell position changed, call creature_updateCellLocation() 
 	// stats
 	//sint32 currentHealth; --> this is already stored in creature.actor.currentHealth
 	sint32 attackspeed;
@@ -35,7 +50,7 @@ typedef struct _creature_t
 	sint32 faction; // hostile /friendly
 	sint32 wanderstate;
 	sint32 movestate;
-	float wx,wy,wz; // target destination (can be far away)
+	//float wx,wy,wz; // target destination (can be far away)
     float wander_dist; // -- wander boundaries 
     baseBehavior_baseNode homePos;  //--- spawn location (used for wander)
     baseBehavior_baseNode *pathnodes; //--entity patrol nodes
@@ -61,6 +76,7 @@ void creature_cellintroduceCreatureToClients(mapChannel_t *mapChannel, creature_
 void creature_cellIntroduceCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, sint32 creatureCount);
 void creature_cellDiscardCreatureToClients(mapChannel_t *mapChannel, creature_t *creature, mapChannelClient_t **playerList, sint32 playerCount);
 void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, creature_t **creatureList, sint32 creatureCount);
+void creature_cellUpdateLocation(mapChannel_t *mapChannel, creature_t* creature, sint32 newLocX, sint32 newLocZ);
 
 // global init
 void creature_init();

@@ -497,9 +497,9 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 						// update combat/wanter state and movement
 						creature->controller.pathLength	= 0;
 						creature->controller.pathIndex = 0;
-						creature->wx = cm->player->actor->posX;
-						creature->wy = cm->player->actor->posY;
-						creature->wz = cm->player->actor->posZ;
+						creature->controller.actionWander.wanderDestionation[0] = cm->player->actor->posX;
+						creature->controller.actionWander.wanderDestionation[1] = cm->player->actor->posY;
+						creature->controller.actionWander.wanderDestionation[2] = cm->player->actor->posZ;
 						creature->wanderstate = 1;
 						creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
 					}			

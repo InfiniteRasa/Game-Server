@@ -6,13 +6,23 @@ typedef struct
 	sint32 currentAction;
 	sint32 faction; // 'team'
 	// combat info
-	long long targetEntityId;
+	//long long targetEntityId;
 	// path info
 	float path[3*PATH_LENGTH_LIMIT]; // calculate path nodes
 	// maybe we can optimize this to not waste as much memory?
 	sint32 pathIndex; // the path node we are currently at
 	sint32 pathLength; // how many nodes the current path has, 0 means no active path
 	//sint32 path;
+	struct  
+	{
+		float lockedTargetPosition[3]; // the creature position we are pathing to
+		uint64 targetEntityId;
+	}actionFighting;
+	struct  
+	{
+		sint8 state;
+		float wanderDestionation[3];
+	}actionWander;
 }behaviorState_t;
 
 

@@ -17,6 +17,7 @@ typedef struct
 
 // todo1: Should also send Recv_ControlPointStatus to all mapChannel clients
 // todo2: Send Recv_SetUsable when in control of bane to disallow humans to convert it again (assuming this is the way they original server did it)
+// todo3: Use Recv_SetOwnerId?
 
 dynObject_t* controlpoint_create(mapChannel_t *mapChannel, float x, float y, float z, float orientation)
 {

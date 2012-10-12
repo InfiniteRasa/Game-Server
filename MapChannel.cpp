@@ -8,11 +8,6 @@
 
 hashTable_t ht_mapChannelsByContextId;
 mapChannelList_t *global_channelList; //20110827 @dennton
-sint32 gridL1;
-sint32 gridL2;
-sint32 gridCount;
-sint32** entityPosGrid;
-sint32** forcefieldMap;
 
 void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint32 mapContextId, mapChannelClient_t *player)
 {
@@ -398,7 +393,7 @@ void mapChannel_recv_LogoutRequest(mapChannelClient_t *cm, uint8 *pyString, sint
 	// send time remaining to logout
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10*1000); // milliseconds
+	pym_addInt(&pms, 0*1000); // milliseconds
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_LOGOUTTIMEREMAINING, pym_getData(&pms), pym_getLen(&pms));
 	cm->logoutRequestedLast = GetTickCount();
@@ -876,8 +871,7 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 	sTimeout.tv_usec = 10000;
 	global_channelList = channelList; //20110827 @dennton
 
-	// init mapchannel
-	//
+	// init mapchannel (map instance)
 	printf("Initializing MapChannel...\n");
 	for(sint32 chan=0; chan<channelList->mapChannelCount; chan++)
 	{
@@ -898,15 +892,6 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 		teleporter_initForMapChannel(mapChannel); //---load teleporters
 		printf("  Map: [%s]\n",mapChannel->mapInfo->name);
 	}
-
-	//---init entity position grid
-	gridL1 = 50000; //stores 50.000 entity positions
-    gridL2 = 5; //stores: mapid,entityid,x,z,faction
-	gridCount = 0; //actual count of position values
-    entityPosGrid = new sint32*[gridL1]; 
-
-	forcefieldMap = new sint32*[100]; //stores 100 forcefieldstates globally
-	
 
 	printf("MapChannel started...\n");
 

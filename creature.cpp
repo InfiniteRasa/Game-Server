@@ -56,6 +56,7 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	creature->actor.entityClassId = creatureType->entityClassId;
 	creature->actor.entityId = entityMgr_getFreeEntityIdForCreature();
 	creature->actor.stats.level = 1; // test
+	creature->updatePositionCounter = CREATURE_LOCATION_UPDATE_TIME;
 	if(spawnPool == NULL)
 	{
          creature->actor.attackstyle = 1;  
@@ -115,11 +116,11 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, sint8 *typeName, s
 
 void creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY)
 {
-	//set spawnlocation
+	// set spawnlocation
 	creature->actor.posX = x;
 	creature->actor.posY = y;
 	creature->actor.posZ = z;
-	//set homelocation
+	// set homelocation
 	creature->homePos.x = x;
 	creature->homePos.y = y;
 	creature->homePos.z = z;
@@ -442,6 +443,82 @@ void creature_cellDiscardCreaturesToClient(mapChannel_t *mapChannel, mapChannelC
 	}
 }
 
+/*
+ * Updates the cell location of the creature
+ * Sends create and destroy packets to all affected clients
+ */
+void creature_cellUpdateLocation(mapChannel_t *mapChannel, creature_t* creature, sint32 newLocX, sint32 newLocZ)
+{
+	sint32 oldLocX = creature->actor.cellLocation.x;
+	sint32 oldLocZ = creature->actor.cellLocation.z;
+	// get old and new cell
+	mapCell_t *oldMapCell = cellMgr_getCell(mapChannel, oldLocX, oldLocZ);
+	mapCell_t *newMapCell = cellMgr_getCell(mapChannel, newLocX, newLocZ);
+	if( newMapCell == NULL || oldMapCell == NULL )
+		return;
+	// get both notifier lists
+	sint32 oldNotifierCount = oldMapCell->ht_playerNotifyList.size();
+	mapChannelClient_t** oldNotifiers = NULL;
+	if( oldNotifierCount )
+		oldNotifiers = &oldMapCell->ht_playerNotifyList[0];
+	sint32 newNotifierCount = newMapCell->ht_playerNotifyList.size();
+	mapChannelClient_t** newNotifiers = NULL;
+	if( newNotifierCount )
+		newNotifiers = &newMapCell->ht_playerNotifyList[0];
+	// create for new players
+	for(sint32 n=0; n<newNotifierCount; n++)
+	{
+		bool isNew = true;
+		for(sint32 m=0; m<oldNotifierCount; m++)
+		{
+			if( newNotifiers[n] == oldNotifiers[m] )
+			{
+				isNew = false;
+				break;
+			}
+		}
+		if( isNew )
+			creature_createCreatureOnClient(newNotifiers[n], creature);
+	}
+	// destroy for old players
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, creature->actor.entityId); // entityID
+	pym_tuple_end(&pms);
+	for(sint32 m=0; m<oldNotifierCount; m++)
+	{
+		bool isGone = true;
+		for(sint32 n=0; n<newNotifierCount; n++)
+		{
+			if( oldNotifiers[m] == newNotifiers[n] )
+			{
+				isGone = false;
+				break;
+			}
+		}
+		if( isGone )
+			netMgr_pythonAddMethodCallRaw(&oldNotifiers[m], 1, 5, METHODID_DESTROYPHYSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+	}
+	// update location
+	creature->actor.cellLocation.x = newLocX;
+	creature->actor.cellLocation.z = newLocZ;
+	// move creature entry
+	// we cannot delete the creature right now from the list because this might invalidate current iterators
+	// therefore we use a little hack, see updateIterator variable in behaviorController.cpp
+	//std::vector<creature_t*>::iterator itr = oldMapCell->ht_creatureList.begin();
+	//while (itr != oldMapCell->ht_creatureList.end())
+	//{
+	//	if ((*itr) == creature)
+	//	{
+	//		oldMapCell->ht_creatureList.erase(itr);
+	//		break;
+	//	}
+	//	itr++;
+	//}
+	newMapCell->ht_creatureList.push_back(creature);
+}
+
 void creature_init()
 {
 	hashTable_init(&creatureEnv.ht_creatureType, 128);
@@ -463,47 +540,58 @@ void creature_init()
 		creatureType_t* ct = creatureType_createCreatureType(i, 1337);
 		creatureType_setMaxHealth(ct, 150);
 
-		ct->RangeMissile = MISSILE_PISTOL;
-		ct->MeleeMissile = MISSILE_PISTOL;
+		ct->meleeAttack.missile = MISSILE_PISTOL;
+		ct->meleeAttack.damageMin = 7;
+		ct->meleeAttack.damageMax = 11;
+		ct->rangeAttack.missile = MISSILE_PISTOL;
+		ct->rangeAttack.damageMin = 10;
+		ct->rangeAttack.damageMax = 15;
 		//---files: actiondata,
-  		if (ct->entityClassId == 25580) // bane pistol
+
+		if (ct->entityClassId == 6043) // forean spearman
 		{
-			ct->RangeMissile = MISSILE_THRAX_PISTOL;
-			ct->MeleeMissile = MELEE_THRAX;
+			ct->rangeAttack.missile = MISSILE_PISTOL;
+			ct->meleeAttack.missile = MISSILE_PISTOL;
+			// no range attack
+			ct->rangeAttack.damageMin = 0;
+			ct->rangeAttack.damageMax = 0;
+		}
+		else if (ct->entityClassId == 25580) // bane pistol
+		{
+			ct->rangeAttack.missile = MISSILE_THRAX_PISTOL;
+			ct->meleeAttack.missile = MELEE_THRAX;
   		}
-
-  		if (ct->entityClassId == 6031) // boargar
+  		else if (ct->entityClassId == 6031) // boargar
 		{
-
-  			ct->RangeMissile = MELEE_BOARGAR;
-			ct->MeleeMissile = MELEE_BOARGAR;
+  			ct->rangeAttack.missile = MELEE_BOARGAR;
+			ct->meleeAttack.missile = MELEE_BOARGAR;
 		}
-		if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
+		else if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
 		{
-			ct->RangeMissile = MISSILE_PISTOL;
-			ct->MeleeMissile = MELEE_PISTOL;
+			ct->rangeAttack.missile = MISSILE_PISTOL;
+			ct->meleeAttack.missile = MELEE_PISTOL;
 		}
-		if(ct->entityClassId == 10166) //bane hunter
+		else if(ct->entityClassId == 10166) //bane hunter
 		{
-            ct->RangeMissile = MISSILE_HUNTER_PULSEGUN;
-			ct->MeleeMissile = MELEE_HUNTER;
+            ct->rangeAttack.missile = MISSILE_HUNTER_PULSEGUN;
+			ct->meleeAttack.missile = MELEE_HUNTER;
 		}
-		if(ct->entityClassId == 6032) //amoeboid
+		else if(ct->entityClassId == 6032) //amoeboid
 		{
-            ct->RangeMissile = MELEE_AMOEBOID;
-			ct->MeleeMissile = MELEE_AMOEBOID;
+            ct->rangeAttack.missile = MELEE_AMOEBOID;
+			ct->meleeAttack.missile = MELEE_AMOEBOID;
 		}
-		if(ct->entityClassId == 10442) //AFS Mech
+		else if(ct->entityClassId == 10442) //AFS Mech
 		{
-            ct->RangeMissile = MISSILE_AFSMECH_MG;
-			ct->MeleeMissile = MISSILE_AFSMECH_MG;
+            ct->rangeAttack.missile = MISSILE_AFSMECH_MG;
+			ct->meleeAttack.missile = MISSILE_AFSMECH_MG;
 		}
-		if(ct->entityClassId == 3781) //Bane Stalker
+		else if(ct->entityClassId == 3781) //Bane Stalker
 		{
-            ct->RangeMissile = MISSILE_STALKER;
-			ct->MeleeMissile = MISSILE_STALKER;
+            ct->rangeAttack.missile = MISSILE_STALKER;
+			ct->meleeAttack.missile = MISSILE_STALKER;
 		}
 
-			creatureType_registerCreatureType(ct, buffer);
+		creatureType_registerCreatureType(ct, buffer);
 	}
 }

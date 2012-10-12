@@ -246,7 +246,6 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc)
 }
 
 // todo: removeFromWorld for npcs
-
 void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 {
 	if( !creature )
@@ -348,12 +347,6 @@ mapChannelClient_t **cellMgr_getNotifiedPlayers( mapChannel_t *mapChannel, dynOb
 	return &mapCell->ht_playerNotifyList[0];
 }
 
-npc_t *cellMgr_findNPCinViewOf(mapChannelClient_t *aggregator, unsigned long long npcEntityId)
-{
-	__debugbreak();
-	// todo
-	return NULL;
-}
 
 void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 {

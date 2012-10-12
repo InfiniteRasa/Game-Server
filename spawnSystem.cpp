@@ -1,10 +1,5 @@
 #include"Global.h"
 
-extern sint32 gridL1;
-extern  sint32 gridL2;
-extern sint32 gridCount;
-extern sint32** entityPosGrid;
-
 spawnPool_t *spawnPool_create()
 {
 	spawnPool_t *spawnPool = (spawnPool_t*)malloc(sizeof(spawnPool_t));
@@ -125,25 +120,11 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool,spawnPool->faction);
 			if( creature == NULL )
 				continue;
-			
 			creature_setLocation(creature, location->x+(float)(rand() % 5 +1), location->y, location->z+(float)(rand() % 5 +1), 0.0f, 0.0f);
-			//--add creature to position grid
-			
-			
-			entityPosGrid[gridCount] = new sint32[gridL2];
-			entityPosGrid[gridCount][0] = mapChannel->mapInfo->contextId;
-			entityPosGrid[gridCount][1] = creature->actor.entityId;
-			entityPosGrid[gridCount][2] = creature ->actor.posX;
-			entityPosGrid[gridCount][3] = creature ->actor.posZ;
-			entityPosGrid[gridCount][4] = spawnPool->faction;
-			gridCount += 1;
-			if(gridCount >  gridL1) gridCount = gridL1;
-
 			cellMgr_addToWorld(mapChannel, creature);
-			
 		}
 		if( spawnPool )
-		spawnPool_decreaseQueuedCreatureCount(mapChannel, spawnPool, spawnCount);
+			spawnPool_decreaseQueuedCreatureCount(mapChannel, spawnPool, spawnCount);
 		if( spawnPool )
 			spawnPool_decreaseQueueCount(mapChannel,spawnPool);
 	}
