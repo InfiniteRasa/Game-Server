@@ -568,7 +568,7 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
 		return;
 	case METHODID_REVIVEME: // dead player wish to go to the hospital
-		manifestion_recv_revive(cm, pyString, pyStringLen);
+		manifestation_recv_Revive(cm, pyString, pyStringLen);
 		return;
 	case METHODID_SELECTWAYPOINT: // waypoint selected
 		waypoint_recv_SelectWaypoint(cm, pyString, pyStringLen);

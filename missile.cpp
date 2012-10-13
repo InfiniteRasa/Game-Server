@@ -267,54 +267,50 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		mapChannelClient_t *client = (mapChannelClient_t*)entity;
 		if( client->player->actor->state == ACTOR_STATE_DEAD )
 			return;
-        //direct decrease health
-		
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-	
+        
+		//direct decrease health
 		gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);										
 		client->player->actor->stats.healthCurrent -= missile->damageA;
 		 //send death notification when health <= zero
 		if( client->player->actor->stats.healthCurrent <= 0 )
 		{
 			client->player->actor->state = ACTOR_STATE_DEAD;
-			// dead!
+
+			// Recv_ActorKilled
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
-			pym_list_begin(&pms);
-			pym_addInt(&pms, 5); // dead
-			pym_list_end(&pms);
 			pym_tuple_end(&pms);
 			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
 				                                    client->player->actor, 
 													client->player->actor->entityId, 
-													METHODID_STATECHANGE, 
+													776, 
 													pym_getData(&pms), pym_getLen(&pms));
-			
+
 			// fix health
 			client->player->actor->stats.healthCurrent = 0;
 
-			// send method id 595 "PlayerDead"
+			//Recv_PlayerDead(sourceId, graveyardList, canRevive) -> None   
+			// Notification that we are dying, and that 'sourceId' killed us.
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
-				pym_addBool(&pms, true); // canRevive
+				pym_addInt(&pms, 0); // sourceId <- killer
 				pym_tuple_begin(&pms); // graveyardList						
 					pym_dict_begin(&pms);// begin graveyard 1 => cf PYTHON::/shared/graveyardinfo.py
 						pym_dict_addKey(&pms,"Id");
-						pym_addInt(&pms, 2); // id 
+							pym_addInt(&pms, 2); // id 
 						pym_dict_addKey(&pms,"pos");
-						pym_tuple_begin(&pms);//begin pos
-							pym_addInt(&pms, -218); //'-58.4531'
-							pym_addInt(&pms, 100);
-							pym_addInt(&pms, -58);
-						pym_tuple_end(&pms); // end pos
+							pym_tuple_begin(&pms);//begin pos
+								pym_addInt(&pms, -218); //'-58.4531'
+								pym_addInt(&pms, 100);
+								pym_addInt(&pms, -58);
+							pym_tuple_end(&pms); // end pos
 						pym_dict_addKey(&pms,"isSafe");
-						pym_addInt(&pms, 0); //isSafe = False => not given
+							pym_addInt(&pms, 0); //isSafe = False => not given
 						pym_dict_addKey(&pms,"name");
-						pym_addString(&pms,"Outpost Hospital"); // name = none => not given
+							pym_addString(&pms,"Outpost Hospital"); // name = none => not given
 					pym_dict_end(&pms); // end graveyard 1
 				pym_tuple_end(&pms);
-				pym_addInt(&pms, client->player->actor->entityId); // ActorKilled
+				pym_addBool(&pms, true); // canRevive
 			pym_tuple_end(&pms);
 			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
 				                                    client->player->actor, 

@@ -245,7 +245,7 @@ void manifestation_recv_RequestVisualCombatMode(mapChannelClient_t *client, uint
 void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
-void manifestion_recv_revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
+void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 
 // cell mgr specific
 void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapChannelClient_t *client, mapChannelClient_t **playerList, sint32 playerCount);

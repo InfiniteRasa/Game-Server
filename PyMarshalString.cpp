@@ -3,7 +3,7 @@
 pyMarshalString::pyMarshalString()
 {
 	this->Init();
-	// todo: dynamic buffer allocation
+	// todo: dynamic buffer allocation ?
 }
 
 pyMarshalString::~pyMarshalString()

@@ -639,7 +639,41 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, 831, pym_getData(&pms), pym_getLen(&pms));	
 		return true;
 	}
-	
+	if( strcmp(textMsg, ".makemedie") == 0 )
+	{
+		cm->player->actor->stats.healthCurrent = 0;
+		cm->player->actor->state = ACTOR_STATE_DEAD;
+		// Recv_MadeDead
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+				                                cm->player->actor, 
+												cm->player->actor->entityId, 
+												629, 
+												pym_getData(&pms), pym_getLen(&pms));
+		communicator_systemMessage(cm, "Killed!");
+		return true;
+	}
+	if( strcmp(textMsg, ".reviveme") == 0 )
+	{
+		cm->player->actor->stats.healthCurrent = cm->player->actor->stats.healthCurrentMax;
+		cm->player->actor->state = ACTOR_STATE_ALIVE;
+		//Recv_Revived(sourceId) -> None
+		//Notification that we are being revived, and that 'sourceId' helped us out.
+		// This must be called before graveyard respawn
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 0);
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+				                                cm->player->actor, 
+												cm->player->actor->entityId, 
+												METHODID_REVIVED, 
+												pym_getData(&pms), pym_getLen(&pms));
+		communicator_systemMessage(cm, "Revived!");
+		return true;
+	}
 	if( memcmp(textMsg, ".creature ", 10) == 0 )
 	{
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289

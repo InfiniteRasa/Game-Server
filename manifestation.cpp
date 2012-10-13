@@ -1344,66 +1344,64 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 }
 
 
-void manifestion_recv_revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
+void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
 	printf("Revive me requested- Size: %d\n", pyStringLen);
 
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	sint32 graveyardId;
+	graveyardId = pym_unpackInt(&pums); // todo: use this
 
-		// remove player from cell
-		cellMgr_removeFromWorld(cm);
-		// rebuild players  health/status /etc..
-		cm->player->actor->stats.healthCurrent = cm->player->actor->stats.healthCurrentMax;
-		// todo: use manifestation_updateStatsValues() to reset health?
-		// update health (Recv_UpdateHealth 380) or 285
-		pyMarshalString_t pms;
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current
-		pym_addInt(&pms, cm->player->actor->stats.healthCurrentMax); // currentMax
-		pym_addFloat(&pms, cm->player->actor->stats.regenHealthPerSecond); // refreshAmount
-		pym_addInt(&pms, 0); // whoId
-		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
-												 cm->player->actor, 
-			                                     cm->player->actor->entityId, METHODID_UPDATEHEALTH, 
-												 pym_getData(&pms), pym_getLen(&pms));
+	// remove player from cell
+	//cellMgr_removeFromWorld(cm); <- faulty
+ 	 	
+	// move player to graveyard
+	netCompressedMovement_t netMovement = {0};
+	cm->player->actor->posX = 807.316;
+	cm->player->actor->posY = 294.055+1f;
+	cm->player->actor->posZ = 391.301;
+	netMovement.entityId = cm->player->actor->entityId;
+	netMovement.posX24b = cm->player->actor->posX * 256.0f;
+	netMovement.posY24b = cm->player->actor->posY * 256.0f;
+	netMovement.posZ24b = cm->player->actor->posZ * 256.0f;
+	netMgr_sendEntityMovement(cm->cgm, &netMovement);
 
-		//cm->player->actor->state = -51;
-		//	// alive!
-			pym_init(&pms);
-			pym_tuple_begin(&pms);
-			pym_addNoneStruct(&pms);
-			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
-				                                    cm->player->actor, 
-													cm->player->actor->entityId, 
-													METHODID_SWAPMESHREVIVE, 
-													pym_getData(&pms), pym_getLen(&pms));
-			// alive!
-			pym_init(&pms);
-			pym_tuple_begin(&pms);
-			pym_list_begin(&pms);
-			pym_addInt(&pms, ACTOR_STATE_ALIVE); // standing
-			pym_list_end(&pms);
-			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
-				                                    cm->player->actor, 
-													cm->player->actor->entityId, 
-													METHODID_STATECHANGE, 
-													pym_getData(&pms), pym_getLen(&pms));
+	// rebuild players  health/status /etc..
+	cm->player->actor->stats.healthCurrent = cm->player->actor->stats.healthCurrentMax;
+	cm->player->actor->state = ACTOR_STATE_ALIVE;
 
+	pyMarshalString_t pms;
 
+	//Recv_Revived(sourceId) -> None
+	//Notification that we are being revived, and that 'sourceId' helped us out.
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, 0);
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
+											cm->player->actor, 
+											cm->player->actor->entityId, 
+											METHODID_REVIVED, 
+											pym_getData(&pms), pym_getLen(&pms));
 
-			// send "revived" to client
-			pym_init(&pms);			
-			netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
-				                                    cm->player->actor, 
-													cm->player->actor->entityId, 
-													552, 
-													pym_getData(&pms), pym_getLen(&pms));
+	// update health (Recv_UpdateHealth 380) or 285
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, cm->player->actor->stats.healthCurrent); // current
+	pym_addInt(&pms, cm->player->actor->stats.healthCurrentMax); // currentMax
+	pym_addFloat(&pms, cm->player->actor->stats.regenHealthPerSecond); // refreshAmount
+	pym_addInt(&pms, 0); // whoId
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
+											 cm->player->actor, 
+		                                     cm->player->actor->entityId, METHODID_UPDATEHEALTH, 
+											 pym_getData(&pms), pym_getLen(&pms));
 
-			// introduce him back to cell.
-			cellMgr_addToWorld(cm);
+	// introduce him back to cell.
+	//cellMgr_addToWorld(cm); <-- faulty
 }
 
 /*
