@@ -93,8 +93,8 @@ void navmesh_initForMapChannel(mapChannel_t *mapChannel)
 	printf("Navmesh loaded\n");
 }
 
-#define MAX_PATH_LENGTH				PATH_LENGTH_LIMIT
-#define MAX_POLY					PATH_LENGTH_LIMIT
+//#define MAX_PATH_LENGTH				PATH_LENGTH_LIMIT
+#define MAX_POLY					(512)
 #define INVALID_POLYREF				0
 #define SMOOTH_PATH_STEP_SIZE		4.0f
 #define SMOOTH_PATH_SLOP			0.1f
@@ -197,7 +197,7 @@ dtStatus findSmoothPath(mapChannel_t *mapChannel, const float* startPos, const f
 	*smoothPathSize = 0;
 	uint32 nsmoothPath = 0;
 
-	dtPolyRef polys[MAX_PATH_LENGTH];
+	dtPolyRef polys[MAX_POLY];
 	memcpy(polys, polyPath, sizeof(dtPolyRef)*polyPathSize);
 	uint32 npolys = polyPathSize;
 
@@ -246,7 +246,7 @@ dtStatus findSmoothPath(mapChannel_t *mapChannel, const float* startPos, const f
 
 		uint32 nvisited = 0;
 		mapChannel->navMeshQuery->moveAlongSurface(polys[0], iterPos, moveTgt, m_filter, result, visited, (int*)&nvisited, MAX_VISIT_POLY);
-		npolys = fixupCorridor(polys, npolys, MAX_PATH_LENGTH, visited, nvisited);
+		npolys = fixupCorridor(polys, npolys, MAX_POLY, visited, nvisited);
 
 		mapChannel->navMeshQuery->getPolyHeight(polys[0], result, &result[1]);
 		result[1] += 0.5f;
@@ -306,11 +306,8 @@ dtStatus findSmoothPath(mapChannel_t *mapChannel, const float* startPos, const f
 			nsmoothPath++;
 		}
 	}
-
 	*smoothPathSize = nsmoothPath;
-
-	// this is most likely a loop
-	return nsmoothPath < MAX_PATH_LENGTH ? DT_SUCCESS : DT_FAILURE;
+	return nsmoothPath < MAX_POLY ? DT_SUCCESS : DT_FAILURE;
 }
 
 sint32 navmesh_getPath(mapChannel_t *mapChannel, float start[3], float end[3], float* path, bool appendEndPoint)
@@ -347,12 +344,12 @@ sint32 navmesh_getPath(mapChannel_t *mapChannel, float start[3], float end[3], f
 
 	sint32 pathNodes = 0;
 
-	mapChannel->navMeshQuery->findPath(startRef, endRef, start, end, &filter, polys, &nbPolys, PATH_LENGTH_LIMIT);
+	mapChannel->navMeshQuery->findPath(startRef, endRef, start, end, &filter, polys, &nbPolys, MAX_POLY);
 	if(nbPolys)
 	{
 		//mapChannel->navMeshQuery->findStraightPath(start, end, polys, nbPolys, strPath, strPathFlags, strPathPolys, &nbStrPath, PATH_LENGTH_LIMIT);
-		findSmoothPath(mapChannel, start, end, &filter, polys, nbPolys, strPath, &nbStrPath, PATH_LENGTH_LIMIT);
-		for( int i = 0; i < nbStrPath; i++)
+		findSmoothPath(mapChannel, start, end, &filter, polys, nbPolys, strPath, &nbStrPath, MAX_POLY);
+		for( int i = 0; i < min(PATH_LENGTH_LIMIT, nbStrPath); i++)
 		{
 			//Vector3 point(strPath[i*3+0], strPath[i*3+1], strPath[i*3+2]);
 			//path.push_back(point);
@@ -366,6 +363,7 @@ sint32 navmesh_getPath(mapChannel_t *mapChannel, float start[3], float end[3], f
 		//path.back().z = end.z;
 		if( appendEndPoint && (pathNodes+1)<PATH_LENGTH_LIMIT )
 		{
+			__debugbreak(); // should not use this
 			// makes sure we reach the destination, but can result in NPCs going through walls or sinking into ground
 			path[pathNodes*3+0] = end[0];
 			path[pathNodes*3+1] = end[1];

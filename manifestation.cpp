@@ -83,6 +83,30 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
+	// set abilities
+	// it seems that we also have to send Recv_Abilities to make icons in the skill window dragable,
+	// todo: currently a few skills are hardcoded but we should switch to a "skillIdx2AbilityID" list similar to the one we use for METHODID_SKILLS.
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	// for ability IDs <-> skill IDs see abilitydata.skillRequirements dict
+	if( owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] )
+	{
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 401);															// id
+		pym_addInt(&pms, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);			// level
+		pym_tuple_end(&pms);
+	}
+	if( owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING] )
+	{
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 194);															// id
+		pym_addInt(&pms, owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING]);			// level
+		pym_tuple_end(&pms);
+	}
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 itemClassId)
@@ -524,25 +548,6 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	// Recv_Abilities (id: 10, desc: must only be sent for the local manifestation)
 	// We dont need to send ability data to every client, but only the owner (which is done in manifestation_assignPlayer)
 	// Skills -> Everything that the player can learn via the skills menu (Sprint, Firearms...) Abilities -> Every skill gained by logos?
-	//pym_init(&pms);
-	//pym_tuple_begin(&pms);
-	//pym_list_begin(&pms);
-	//// ability sprint
-	//pym_tuple_begin(&pms);
-	//pym_addInt(&pms, 401); // id
-	//pym_addInt(&pms, 5); // level
-	//pym_tuple_end(&pms);
-	//// ability lightning
-	//pym_tuple_begin(&pms);
-	//pym_addInt(&pms, 194); // id
-	//pym_addInt(&pms, 1); // level
-	//pym_tuple_end(&pms);
-	//pym_list_end(&pms);
-	//pym_tuple_end(&pms);
-	//for(sint32 i=0; i<playerCount; i++)
-	//{
-	//	netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
-	//}
 	// Recv_WorldLocationDescriptor (243)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -1206,61 +1211,8 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 
 	if( client->player->targetEntityId )
 	{
-		
-		switch(inventory_CurrentWeapon(client)->itemTemplate->toolType)
-		{
-
-		case 9:
-			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29395)
-			{
-				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN_V3, 120); 
-				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN_V3);
-			
-			}
-			else
-			{
-				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_SHOTGUN, 40); 
-				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_SHOTGUN);
-			}
-		break;
-		case 10:
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_GRENADE, 90); 
-  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_NETGUN);
-			//gameEffect_attach(client->mapChannel, client->player->targetEntityId, 258, 5, 3000);
-			break;
-
-		case 8:
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 15); 
-			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_PISTOL);
-			break;
-
-		case 7:
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_RIFLE, 25); 
-  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, MISSILE_RIFLE);
-			break;
-		case 15:
-			if(inventory_CurrentWeapon(client)->itemTemplate->classId == 29757)
-			{
-				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN_V3, 20); 
-  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN_V3);
-			}
-			else
-			{
-				missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_MACHINEGUN, 15); 
-  				mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
-			}
-			break;
-		case 22:
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PROPELLANT_ICE, 20); 
-  			mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player,MISSILE_MACHINEGUN);
-			break;
-         
-		default:
-			printf("unknown weapontype \n");
-			return;
-
-		}
-		
+		mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, inventory_CurrentWeapon(client));
+	
 	}//--if: targed id	
 }
 

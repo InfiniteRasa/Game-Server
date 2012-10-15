@@ -8,7 +8,7 @@ void _gameEffect_updateMovementMod(mapChannel_t *mapChannel, actor_t *actor)
 	gameEffect_t *gameeffect = actor->activeEffects;
 	while( gameeffect )
 	{
-		if( gameeffect->effectId == EFFECTID_SPRINT )
+		if( gameeffect->typeId == EFFECT_TYPE_SPRINT )
 		{
 			// apply sprsint32 bonus
 			movementMod += 0.10f;
@@ -60,36 +60,21 @@ void _gameEffect_removeFromList(actor_t *actor, gameEffect_t *gameEffect)
 }
 
 /*
-	Attaches a GameEffect (buffs, etc.) to a actor entity.
-*/
-void gameEffect_attach(mapChannel_t *mapChannel, uint32 entityId, sint32 effectId, sint32 effectLevel, sint32 duration)
+ * Attach game effect sprint
+ */
+void gameEffect_attachSprint(mapChannel_t *mapChannel, actor_t *actor, sint32 effectLevel, sint32 duration)
 {
-	sint32 entityType = entityMgr_getEntityType(entityId);
-	void *entity = entityMgr_get(entityId);
-	if( entity == NULL ) { return; }
-	creature_t *creature = NULL;
-	if (entityType == ENTITYTYPE_CREATURE)
-	{ creature = (creature_t*)entity; }
-	else { return; }
-	gameEffect_attach(mapChannel, &creature->actor, effectId, effectLevel, duration);
-}
-
-void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId, sint32 effectLevel, sint32 duration)
-{
-	// check if a effect with the same ID already exists
-	gameEffect_t *link = actor->activeEffects;
-	while( link )
-	{
-		if( link->effectId == effectId )
-			return; // already exists
-		// next
-		link = link->next;
-	}
+	mapChannel->currentEffectID++; // generate new effectId
+	sint32 effectId = mapChannel->currentEffectID;
+	// effectId -> The id used to identify the effect when sending/receiving effect related data (similiar to entityId, just for effects)
+	// typeId -> The id used to lookup the effect class and animation
+	// level -> The sub id of the effect, some effects have multiple levels (especially the ones linked with player abilities)
 	// create effect struct
 	gameEffect_t *gameEffect = (gameEffect_t*)malloc(sizeof(gameEffect_t));
 	// setup struct
 	gameEffect->aliveTime = duration; // 5 seconds (test)
 	gameEffect->time = 0; // reset timer
+	gameEffect->typeId = EFFECT_TYPE_SPRINT;
 	gameEffect->effectId = effectId;
 	gameEffect->effectLevel = effectLevel;
 	// add to list
@@ -98,10 +83,11 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, (sint32)gameEffect->effectId);	//typeId
+	pym_addInt(&pms, (sint32)gameEffect->typeId);	//typeId
 	pym_addInt(&pms, (sint32)gameEffect->effectId);	//effectId
 	pym_addInt(&pms, (sint32)gameEffect->effectLevel);	//level
 	pym_addInt(&pms, (sint32)0);//sourceId
+	//pym_addNoneStruct(&pms);
 	pym_addBool(&pms, (sint32)true);//announce
 	pym_dict_begin(&pms);//tooltipDict
 	// keys:
@@ -113,16 +99,41 @@ void gameEffect_attach(mapChannel_t *mapChannel, actor_t *actor, sint32 effectId
 	// 'isDebuff'
 	// 'isNegativeEffect'
 	pym_dict_end(&pms);
+	//pym_addNoneStruct(&pms);
 	//args ( variable)
-	pym_dict_begin(&pms);
-	pym_dict_end(&pms);
+	//pym_tuple_begin(&pms);
+	
+	//pym_tuple_end(&pms);
+	//pym_addNoneStruct(&pms);
+
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work
-	if( effectId == EFFECTID_SPRINT )
-		_gameEffect_updateMovementMod(mapChannel, actor);
-	// more todo..
+	_gameEffect_updateMovementMod(mapChannel, actor);
 }
+
+///*
+//	Attaches a GameEffect (buffs, etc.) to an entityId
+//*/
+//void gameEffect_attach(mapChannel_t *mapChannel, uint64 entityId, sint32 typeId, sint32 effectId, sint32 effectLevel, sint32 duration)
+//{
+//	sint32 entityType = entityMgr_getEntityType(entityId);
+//	void *entity = entityMgr_get(entityId);
+//	if( entity == NULL ) { return; }
+//	if (entityType == ENTITYTYPE_CREATURE)
+//	{
+//		gameEffect_attach(mapChannel, &((creature_t*)entity)->actor, typeId, effectId, effectLevel, duration);
+//	}
+//	else if (entityType == ENTITYTYPE_CLIENT)
+//	{
+//		gameEffect_attach(mapChannel, ((mapChannelClient_t*)entity)->player->actor, typeId, effectId, effectLevel, duration);
+//	}
+//	else
+//	{
+//		printf("Could not attach game effect");
+//		return; 
+//	}
+//}
 
 void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *gameEffect)
 {
@@ -136,7 +147,7 @@ void gameEffect_dettach(mapChannel_t *mapChannel, actor_t *actor, gameEffect_t *
 	// remove from list
 	_gameEffect_removeFromList(actor, gameEffect);
 	// do ability specific work
-	if( gameEffect->effectId == EFFECTID_SPRINT )
+	if( gameEffect->typeId == EFFECT_TYPE_SPRINT )
 		_gameEffect_updateMovementMod(mapChannel, actor);
 	// more todo..
 	// free effect

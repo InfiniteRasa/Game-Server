@@ -176,6 +176,9 @@
 
 #define METHODID_PERFORMRECOVERY						125
 
+// Creature.py
+#define METHODID_CREATUREINFO							439
+
 // Character Life/ state
 #define METHODID_REVIVEME								170
 #define METHODID_REVIVED								171 // not used 20120902

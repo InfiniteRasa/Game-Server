@@ -1,27 +1,38 @@
 
+/* creature missile */
+typedef struct  
+{
+	sint32 id;
+	sint32 actionId; // action
+	sint32 actionArgId; // subaction
+	float rangeMin;
+	float rangeMax;
+	sint32 recoverTime; // cooldown time after use
+	sint32 recoverTimeGlobal; // cooldown of all available actions (if lower than active recover timer, will have no effect)
+	sint32 windupTime; // windup animation time
+	sint32 minDamage; // min damage, not all missile actions use this
+	sint32 maxDamage; // max damage, not all missile actions use this
+}creatureMissile_t; // someday we should rename this to creatureAction, creatureAbility or creatureAttack
+
 /* creature type */
 typedef struct _creatureType_t 
 {
 	// actor info
-	sint32 nameId; // note that it is also possible to overwrite the name with actor Recv_SetName
+	sint32 nameId; // if 0, use name field instead.
 	sint32 entityClassId;
+	char name[70];
+	sint32 faction;
 	// stats info
+	float walkspeed;
+	float runspeed;
 	sint32 maxHealth;
 	//sint32 RangeMissile;
 	//sint32 MeleeMissile;
-	struct
-	{
-		sint32 damageMin;
-		sint32 damageMax;
-		sint32 missile;
-	}meleeAttack;
-	struct
-	{
-		sint32 damageMin;
-		sint32 damageMax;
-		sint32 missile;
-	}rangeAttack;
+	creatureMissile_t* actions[8]; // creature available
+	// todo fields
+	sint32 aggressionTime;
 
+	float wander_dist; // -- wander boundaries 
 }creatureType_t;
 
 creatureType_t*		creatureType_createCreatureType(sint32 entityClassId, sint32 nameId);
@@ -38,20 +49,18 @@ typedef struct _creature_t
 	sint32 updatePositionCounter; // decreases, when it hits 0 and the cell position changed, call creature_updateCellLocation() 
 	// stats
 	//sint32 currentHealth; --> this is already stored in creature.actor.currentHealth
-	sint32 attackspeed;
+	//sint32 attackspeed;
 	sint32 lastattack;
 	sint32 lastresttime;
-	float velocity;
-	sint32 rottime; //rotation speed
-	float range; //attackrange
-	sint32 attack_habbit; //meelee or range fighter 
-	sint32 agression; // hunting timer for enemys
+	//float velocity;
+	//sint32 rottime; //rotation speed
+	//float range; //attackrange
+	//sint32 attack_habbit; //meelee or range fighter 
+	//sint32 agression; // hunting timer for enemys
 	sint32 lastagression;
-	sint32 faction; // hostile /friendly
-	sint32 wanderstate;
-	sint32 movestate;
+	//sint32 wanderstate;
+	//sint32 movestate;
 	//float wx,wy,wz; // target destination (can be far away)
-    float wander_dist; // -- wander boundaries 
     baseBehavior_baseNode homePos;  //--- spawn location (used for wander)
     baseBehavior_baseNode *pathnodes; //--entity patrol nodes
 	sint32 **aggrotable; //stores enemydamage
@@ -64,9 +73,8 @@ typedef struct _creature_t
 
 //creature_t*			creature_createCreature(mapChannel_t *mapChannel, sint32 classId, sint8 *name);
 //creature_t*			creature_createCreature(mapChannel_t *mapChannel, unsigned long long entityId, sint32 classId, sint8 *name);
-creature_t*			creature_createCreature(mapChannel_t *mapChannel, sint8 *typeName, spawnPool_t *spawnPool);
-creature_t*			creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool,sint32 faction);
-creatureType_t*		creatureType_findType(sint8 *typeName);
+creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool);
+creatureType_t*		creatureType_findType(sint32 typeId);
 void				creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY);
 
 void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature, actor_t* killedBy);

@@ -1,24 +1,14 @@
 #include"Global.h"
 
-extern sint32 gridL1;
-extern  sint32 gridL2;
-extern sint32 gridCount;
-extern sint32** entityPosGrid;
-
 void missile_initForMapchannel(mapChannel_t *mapChannel)
 {
 	
 }
 
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage)
-{
-  missile_launch(mapChannel, origin, targetEntityId, type, damage, -1);
-}
-
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage, float maxRange)
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 damage, sint32 actionId, sint32 actionArgId)
 {
 	missile_t missile;
-	missile.type = type;
+	//missile.type = type;
 	missile.damageA = damage;
 	missile.targetEntityId = targetEntityId;
 	missile.source = origin;
@@ -42,11 +32,11 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		targetActor = &creature->actor; }
 		break;
 	case ENTITYTYPE_CLIENT:
-        { 
+		{ 
 			mapChannelClient_t *player = (mapChannelClient_t*)entity;            
 			targetActor = player->player->actor; 
 		}
-        break;
+		break;
 	default:
 		printf("Can't shoot that object\n");
 		return;
@@ -57,209 +47,89 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	float dy = targetActor->posY - origin->posY;
 	float dz = targetActor->posZ - origin->posZ;
 	float distance = sqrt(dx*dx+dy*dy+dz*dz);
-
 	//check range Disastorm @88450b338c
-	if(maxRange >= 0){
-		if(distance > maxRange){
-			return;	
-		}
-	}
-
-	switch( type )
-	{
-	case MISSILE_PISTOL:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 133;
-	break;
-	case MELEE_PISTOL:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 4;
-	break;
-	case MELEE_RIFLE:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 5;
-	break;
-	case MELEE_MACHINEGUN:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 3;
-	break;
-	case MISSILE_MACHINEGUN:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 149;
-		missile.argId = 1;
-	break;
-	case MISSILE_MACHINEGUN_V3:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 149;
-		missile.argId = 7;
-	break;
-	case MISSILE_RIFLE:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 134;
-	break;
-	case MISSILE_THRAX_PISTOL:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 1;
-	break;
-	case MISSILE_GRENADE:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 6;
-	break;
-	case MISSILE_PROPELLANT_ICE:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 3;
-	break;
-	case MISSILE_THRAX_RIFLE:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 79;
-	break;
-		case MELEE_THRAX:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 46;
-	break;
-	case THRAX_KICK:
-		 missile.triggerTime = 0;
-		 missile.actionId = 397;
-		 missile.argId = 1;
-	break;
-	case MELEE_BOARGAR:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 10;
-	break;
-	case MISSILE_LIGHTNING:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 194;
-		missile.argId = 1;
-	break;
-	case MISSILE_HUNTER_PULSEGUN:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 244;
-	break;
-	case MELEE_HUNTER:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 33;
-	break;
-	case MELEE_AMOEBOID:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 431;
-	break;
-	case MISSILE_AFSMECH_MG:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 293;
-		missile.argId = 1;
-	break;
-	case MISSILE_SHOTGUN:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 121;
-	break;
-	case MISSILE_SHOTGUN_V3:
-		missile.triggerTime = (sint32)(distance*0.5f);
-		missile.actionId = 1;
-		missile.argId = 287;
-	break;
-	case MELEE_SHOTGUN:
-		missile.triggerTime = 0;
-		missile.actionId = 174;
-		missile.argId = 6;
-	break;
-	case MISSILE_STALKER:
-		missile.triggerTime = (sint32)(distance*0.5f);;
-		missile.actionId = 1;
-		missile.argId = 78;
-	break;
-	default:
-		printf("Unknown missile type\n");
-		return;
-	};
-
+	//if(maxRange >= 0){
+	//	if(distance > maxRange){
+	//		return;	
+	//	}
+	//}
+	missile.triggerTime = (sint32)(distance*0.5f);
+	missile.actionId = actionId;
+	missile.argId = actionArgId;
+	// send windup
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, missile.actionId); // actionId
+	pym_addInt(&pms, missile.argId); // actionArgId (subaction)
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, origin, origin->entityId, 126, pym_getData(&pms), pym_getLen(&pms));
 	// append to list
 	mapChannel->missileInfo.list.push_back(missile);
 }
 
-void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
+/*
+ * Updates health, handles death and sends packets (creature)
+ */
+void missile_doDamage(mapChannel_t *mapChannel, creature_t* creature, sint32 damage, actor_t* damageBy)
 {
 	pyMarshalString_t pms;
-	// do work
-	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
-	void *entity = entityMgr_get(missile->targetEntityId);
-	if( entity == NULL ) // check if entity still exists
-		return;
-	// do handling of the different types
-	if( targetType == ENTITYTYPE_CREATURE )
+	if( creature->actor.state == ACTOR_STATE_DEAD )
+		return;	
+	creature->actor.stats.healthCurrent -= damage;
+	if( creature->actor.stats.healthCurrent <= 0 )
 	{
-		creature_t *creature = (creature_t*)entity;
-		if( creature->actor.state == ACTOR_STATE_DEAD )
-			return;
-										
-		creature->actor.stats.healthCurrent -= missile->damageA;
-		if( creature->actor.stats.healthCurrent <= 0 )
+		// fix health
+		creature->actor.stats.healthCurrent = 0;
+		creature_handleCreatureKill(mapChannel, creature, damageBy);
+	}
+	else
+	{
+		// shooting at wandering creatures makes them ANGRY
+		if( creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
 		{
-			// fix health
-			creature->actor.stats.healthCurrent = 0;
-			creature_handleCreatureKill(mapChannel, creature, missile->source);
+			if( damageBy->owner )
+				controller_setActionFighting(creature, damageBy->owner->clientEntityId); // player
+			else
+				controller_setActionFighting(creature, damageBy->entityId); // creature
 		}
+	}
+	// update health (Recv_UpdateHealth 380)
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, creature->actor.stats.healthCurrent); // current
+	pym_addInt(&pms, creature->type->maxHealth); // currentMax
+	pym_addInt(&pms, 0); // refreshAmount
+	pym_addInt(&pms, 0); // whoId
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_UPDATEHEALTH, pym_getData(&pms), pym_getLen(&pms));
+}
 
-		pym_init(&pms);
-		pym_tuple_begin(&pms);  						// Packet Start
-		pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
-		pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
-		pym_list_begin(&pms); 							// Hits Start
-			pym_addLong(&pms, creature->actor.entityId);// Each hit creature	(ktb: Must be a long for some reason?)
-		pym_list_end(&pms); 							// Hits End
-		pym_list_begin(&pms); 							// Misses Start
-		pym_list_end(&pms); 							// Misses End
-		pym_list_begin(&pms); 							// Misses Data Start
-		pym_list_end(&pms); 							// Misses Data End
-		pym_list_begin(&pms); 							// Hits Data Start
-			pym_tuple_begin(&pms); 						// Each Hit tuple start
-				pym_addInt(&pms, creature->actor.entityId); // Creature entity ID
-				pym_tuple_begin(&pms); 						// rawInfo start
-						pym_addInt(&pms, 1); 				//self.damageType = normal
-						pym_addInt(&pms, 0); 					//self.reflected = 0
-						pym_addInt(&pms, 0); 					//self.filtered = 0
-						pym_addInt(&pms, 0); 					//self.absorbed = 0
-						pym_addInt(&pms, 0); 					//self.resisted = 0
-						pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
-						pym_addInt(&pms, 0); 					//self.isCrit = 0
-						pym_addInt(&pms, 0); 					//self.deathBlow = 0
-						pym_addInt(&pms, 0); 					//self.coverModifier = 0
-						pym_addInt(&pms, 0); 					//self.wasImmune = 0
- 						//targetEffectIds // 131
-						pym_list_begin(&pms);
-						pym_list_end(&pms);
-						//sourceEffectIds
-						pym_list_begin(&pms);
-						pym_list_end(&pms);
-				pym_tuple_end(&pms); 						// rawInfo end
-				pym_addNoneStruct(&pms);  					// OnHitData
-			pym_tuple_end(&pms); 						// Each Hit tuple start
-		pym_list_end(&pms); 							// Hits Data End
-		pym_tuple_end(&pms); 							// Packet End
-		// 311
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
-		// update health (Recv_UpdateHealth 380)
+/*
+ * Updates health, handles death and sends packets (player)
+ */
+void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint32 damage, actor_t* damageBy)
+{
+	pyMarshalString_t pms;
+	if( client->player->actor->state == ACTOR_STATE_DEAD )
+		return;
+
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	//gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);	// the blood splat animation, we should use creature_action and weapon data to store hit fx info?							
+	client->player->actor->stats.healthCurrent -= damage;
+	// send death notification when health <= zero
+	if( client->player->actor->stats.healthCurrent <= 0 )
+	{
+		client->player->actor->state = ACTOR_STATE_DEAD;
+		// dead!
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, creature->actor.stats.healthCurrent); // current
-		pym_addInt(&pms, creature->type->maxHealth); // currentMax
-		pym_addInt(&pms, 0); // refreshAmount
-		pym_addInt(&pms, 0); // whoId
+		pym_list_begin(&pms);
+		pym_addInt(&pms, 5); // dead
+		pym_list_end(&pms);
 		pym_tuple_end(&pms);
+<<<<<<< HEAD
 		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_UPDATEHEALTH, pym_getData(&pms), pym_getLen(&pms));
 	}
 	else if( targetType == ENTITYTYPE_CLIENT )
@@ -319,61 +189,197 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 													pym_getData(&pms), pym_getLen(&pms));
 			
 		}
+=======
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
+			client->player->actor, 
+			client->player->actor->entityId, 
+			METHODID_STATECHANGE, 
+			pym_getData(&pms), pym_getLen(&pms));
 
-		pym_init(&pms);
-		pym_tuple_begin(&pms);  						// Packet Start
-		pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
-		pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
-		pym_list_begin(&pms); 							// Hits Start
-			pym_addInt(&pms, client->player->actor->entityId);	// Each hit creature
-		pym_list_end(&pms); 							// Hits End
-		pym_list_begin(&pms); 							// Misses Start
-		pym_list_end(&pms); 							// Misses End
-		pym_list_begin(&pms); 							// Misses Data Start
-		pym_list_end(&pms); 							// Misses Data End
-		pym_list_begin(&pms); 							// Hits Data Start
-			pym_tuple_begin(&pms); 						// Each Hit tuple start
-				pym_addInt(&pms, client->player->actor->entityId); // Creature entity ID
-				pym_tuple_begin(&pms); 						// rawInfo start
-						pym_addInt(&pms, 1); 				//self.damageType = normal
-						pym_addInt(&pms, 0); 					//self.reflected = 0
-						pym_addInt(&pms, 0); 					//self.filtered = 0
-						pym_addInt(&pms, 0); 					//self.absorbed = 0
-						pym_addInt(&pms, 0); 					//self.resisted = 0
-						pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
-						pym_addInt(&pms, 0); 					//self.isCrit = 0
-						pym_addInt(&pms, 0); 					//self.deathBlow = 0
-						pym_addInt(&pms, 0); 					//self.coverModifier = 0
-						pym_addInt(&pms, 0); 					//self.wasImmune = 0
- 						//targetEffectIds // 131
-						pym_list_begin(&pms);
-						pym_list_end(&pms);
-						//sourceEffectIds
-						pym_list_begin(&pms);
-						pym_list_end(&pms);
-				pym_tuple_end(&pms); 						// rawInfo end
-				pym_addNoneStruct(&pms);  					// OnHitData
-			pym_tuple_end(&pms); 						// Each Hit tuple start
-		pym_list_end(&pms); 							// Hits Data End
-		pym_tuple_end(&pms); 							// Packet End
-		// 311
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, 125, pym_getData(&pms), pym_getLen(&pms));
-
-		// update health (Recv_UpdateHealth 380) or 285
+		// fix health
+		client->player->actor->stats.healthCurrent = 0;
+		// send method id 595 "PlayerDead"
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
-		pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
-		pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
-		pym_addInt(&pms, 0); // whoId
+		pym_addBool(&pms, true); // canRevive
+		pym_tuple_begin(&pms); // graveyardList						
+		pym_dict_begin(&pms);// begin graveyard 1 => cf PYTHON::/shared/graveyardinfo.py
+		pym_dict_addKey(&pms,"Id");
+		pym_addInt(&pms, 2); // id 
+		pym_dict_addKey(&pms,"pos");
+		pym_tuple_begin(&pms);//begin pos
+		pym_addInt(&pms, -218); //'-58.4531'
+		pym_addInt(&pms, 100);
+		pym_addInt(&pms, -58);
+		pym_tuple_end(&pms); // end pos
+		pym_dict_addKey(&pms,"isSafe");
+		pym_addInt(&pms, 0); //isSafe = False => not given
+		pym_dict_addKey(&pms,"name");
+		pym_addString(&pms,"Outpost Hospital"); // name = none => not given
+		pym_dict_end(&pms); // end graveyard 1
 		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
-												 client->player->actor, 
-			                                     client->player->actor->entityId, METHODID_UPDATEHEALTH, 
-												 pym_getData(&pms), pym_getLen(&pms));
+		pym_addInt(&pms, client->player->actor->entityId); // ActorKilled
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
+			client->player->actor, 
+			client->player->actor->entityId, 
+			METHODID_PLAYERDEAD, 
+			pym_getData(&pms), pym_getLen(&pms));
+	}
+	// update health (Recv_UpdateHealth 380) or 285
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
+	pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
+	pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
+	pym_addInt(&pms, 0); // whoId
+	pym_tuple_end(&pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
+		client->player->actor, 
+		client->player->actor->entityId, METHODID_UPDATEHEALTH, 
+		pym_getData(&pms), pym_getLen(&pms));
+}
+
+/*
+ * Handles all weapon use actions
+ */
+void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missile_t *missile)
+{
+	// todo: Some weapons can hit multiple targets
+	pyMarshalString_t pms;
+	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
+	void *entity = entityMgr_get(missile->targetEntityId);
+	if( entity == NULL ) // check if entity still exists
+		return;
+	sint32 damage = missile->damageA;
+	/* Execute action */
+	pym_init(&pms);
+	pym_tuple_begin(&pms);  						// Packet Start
+	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
+	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
+	pym_list_begin(&pms); 							// Hits Start
+		pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
+	pym_list_end(&pms); 							// Hits End
+	pym_list_begin(&pms); 							// Misses Start
+	pym_list_end(&pms); 							// Misses End
+	pym_list_begin(&pms); 							// Misses Data Start
+	pym_list_end(&pms); 							// Misses Data End
+	pym_list_begin(&pms); 							// Hits Data Start
+		pym_tuple_begin(&pms); 						// Each Hit tuple start
+			pym_addInt(&pms, missile->targetEntityId); // Creature entity ID
+			pym_tuple_begin(&pms); 						// rawInfo start
+					pym_addInt(&pms, 1); 				//self.damageType = normal
+					pym_addInt(&pms, 0); 					//self.reflected = 0
+					pym_addInt(&pms, 0); 					//self.filtered = 0
+					pym_addInt(&pms, 0); 					//self.absorbed = 0
+					pym_addInt(&pms, 0); 					//self.resisted = 0
+					pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
+					pym_addInt(&pms, 0); 					//self.isCrit = 0
+					pym_addInt(&pms, 0); 					//self.deathBlow = 0
+					pym_addInt(&pms, 0); 					//self.coverModifier = 0
+					pym_addInt(&pms, 0); 					//self.wasImmune = 0
+					//targetEffectIds // 131
+					pym_list_begin(&pms);
+					pym_list_end(&pms);
+					//sourceEffectIds
+					pym_list_begin(&pms);
+					pym_list_end(&pms);
+			pym_tuple_end(&pms); 						// rawInfo end
+			pym_addNoneStruct(&pms);  					// OnHitData
+		pym_tuple_end(&pms); 						// Each Hit tuple start
+	pym_list_end(&pms); 							// Hits Data End
+	pym_tuple_end(&pms); 							// Packet End
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	
+	if( targetType == ENTITYTYPE_CREATURE )
+		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
+	else if( targetType == ENTITYTYPE_CLIENT )
+		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
+	else
+		printf("Unsupported entity type for missile_doDamage()\n");
+}
+>>>>>>> Second part of combat update
+
+/*
+ * Handles all weapon melee actions
+ */
+void missile_ActionRecoveryHandler_WeaponMelee(mapChannel_t *mapChannel, missile_t *missile)
+{
+	// forward to weapon attack for now, until there is better handling for melee weapons
+	missile_ActionRecoveryHandler_WeaponAttack(mapChannel, missile);
+}
+
+/*
+ * Handles all thrax kick actions
+ */
+void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t *missile)
+{
+	pyMarshalString_t pms;
+	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
+	void *entity = entityMgr_get(missile->targetEntityId);
+	if( entity == NULL ) // check if entity still exists
+		return;
+	sint32 damage = missile->damageA;
+	/* Execute action */
+	pym_init(&pms);
+	pym_tuple_begin(&pms);  						// Packet Start
+	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
+	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
+	pym_list_begin(&pms); 							// Hits Start
+		pym_addLong(&pms, missile->targetEntityId);// Each hit creature
+	pym_list_end(&pms); 							// Hits End
+	pym_list_begin(&pms); 							// Misses Start
+	pym_list_end(&pms); 							// Misses End
+	pym_list_begin(&pms); 							// Misses Data Start
+	pym_list_end(&pms); 							// Misses Data End
+	pym_list_begin(&pms); 							// Hits Data Start
+		pym_tuple_begin(&pms); 						// Each Hit tuple start
+			//pym_addInt(&pms, missile->targetEntityId); // thrax kick actions dont need this field for some reason?
+			pym_tuple_begin(&pms); 						// rawInfo start
+					pym_addInt(&pms, 1); 				//self.damageType = normal
+					pym_addInt(&pms, 0); 					//self.reflected = 0
+					pym_addInt(&pms, 0); 					//self.filtered = 0
+					pym_addInt(&pms, 0); 					//self.absorbed = 0
+					pym_addInt(&pms, 0); 					//self.resisted = 0
+					pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
+					pym_addInt(&pms, 0); 					//self.isCrit = 0
+					pym_addInt(&pms, 0); 					//self.deathBlow = 0
+					pym_addInt(&pms, 0); 					//self.coverModifier = 0
+					pym_addInt(&pms, 0); 					//self.wasImmune = 0
+					//targetEffectIds // 131
+					pym_list_begin(&pms);
+					pym_list_end(&pms);
+					//sourceEffectIds
+					pym_list_begin(&pms);
+					pym_list_end(&pms);
+			pym_tuple_end(&pms); 						// rawInfo end
+			pym_addNoneStruct(&pms);  					// OnHitData
+		pym_tuple_end(&pms); 						// Each Hit tuple start
+	pym_list_end(&pms); 							// Hits Data End
+	pym_tuple_end(&pms); 							// Packet End
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	if( targetType == ENTITYTYPE_CREATURE )
+		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
+	else if( targetType == ENTITYTYPE_CLIENT )
+	{
+		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
+		//todo: Make knockback effect work
+		//gameEffect_attach(mapChannel, ((mapChannelClient_t*)entity)->player->actor, 10000082, 10000082, 1, 5000);
 	}
 	else
-		puts("No damage handling for that type yet");
+		printf("Unsupported entity type for missile_doDamage()\n");
+}
+
+void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
+{
+	if( missile->actionId == 1 )
+		missile_ActionRecoveryHandler_WeaponAttack(mapChannel, missile);
+	else if( missile->actionId == 174 )
+		missile_ActionRecoveryHandler_WeaponMelee(mapChannel, missile);
+	else if( missile->actionId == 397 )
+		missile_ActionRecoveryHandler_ThraxKick(mapChannel, missile);
+	else
+		printf("unsupported missile actionId (animation will freeze?)\n");
 }
 
 void missile_check(mapChannel_t *mapChannel, sint32 passedTime)

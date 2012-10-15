@@ -5,7 +5,7 @@
 
 typedef struct _missile_t
 {
-	sint32 type;
+	//sint32 type;
 	sint32 damageA;
 	sint32 damageB;
 	sint32 actionId;
@@ -29,30 +29,29 @@ typedef struct
 void missile_initForMapchannel(mapChannel_t *mapChannel);
 void missile_check(mapChannel_t *mapChannel, sint32 passedTime);
 
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage);
-//---Disastorm @88450b338c
-void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 type, sint32 damage, float maxRange);
-#define MISSILE_PISTOL      1
-#define MISSILE_RIFLE      2
-#define MISSILE_NETGUN      10
-#define MISSILE_THRAX_PISTOL  3
-#define MISSILE_THRAX_RIFLE    4
-#define MELEE_THRAX        5 
-#define MELEE_BOARGAR      6
-#define THRAX_KICK        7
-#define MISSILE_LIGHTNING    8
-#define MELEE_PISTOL      9
-#define MISSILE_HUNTER_PULSEGUN 11
-#define MELEE_HUNTER 12
-#define MELEE_AMOEBOID 13
-#define MISSILE_AFSMECH_MG 14
-#define MELEE_RIFLE 15
-#define MISSILE_GRENADE 16
-#define MELEE_MACHINEGUN 17
-#define MISSILE_MACHINEGUN 18
-#define MELEE_SHOTGUN 19
-#define MISSILE_SHOTGUN 20
-#define MISSILE_PROPELLANT_ICE 21
-#define MISSILE_SHOTGUN_V3 22
-#define MISSILE_MACHINEGUN_V3 23
-#define MISSILE_STALKER 24
+void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 damage, sint32 actionId, sint32 actionArgId);
+
+//#define MISSILE_PISTOL      1
+//#define MISSILE_RIFLE      2
+//#define MISSILE_NETGUN      10
+//#define MISSILE_THRAX_PISTOL  3
+//#define MISSILE_THRAX_RIFLE    4
+//#define MELEE_THRAX        5 
+//#define MELEE_BOARGAR      6
+//#define THRAX_KICK        7
+//#define MISSILE_LIGHTNING    8
+//#define MELEE_PISTOL      9
+//#define MISSILE_HUNTER_PULSEGUN 11
+//#define MELEE_HUNTER 12
+//#define MELEE_AMOEBOID 13
+//#define MISSILE_AFSMECH_MG 14
+//#define MELEE_RIFLE 15
+//#define MISSILE_GRENADE 16
+//#define MELEE_MACHINEGUN 17
+//#define MISSILE_MACHINEGUN 18
+//#define MELEE_SHOTGUN 19
+//#define MISSILE_SHOTGUN 20
+//#define MISSILE_PROPELLANT_ICE 21
+//#define MISSILE_SHOTGUN_V3 22
+//#define MISSILE_MACHINEGUN_V3 23
+//#define MISSILE_STALKER 24

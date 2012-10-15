@@ -8,45 +8,57 @@ typedef struct
 	float x;
 	float y;
 	float z;
-	uint16 creatureTypeFilter; // a mask that enables the specific creatures defined by the spawn pool
+	//uint16 creatureTypeFilter; // a mask that enables the specific creatures defined by the spawn pool
 	// used during runtime
-	uint32 lastSpawnTime;
+	//uint32 lastSpawnTime;
 }spawnLocation_t;
+
+typedef struct  
+{
+	sint16 creatureType;
+	sint8 countMin;
+	sint8 countMax;
+}spawnPool_spawnSlot_t;
+
+#define SPAWNPOOL_SPAWNSLOTS	6
+
+#define SPAWNPOOL_ANIMTYPE_NONE				0
+#define SPAWNPOOL_ANIMTYPE_BANE_DROPSHIP	1
+//#define SPAWNPOOL_ANIMMODE_HUMAN_DROPSHIP	2
+
+#define SPAWNPOOL_MODE_AUTOMATIC			0
 
 typedef struct _spawnPool_t
 {
-	creatureType_t *spawnTypes[16]; // 16 different creature types available at max, NULL if not set
-	sint8 spawnCountBase[16];	// minimum creatures to spawn at once
-	sint8 spawnCountRandom[16]; // additional random factor of creatures to spawn
-	sint8 spawnVariantCount; // 0 - 16
+	spawnPool_spawnSlot_t spawnSlot[SPAWNPOOL_SPAWNSLOTS];
 	// different spawn points
 	sint32 locationCount;
 	spawnLocation_t *locationList;
+	// currently the DB structure only supports 1 spawn location, but the spawn system code already allows for multiple
 	// spawn settings
-	sint32 maxCreatures; // use depends on criteria
-	sint32 maxQueueLength; // maximal number of delivering dropships
-	sint32 spawnLocationLockTime; // number of milliseconds that have to pass until a location can be used again for spawning
-	sint8 criteria;
+	//sint32 maxCreatures; // use depends on criteria
+	//sint32 spawnLocationLockTime; // number of milliseconds that have to pass until a location can be used again for spawning
+	sint8 mode; // automatic spawning, CP spawn, scripted spawn (manual trigger)
+	sint8 animType; // which effect is used to spawn creatures (bane dropship, no effect, human dropship)
+	//sint8 criteria;
 	// spawn runtime info
 	sint32 dropshipQueue; // number of dropships that are currently delivering units
 	sint32 queuedCreatures; // number of creatures that are spawning right now (i.e. delivered via dropship)
 	sint32 aliveCreatures; // number of spawned creatures that are alive
 	sint32 deadCreatures; // number of spawned creatures that are dead (either killed or spawned dead)
-	sint32 spawnAnimationType; //which type of animation introduces creatures
-	sint32 faction;
-	baseBehavior_baseNode *pathnodes;
-	sint32 attackspeed;
-	sint32 attackanim;
-	float velocity;
-	sint32 attackstyle;
-	sint32 actionid;
+	//baseBehavior_baseNode *pathnodes;
+	//sint32 attackspeed;
+	//sint32 attackanim;
+	//float velocity;
+	//sint32 attackstyle;
+	//sint32 actionid;
 	// default action assignment
 	// nothing here until 
 }spawnPool_t;
 
-#define SPAWN_CRITERIA_CELLCREATURECOUNT		1	// amount of living creatures in the same cell as the spawnLocation
-#define SPAWN_CRITERIA_SPAWNPOOLCREATURECOUNT	2	// todo
-#define SPAWN_CRITERIA_BOSSSPAWNER				3	// todo
+//#define SPAWN_CRITERIA_CELLCREATURECOUNT		1	// amount of living creatures in the same cell as the spawnLocation
+//#define SPAWN_CRITERIA_SPAWNPOOLCREATURECOUNT	2	// todo
+//#define SPAWN_CRITERIA_BOSSSPAWNER			3	// todo
 
 
 void spawnPool_initForMapChannel(mapChannel_t *mapChannel);

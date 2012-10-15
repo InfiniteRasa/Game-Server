@@ -85,7 +85,6 @@ void banedropship_appearForPlayers(mapChannel_t *mapChannel, dynObject_t *dynObj
 	pym_addInt(&pms, 0);	// windupTime
 	pym_addInt(&pms, 0);	// missionActivated
 	pym_tuple_end(&pms);
-	//for(sint32 i=0; i<playerCount; i++)
 	netMgr_pythonAddMethodCallRaw(playerList, playerCount, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));		
 }
 
@@ -102,9 +101,10 @@ bool banedropship_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 		baneDropshipData->phaseTimeleft -= timePassed;
 		if( baneDropshipData->phaseTimeleft > 0 )
 			return true;
-		baneDropshipData->phaseTimeleft = 9000;
+		baneDropshipData->phaseTimeleft = 5000;
 		baneDropshipData->phase = 1;
 		dynObject->stateId = 189;
+		
 	}
 	else if( baneDropshipData->phase == 1 )
 	{
@@ -113,36 +113,42 @@ bool banedropship_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 			return true;
 		baneDropshipData->phaseTimeleft = 4000;
 		baneDropshipData->phase = 2;
-		dynObject->stateId = 190;
-		// spawn creatures ( for some odd reason there is a delay until they appear on the client?)
+		// spawn creatures
 		for(sint32 i=0; i<baneDropshipData->spawnCount;i++)
 		{
 			creature_t *creature = creature_createCreature(mapChannel, 
 				baneDropshipData->spawnTypeList[i], 
-				baneDropshipData->spawnPool,
-				baneDropshipData->spawnPool->faction);
+				baneDropshipData->spawnPool);
 			if( creature == NULL )
 				continue;
-			srand(GetTickCount());
 			sint32 srnd = rand() % 5;
 			creature_setLocation(creature, dynObject->x+(float)srnd, dynObject->y, dynObject->z+(float)srnd, 0.0f, 0.0f);
 			cellMgr_addToWorld(mapChannel, creature);
-
 		}
 		if( baneDropshipData->spawnPool )
 			spawnPool_decreaseQueuedCreatureCount(mapChannel, baneDropshipData->spawnPool, baneDropshipData->spawnCount);
+		return true;
 	}
 	else if( baneDropshipData->phase == 2 )
 	{
 		baneDropshipData->phaseTimeleft -= timePassed;
 		if( baneDropshipData->phaseTimeleft > 0 )
 			return true;
-		baneDropshipData->phaseTimeleft = 3800;
+		baneDropshipData->phaseTimeleft = 4000;
 		baneDropshipData->phase = 3;
+		dynObject->stateId = 190;
+	}
+	else if( baneDropshipData->phase == 3 )
+	{
+		baneDropshipData->phaseTimeleft -= timePassed;
+		if( baneDropshipData->phaseTimeleft > 0 )
+			return true;
+		baneDropshipData->phaseTimeleft = 3800;
+		baneDropshipData->phase = 4;
 		// not real state update, just sub-phase to spawn creatures
 		return true;
 	}
-	else if( baneDropshipData->phase == 3 )
+	else if( baneDropshipData->phase == 4 )
 	{
 		// if spawnpool set, decrease counter
 		if( baneDropshipData->spawnPool )

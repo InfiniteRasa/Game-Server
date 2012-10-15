@@ -31,11 +31,11 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyS
 	{
 	case 194: // Lightning
 		printf("Lightning: Target %u\n", (uint32)targetEntityId);
-		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 40);
+		//missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 40);
 		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
 	case 401: // Sprint
-		gameEffect_attach(cm->mapChannel, cm->player->actor, EFFECTID_SPRINT, actionArgId, 5000);
+		gameEffect_attachSprint(cm->mapChannel, cm->player->actor, actionArgId, 5000);
 		return;
 	default:
 		printf("Unknown Ability: ID %i ArgID %i Target %u64\n", actionId, actionArgId, targetEntityId);

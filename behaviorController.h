@@ -1,11 +1,13 @@
 
-#define PATH_LENGTH_LIMIT	128
+#define PATH_LENGTH_LIMIT	72
 
 typedef struct  
 {
+	uint32 deadTime; // amount of time that has passed since the actor died
 	sint32 currentAction;
 	sint32 faction; // 'team'
 	// combat info
+	uint32 timerPathUpdateLock; // avoids path-update-spamming for permanently moving units
 	//long long targetEntityId;
 	// path info
 	float path[3*PATH_LENGTH_LIMIT]; // calculate path nodes
@@ -21,8 +23,9 @@ typedef struct
 	struct  
 	{
 		sint8 state;
-		float wanderDestionation[3];
+		float wanderDestination[3];
 	}actionWander;
+	uint32 actionLockTime[8];
 }behaviorState_t;
 
 
@@ -34,3 +37,5 @@ typedef struct
 
 void controller_initForMapChannel(mapChannel_t *mapChannel);
 void controller_mapChannelThink(mapChannel_t *mapChannel);
+
+void controller_setActionFighting(creature_t *creature, uint64 targetEntityId);

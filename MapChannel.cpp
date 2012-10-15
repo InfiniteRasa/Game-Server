@@ -320,45 +320,83 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *par
 	mapChannel->timerList.push_back(timer);
 }
 
-//---dahrkael @ 190f2fc86c 
-void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, sint32 delay, manifestation_t* origin, sint32 type)
+void mapChannel_launchMissileForWeapon(mapChannelClient_t* client, item_t* weapon)
 {
-mapChannelAutoFireTimer_t timer;
-timer.delay = delay;
-timer.timeLeft = delay;
-timer.origin = origin;
-timer.type = type;
-mapChannel->autoFire_timers.push_back(timer);
+	switch(weapon->itemTemplate->toolType)
+	{
+	case 9:
+		if(weapon->itemTemplate->classId == 29395)
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 120, 1, 287); 
+		else
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 40, 1, 121); 
+		break;
+	case 10:
+		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 90, 1, 6); 
+		break;
+	case 8:
+		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 15, 1, 133); 
+		break;
+	case 7:
+		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 25, 1, 134); 
+		break;
+	case 15:
+		if(weapon->itemTemplate->classId == 29757)
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 7); 
+		else
+			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 1); 
+		break;
+	case 22:
+		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 1, 3); 
+		break;
+	default:
+		printf("unknown weapontype \n");
+		return;
+	}
+}
+
+
+void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, sint32 delay, manifestation_t* origin, item_t* weapon)
+{
+	mapChannelAutoFireTimer_t timer;
+	timer.delay = delay;
+	timer.timeLeft = delay;
+	timer.origin = origin;
+	timer.weapon = weapon;
+	mapChannel->autoFire_timers.push_back(timer);
+	// launch missile
+	mapChannel_launchMissileForWeapon(origin->actor->owner, weapon);
 }
 
 void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin)
 {
-std::vector<mapChannelAutoFireTimer_t>::iterator timer = mapChannel->autoFire_timers.begin();
-while (timer != mapChannel->autoFire_timers.end())
-{
-if (timer->origin == origin)
-{
-timer = mapChannel->autoFire_timers.erase(timer);
-}
-else { ++timer; }
-}
+	std::vector<mapChannelAutoFireTimer_t>::iterator timer = mapChannel->autoFire_timers.begin();
+	while (timer != mapChannel->autoFire_timers.end())
+	{
+		if (timer->origin == origin)
+		{
+			timer = mapChannel->autoFire_timers.erase(timer);
+		}
+		else { ++timer; }
+	}
 }
 
 void mapChannel_check_AutoFireTimers(mapChannel_t* mapChannel)
 {
-std::vector<mapChannelAutoFireTimer_t>::iterator timer;
-for(timer = mapChannel->autoFire_timers.begin(); timer < mapChannel->autoFire_timers.end(); timer++)
-{
-timer->timeLeft -= 100;
-if (timer->timeLeft <= 0)
-{
-if (timer->origin->actor->inCombatMode == false)
-{ continue; /* TODO: delete timer here */ }
-if (timer->origin->targetEntityId)
-{ missile_launch(mapChannel, timer->origin->actor, timer->origin->targetEntityId, timer->type, 10); }
-timer->timeLeft = timer->delay;
-}
-}
+	std::vector<mapChannelAutoFireTimer_t>::iterator timer;
+	for(timer = mapChannel->autoFire_timers.begin(); timer < mapChannel->autoFire_timers.end(); timer++)
+	{
+		timer->timeLeft -= 100;
+		if (timer->timeLeft <= 0)
+		{
+			if (timer->origin->actor->inCombatMode == false)
+			{ continue; /* TODO: delete timer here */ }
+			if (timer->origin->targetEntityId)
+			{
+				mapChannel_launchMissileForWeapon(timer->origin->actor->owner, timer->weapon);
+			}
+			timer->timeLeft = timer->delay;
+		}
+	}
 }
 
 //20110827 @dennton
@@ -559,13 +597,13 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 		return;
 	case METHODID_REQUESTWEAPONATTACK://player melee
 		if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27220)
-			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_RIFLE, 20, 2);
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 5); // rifle
 		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27320)
-			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_SHOTGUN, 20, 2);
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 6); // shotgun
 		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 28066)
-			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_MACHINEGUN, 20, 2);
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 3); // machinegun
 		else
-			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, MELEE_PISTOL, 20, 2);
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 4); // pistol
 		return;
 	case METHODID_REVIVEME: // dead player wish to go to the hospital
 		manifestation_recv_Revive(cm, pyString, pyStringLen);

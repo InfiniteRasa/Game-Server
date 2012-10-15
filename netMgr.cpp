@@ -47,7 +47,7 @@ void PacketOut_Send(packetBuffer_t *pb, SOCKET s)
 
 //packetBuffer_t SPB;
 
-#define GEN_XOR_BYTE(x) ((x&0xFF)^((x>>8)&0xFF)^((x>>16)&0xFF)^((x>>24)&0xFF))
+#define GEN_XOR_BYTE(x) (((x)&0xFF)^(((x)>>8)&0xFF)^(((x)>>16)&0xFF)^(((x)>>24)&0xFF))
 
 void netMgr_pythonAddMethodCallRaw(clientGamemain_t *cgm, uint32 entityId, uint32 MethodID, uint8 *pyObjString, sint32 pyObjLen)
 {

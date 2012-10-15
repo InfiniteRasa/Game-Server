@@ -60,19 +60,19 @@ typedef struct _actor_t
 	sint8 name[64];
 	sint8 family[64];
 	actorStats_t stats;
-	actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? (Because not used by monsters)
+	actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? Is this used by creatures?
 	float posX;
 	float posY;
 	float posZ;
 	float rotation;
-	sint32 attackstyle;
-	sint32 actionid;
+	//sint32 attackstyle;
+	//sint32 actionid;
 	bool isRunning;
 	bool inCombatMode;
 	mapCellLocation_t cellLocation;
 	gameEffect_t *activeEffects;
 	sint8 state;
-	// sometimes we only have access to the actor, the owner variable allows us to access the client anyway (if owned by a player)
+	// sometimes we only have access to the actor, the owner variable allows us to access the client anyway (only if actor is a player manifestation)
 	mapChannelClient_t* owner;
 }actor_t;
 

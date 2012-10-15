@@ -436,44 +436,44 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 	}
 
 
-	if( memcmp(textMsg,".spawner ",9) == 0 )
-	{
-		//communicator_systemMessage(cm, "spawner deactivated");
-		sint8 cmd[9];
-		sint32 spawntype; //---which type of spawn to place( look db for id)
-		sint32 pwd;
-		sscanf(textMsg,"%s %d %d",cmd,&spawntype,&pwd);	
-		
-		if(pwd != 2104 )
-		{
-			sprintf(textMsg, "unvalid password");
-			communicator_systemMessage(cm, textMsg);
-			return true;
-		}
+	//if( memcmp(textMsg,".spawner ",9) == 0 )
+	//{
+	//	//communicator_systemMessage(cm, "spawner deactivated");
+	//	sint8 cmd[9];
+	//	sint32 spawntype; //---which type of spawn to place( look db for id)
+	//	sint32 pwd;
+	//	sscanf(textMsg,"%s %d %d",cmd,&spawntype,&pwd);	
+	//	
+	//	if(pwd != 2104 )
+	//	{
+	//		sprintf(textMsg, "unvalid password");
+	//		communicator_systemMessage(cm, textMsg);
+	//		return true;
+	//	}
 
-		//---todo: make a db check
-		if(spawntype <= 0 || spawntype >= 200 )
-		{
-			sprintf(textMsg, "unvalid spawntype id");
-			communicator_systemMessage(cm, textMsg);
-			return true;
-		}
+	//	//---todo: make a db check
+	//	if(spawntype <= 0 || spawntype >= 200 )
+	//	{
+	//		sprintf(textMsg, "unvalid spawntype id");
+	//		communicator_systemMessage(cm, textMsg);
+	//		return true;
+	//	}
 
-		di_spawnDataW2_t spawndata = {0};
-		spawndata.currentContextId = cm->mapChannel->mapInfo->contextId;
-		spawndata.posX = cm->player->actor->posX;
-		spawndata.posY = cm->player->actor->posY+0.5f;
-		spawndata.posZ = cm->player->actor->posZ;
-		spawndata.spawntype = spawntype;	
-		DataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
+	//	di_spawnDataW2_t spawndata = {0};
+	//	spawndata.currentContextId = cm->mapChannel->mapInfo->contextId;
+	//	spawndata.posX = cm->player->actor->posX;
+	//	spawndata.posY = cm->player->actor->posY+0.5f;
+	//	spawndata.posZ = cm->player->actor->posZ;
+	//	spawndata.spawntype = spawntype;	
+	//	DataInterface_Spawnpool_updateSpawnW2(&spawndata,NULL,NULL);
 
-		sprintf(textMsg, "added spawnlocation: %f %f %f of spawntype-id: %d", 
-						cm->player->actor->posX, 
-			            cm->player->actor->posY, 
-						cm->player->actor->posZ,spawntype);
-		communicator_systemMessage(cm, textMsg);
-		return true;
-	}
+	//	sprintf(textMsg, "added spawnlocation: %f %f %f of spawntype-id: %d", 
+	//					cm->player->actor->posX, 
+	//		            cm->player->actor->posY, 
+	//					cm->player->actor->posZ,spawntype);
+	//	communicator_systemMessage(cm, textMsg);
+	//	return true;
+	//}
 	if( memcmp(textMsg,".catchme",8) == 0 )
 	{
 		// make all creatures in range run to the player
@@ -499,11 +499,11 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 						// update combat/wanter state and movement
 						creature->controller.pathLength	= 0;
 						creature->controller.pathIndex = 0;
-						creature->controller.actionWander.wanderDestionation[0] = cm->player->actor->posX;
-						creature->controller.actionWander.wanderDestionation[1] = cm->player->actor->posY;
-						creature->controller.actionWander.wanderDestionation[2] = cm->player->actor->posZ;
-						creature->wanderstate = 1;
+						creature->controller.actionWander.wanderDestination[0] = cm->player->actor->posX;
+						creature->controller.actionWander.wanderDestination[1] = cm->player->actor->posY;
+						creature->controller.actionWander.wanderDestination[2] = cm->player->actor->posZ;
 						creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+						creature->controller.actionWander.state = 0;
 					}			
 				}
 			}
@@ -693,15 +693,13 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		//communicator_systemMessage(cm, "creature spawner deactivated");*/
 		return true;
 	}
-	if( memcmp(textMsg, ".effect ", 8) == 0 )
-	{
-		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
-		sint8 *pch = textMsg + 8;
-		
-
-		gameEffect_attach(cm->mapChannel, cm->player->actor, atoi(pch), 1);
-		return true;
-	}
+	//if( memcmp(textMsg, ".effect ", 8) == 0 )
+	//{
+	//	//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
+	//	sint8 *pch = textMsg + 8;
+	//	gameEffect_attach(cm->mapChannel, cm->player->actor, atoi(pch), 1);
+	//	return true;
+	//}
 	//if( strcmp(textMsg, ".bane") == 0 )
 	//{
 	//	dynamicObject_createBaneDropship(cm->mapChannel, cm->player->actor->posX, cm->player->actor->posY+6.0f, cm->player->actor->posZ);

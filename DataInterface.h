@@ -138,6 +138,58 @@ typedef struct
 	}appearanceData[SWAPSET_SIZE];
 }di_npcData_t;
 
+/* creature type */
+
+typedef struct  
+{	
+	sint32 id;
+	sint8 name[70];
+	sint32 nameId;
+	sint32 classId;
+	sint16 faction;
+	float walkspeed;
+	float runspeed;
+	sint32 hitpoints;
+	sint32 missile[8]; // up to 8 different abilities/attacks
+}diJob_creatureType_t;
+
+/* missile */
+
+typedef struct  
+{	
+	sint32 id;
+	sint8 description[50];
+	sint32 actionId; // action
+	sint32 actionArgId; // subaction
+	float rangeMin;
+	float rangeMax;
+	sint32 recoverTime; // cooldown time after use
+	sint32 recoverTimeGlobal; // min cooldown of all available actions
+	sint32 windupTime; // windup animation time
+	sint32 minDamage; // min damage, not all missile actions use this
+	sint32 maxDamage; // max damage, not all missile actions use this
+}diJob_creatureAction_t;
+
+/* spawnpool */
+
+typedef struct  
+{	
+	sint32 id;
+	sint32 mode; // 0 -> automatic spawn, 1 -> base/outpost(CP) spawn, 2 -> scripted spawn (must be triggered)
+	sint8 animType; // 0 -> no animation, 1 -> bane dropship
+	sint32 respawnTimer; // only for automatic spawn, how long it takes to respawn creatures after all are killed
+	float posX;
+	float posY;
+	float posZ;
+	sint32 contextId;
+	struct  
+	{
+		sint32 creatureType;
+		sint32 countMin;
+		sint32 countMax;
+	}spawnSlot[6];
+}diJob_spawnpool_t;
+
 /* TEST:entitydata */
 
 typedef struct  
@@ -181,54 +233,6 @@ typedef struct
 	float posX;
 	float posY;
 	float posZ;
-	sint32 currentContextId;
-	baseBehavior_baseNode *pathnodes;
-	sint32 nodeCount;
-	
-}di_spawnDataW2_t;
-
-typedef struct  
-{	
-	sint32 spawntype; 
-	sint32 maxcreatures; //---max creatures per cell
-	sint8 label[50]; //--- sint16 description
-	sint8 creatures[70]; //---class ids tokens
-	sint32 faction;
-    di_spawnDataW2_t *locationlist;
-	sint32 spawnlocCount;
-	sint32 anim_type; //---spawnanimation: drophip,beam,none
-	sint32 activeSpawnCount; //--maximun simultaneously delivered spawnpoints
-	sint32 locktime;//---time to be passed before location can used again
-	sint32 attackspeed; //--attackspeed
-	sint32 attackaction; //---attack animation
-	float velocity; //---movement speed
-	sint32 attackstyle; //---range or melee
-	sint32 actionid;
-	sint32 dmg_melee;
-	sint32 dmg_range;
-	sint32 HitPoints;
-}di_spawnTypeW2_t;
-
-typedef struct  
-{
-	uint32 mapContextId;
-	di_spawnTypeW2_t *spawnType;
-	sint32 scount; //number of spawntypes in list
-}diJob_spawnTypeW2_t;
-
-/*TEST entity queue job*/
-typedef struct  
-{
-	di_spawnDataW2_t *spawnData;
-}diJob_updateSpawnW2_t;
-
-typedef struct  
-{
-	
-	sint32 spawntype;
-	float posX;
-	float posY;
-	float posZ;
 	sint32 pathindex;
 	sint32 currentContextId;
 	
@@ -255,7 +259,6 @@ typedef struct
   float dz;
   float bx; //---activation area
   float bz;
-
 }di_teleporterData;
 
 
@@ -349,6 +352,15 @@ void DataInterface_NPC_getNPCList(uint32 mapContextId, void (*cb)(void *param, d
 void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 unsigned long long DataInterface_NPC_getLastNPCEntityID();
 
+/* creatureType */
+void DataInterface_Creature_getCreatureTypeList(void (*cb)(void *param, diJob_creatureType_t *jobData), void *param);
+
+/* spawn system */
+void DataInterface_SpawnSystem_getSpawnPoolList(void (*cb)(void *param, diJob_spawnpool_t *jobData), void *param);
+
+/* missile */
+void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_creatureAction_t *jobData), void *param);
+
 /* mission */
 void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param);
 
@@ -359,9 +371,6 @@ uint32 DataInterface_getMyIP();
 sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asiOut);
 
 void DataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
-void DataInterface_Spawnpool_updateSpawnW2(di_spawnDataW2_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
-void DataInterface_Spawn_getSpawnpool(uint32 mapContextId, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param);
-void DataInterface_PathNode_setPathnode(di_pathNodeDataW2_t *pnodedata, void (*cb)(void *param, diJob_spawnTypeW2_t *jobData), void *param);
 void DataInterface_teleporter_getList(uint32 mapContextId, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);
 void DataInterface_teleporter_updateList( di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);

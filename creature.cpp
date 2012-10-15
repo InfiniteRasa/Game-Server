@@ -2,6 +2,7 @@
 
 typedef struct  
 {
+	hashTableSynced_t ht_creatureMissile;
 	hashTableSynced_t ht_creatureType;
 }creatureEnv_t;
 
@@ -21,19 +22,21 @@ creatureType_t* creatureType_createCreatureType(sint32 entityClassId, sint32 nam
 	return creatureType;
 }
 
-creatureType_t* creatureType_findType(sint8 *typeName)
+creatureType_t* creatureType_findType(sint32 typeId)
 {
-	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeName);
+	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeId);
 	if( creatureType == NULL )
 		return NULL; // type not found
 	return creatureType;
 }
+
+
 /*
  * Registers the creature layout for use by the creature_createCreature() function
  */
-void creatureType_registerCreatureType(creatureType_t *creatureType, sint8 *name)
+void creatureType_registerCreatureType(creatureType_t *creatureType, sint32 typeId)
 {
-	hashTable_set(&creatureEnv.ht_creatureType, name, (void*)creatureType);
+	hashTable_set(&creatureEnv.ht_creatureType, typeId, (void*)creatureType);
 }
 
 /*
@@ -46,9 +49,8 @@ void creatureType_setMaxHealth(creatureType_t *creatureType, sint32 maxHealth)
 
 /* creature */
 
-creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool, sint32 faction)
+creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool)
 {
-	
 	// allocate and init creature
 	creature_t *creature = (creature_t*)malloc(sizeof(creature_t));
 	memset(creature, 0, sizeof(creature_t));
@@ -57,46 +59,47 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	creature->actor.entityId = entityMgr_getFreeEntityIdForCreature();
 	creature->actor.stats.level = 1; // test
 	creature->updatePositionCounter = CREATURE_LOCATION_UPDATE_TIME;
-	if(spawnPool == NULL)
-	{
-         creature->actor.attackstyle = 1;  
-		 creature->actor.actionid = 174; //melee
-		 creature->velocity = 1.1f;
-	     creature->attackspeed = 10000;
-		 creature->attack_habbit = 1;
-		 creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
-		 creature->lastagression = 0;
-		 creature->rottime = 350;
-		 creature->range = 26.40f;
-		 creature->actor.stats.healthCurrent = creatureType->maxHealth;
-		 creature->controller.currentAction = 3;
-		 creature->wanderstate = 0; //wanderstate: calc new position
-		 creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
-		 //set wander boundaries 
-		 creature->wander_dist = 11.12f;
-		 creature->aggrocount = 0;
-		 return creature;
-	}
-	creature->actor.attackstyle = spawnPool->attackanim;
-	creature->actor.actionid = spawnPool->actionid;
+	creature->type = creatureType;
 	creature->spawnPool = spawnPool;
-	// other settings
-	creature->velocity = spawnPool->velocity;
-	creature->attackspeed = spawnPool->attackspeed;
-	//creature->attackanim = spawnPool->attackanim;
-	creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
-	creature->lastagression = 0;
-	creature->rottime = 350;
-	creature->attack_habbit = spawnPool->attackstyle; //0=range fighter (test)
-	creature->range = 26.40f;
-	//if(faction <= 0) creature->faction = 0;
-	creature->faction = faction; //hostile
+	//if(spawnPool == NULL)
+	//{
+ //        creature->actor.attackstyle = 1;  
+	//	 creature->actor.actionid = 174; //melee
+	//	 creature->velocity = 1.1f;
+	//     creature->attackspeed = 10000;
+	//	 creature->attack_habbit = 1;
+	//	 creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
+	//	 creature->lastagression = 0;
+	//	 creature->rottime = 350;
+	//	 creature->range = 26.40f;
+	//	 creature->actor.stats.healthCurrent = creatureType->maxHealth;
+	//	 creature->controller.currentAction = 3;
+	//	 creature->wanderstate = 0; //wanderstate: calc new position
+	//	 creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
+	//	 //set wander boundaries 
+	//	 creature->wander_dist = 11.12f;
+	//	 creature->aggrocount = 0;
+	//	 return creature;
+	//}
+	//creature->actor.attackstyle = spawnPool->attackanim;
+	//creature->actor.actionid = spawnPool->actionid;
+	//creature->spawnPool = spawnPool;
+	//// other settings
+	//creature->velocity = spawnPool->velocity;
+	//creature->attackspeed = spawnPool->attackspeed;
+	////creature->attackanim = spawnPool->attackanim;
+	//creature->agression = 5000; // hunt enemy for 5 seconds if out of melee range
+	//creature->lastagression = 0;
+	//creature->rottime = 350;
+	//creature->attack_habbit = spawnPool->attackstyle; //0=range fighter (test)
+	//creature->range = 26.40f;
+	////if(faction <= 0) creature->faction = 0;
+	//creature->faction = faction; //hostile
 	creature->actor.stats.healthCurrent = creatureType->maxHealth;
-	creature->controller.currentAction = 3;
-	creature->wanderstate = 0; //wanderstate: calc new position
-	creature->movestate = 0; // check if other entity is too close(to avoid overlapping)
+	creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
+	creature->controller.actionWander.state = 0; //wanderstate: calc new position
 	//set wander boundaries 
-	creature->wander_dist = 11.12f;
+	//creature->wander_dist = 11.12f;
 	// update spawnpool
 	if( creature->spawnPool )
 	{
@@ -104,14 +107,6 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 		spawnPool_increaseAliveCreatureCount(mapChannel, creature->spawnPool);
 	}
 	return creature;
-}
-
-creature_t* creature_createCreature(mapChannel_t *mapChannel, sint8 *typeName, spawnPool_t *spawnPool)
-{
-	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeName);
-	if( creatureType == NULL )
-		return NULL; // type not found
-	return creature_createCreature(mapChannel, creatureType, spawnPool,0);
 }
 
 void creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY)
@@ -212,28 +207,28 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 15); // level
+	pym_addInt(&pms, creature->actor.stats.level); // level
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 103, pym_getData(&pms), pym_getLen(&pms));
-
 	// set creature info (439)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addNoneStruct(&pms); // pym_addInt(&pms, creature->type->nameId); // creatureNameId
+	if( creature->type->nameId == 0 )
+		pym_addNoneStruct(&pms); // creatureNameId (none, server defines name)
+	else
+		pym_addInt(&pms, creature->type->nameId); // use creaturename table to lookup translated name
 	pym_addBool(&pms, false); // isFlyer
 	pym_addNoneStruct(&pms); // leaderId
 	pym_tuple_begin(&pms);	// creatureFlags 
 	pym_tuple_end(&pms);	// creatureflag.pyo
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 439, pym_getData(&pms), pym_getLen(&pms));
-	
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, METHODID_CREATUREINFO, pym_getData(&pms), pym_getLen(&pms));
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 96, pym_getData(&pms), pym_getLen(&pms));
-	
 	// Recv_WorldLocationDescriptor (243)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -242,7 +237,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addInt(&pms, creature->actor.posY); // y 
 	pym_addInt(&pms, creature->actor.posZ); // z 
 	pym_tuple_end(&pms); 
-	pym_tuple_begin(&pms); // rotation quaterninion
+	pym_tuple_begin(&pms); // rotation quaternion
 	pym_addFloat(&pms, 0.0f);
 	pym_addFloat(&pms, 0.0f);
 	pym_addFloat(&pms, 0.0f);
@@ -252,17 +247,15 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	netMgr_pythonAddMethodCallRaw(client->mapChannel, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->faction); // 'HOSTILE'
+	pym_addInt(&pms, creature->type->faction); // 'HOSTILE'
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 211, pym_getData(&pms), pym_getLen(&pms));
-
 	// Recv_IsTargetable
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addBool(&pms, true);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 594, pym_getData(&pms), pym_getLen(&pms));
-	
 	// set default state
 	//pym_init(&pms);
 	//pym_tuple_begin(&pms);
@@ -519,79 +512,139 @@ void creature_cellUpdateLocation(mapChannel_t *mapChannel, creature_t* creature,
 	newMapCell->ht_creatureList.push_back(creature);
 }
 
+/*
+ * Called for every row of missile data the db returns
+ */
+void _creature_dbCreatureMissile_cb(void *param, diJob_creatureAction_t *jobData)
+{
+	creatureMissile_t* creatureMissile = (creatureMissile_t*)malloc(sizeof(creatureMissile_t));
+	memset(creatureMissile, 0x00, sizeof(creatureMissile_t));
+	// copy values
+	creatureMissile->id = jobData->id;
+	creatureMissile->actionId = jobData->actionId;
+	creatureMissile->actionArgId = jobData->actionArgId;
+	creatureMissile->rangeMin = jobData->rangeMin;
+	creatureMissile->rangeMax = jobData->rangeMax;
+	creatureMissile->recoverTime = jobData->recoverTime;
+	creatureMissile->recoverTimeGlobal = jobData->recoverTimeGlobal;
+	creatureMissile->windupTime = jobData->windupTime;
+	creatureMissile->minDamage = jobData->minDamage;
+	creatureMissile->maxDamage = jobData->maxDamage;
+	// register
+	hashTable_set(&creatureEnv.ht_creatureMissile, jobData->id, creatureMissile);
+}
+
+void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
+{
+	printf("Load creature type '%s'\n", jobData->name);
+	creatureType_t *creatureType = (creatureType_t*)malloc(sizeof(creatureType_t));
+	memset(creatureType, 0, sizeof(creatureType_t));
+	creatureType->entityClassId = jobData->classId;
+	creatureType->nameId = jobData->nameId;
+	strcpy(creatureType->name, jobData->name);
+	// faction and flags
+	creatureType->faction = jobData->faction;
+	// attributes and stats
+	creatureType->maxHealth = jobData->hitpoints;
+	creatureType->walkspeed = jobData->walkspeed;
+	creatureType->runspeed = jobData->runspeed;
+	// missile data (available attack actions for creature)
+	sint32 missileCount = 0;
+	for(sint32 i=0; i<8; i++)
+	{
+		if( jobData->missile[i] == 0 )
+			continue;
+		creatureMissile_t* creatureMissile = (creatureMissile_t*)hashTable_get(&creatureEnv.ht_creatureMissile, jobData->missile[i]);
+		if( creatureMissile == NULL )
+		{
+			printf("Could not load missile/action %d for creature type %d\n", jobData->missile[i], jobData->id);
+			continue;
+		}
+		creatureType->actions[missileCount] = creatureMissile;
+		missileCount++;
+	}
+	creatureType->aggressionTime = 5000;
+	creatureType->wander_dist = 4.0f;
+	creatureType_registerCreatureType(creatureType, jobData->id);
+}
+
 void creature_init()
 {
+	// load creature missiles (melee and range attacks, abilities)
+	hashTable_init(&creatureEnv.ht_creatureMissile, 128);
+	DataInterface_Creature_getCreatureActionList(_creature_dbCreatureMissile_cb, NULL);
+	// load 
 	hashTable_init(&creatureEnv.ht_creatureType, 128);
+	DataInterface_Creature_getCreatureTypeList(_creature_dbCreatureType_cb, NULL);
 
 
 	// init test creature
 	/* 7078, "Testcreature" */
 
 	//20110728 - thuvvik complete "creature dictionary"
-	sint32 i=0;
-	for (i=1; i<65535; i++)
-	{
-		sint8 buffer [50];
-		sint32 n, a=5, b=3;
-		n=sprintf (buffer, "TEST%d", i);
+	//sint32 i=0;
+	//for (i=1; i<65535; i++)
+	//{
+	//	sint8 buffer [50];
+	//	sint32 n, a=5, b=3;
+	//	n=sprintf (buffer, "TEST%d", i);
 
-		
+	//	
 
-		creatureType_t* ct = creatureType_createCreatureType(i, 1337);
-		creatureType_setMaxHealth(ct, 150);
+	//	creatureType_t* ct = creatureType_createCreatureType(i, 1337);
+	//	creatureType_setMaxHealth(ct, 150);
 
-		ct->meleeAttack.missile = MISSILE_PISTOL;
-		ct->meleeAttack.damageMin = 7;
-		ct->meleeAttack.damageMax = 11;
-		ct->rangeAttack.missile = MISSILE_PISTOL;
-		ct->rangeAttack.damageMin = 10;
-		ct->rangeAttack.damageMax = 15;
-		//---files: actiondata,
+	//	ct->meleeAttack.missile = MISSILE_PISTOL;
+	//	ct->meleeAttack.damageMin = 7;
+	//	ct->meleeAttack.damageMax = 11;
+	//	ct->rangeAttack.missile = MISSILE_PISTOL;
+	//	ct->rangeAttack.damageMin = 10;
+	//	ct->rangeAttack.damageMax = 15;
+	//	//---files: actiondata,
 
-		if (ct->entityClassId == 6043) // forean spearman
-		{
-			ct->rangeAttack.missile = MISSILE_PISTOL;
-			ct->meleeAttack.missile = MISSILE_PISTOL;
-			// no range attack
-			ct->rangeAttack.damageMin = 0;
-			ct->rangeAttack.damageMax = 0;
-		}
-		else if (ct->entityClassId == 25580) // bane pistol
-		{
-			ct->rangeAttack.missile = MISSILE_THRAX_PISTOL;
-			ct->meleeAttack.missile = MELEE_THRAX;
-  		}
-  		else if (ct->entityClassId == 6031) // boargar
-		{
-  			ct->rangeAttack.missile = MELEE_BOARGAR;
-			ct->meleeAttack.missile = MELEE_BOARGAR;
-		}
-		else if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
-		{
-			ct->rangeAttack.missile = MISSILE_PISTOL;
-			ct->meleeAttack.missile = MELEE_PISTOL;
-		}
-		else if(ct->entityClassId == 10166) //bane hunter
-		{
-            ct->rangeAttack.missile = MISSILE_HUNTER_PULSEGUN;
-			ct->meleeAttack.missile = MELEE_HUNTER;
-		}
-		else if(ct->entityClassId == 6032) //amoeboid
-		{
-            ct->rangeAttack.missile = MELEE_AMOEBOID;
-			ct->meleeAttack.missile = MELEE_AMOEBOID;
-		}
-		else if(ct->entityClassId == 10442) //AFS Mech
-		{
-            ct->rangeAttack.missile = MISSILE_AFSMECH_MG;
-			ct->meleeAttack.missile = MISSILE_AFSMECH_MG;
-		}
-		else if(ct->entityClassId == 3781) //Bane Stalker
-		{
-            ct->rangeAttack.missile = MISSILE_STALKER;
-			ct->meleeAttack.missile = MISSILE_STALKER;
-		}
+	//	if (ct->entityClassId == 6043) // forean spearman
+	//	{
+	//		ct->rangeAttack.missile = MISSILE_PISTOL;
+	//		// no range attack
+	//		ct->rangeAttack.damageMin = 0;
+	//		ct->rangeAttack.damageMax = 0;
+	//	}
+	//	else if (ct->entityClassId == 25580) // bane pistol
+	//	{
+	//		ct->rangeAttack.missile = MISSILE_THRAX_PISTOL;
+	//		ct->meleeAttack.missile = MELEE_THRAX;
+ // 		}
+ // 		else if (ct->entityClassId == 6031) // boargar
+	//	{
+ // 			ct->rangeAttack.missile = MELEE_BOARGAR;
+	//		ct->meleeAttack.missile = MELEE_BOARGAR;
+	//	}
+	//	else if (ct->entityClassId == 29765 || ct->entityClassId == 29765) // human soldiers
+	//	{
+	//		ct->rangeAttack.missile = MISSILE_PISTOL;
+	//		ct->meleeAttack.missile = MELEE_PISTOL;
+	//	}
+	//	else if(ct->entityClassId == 10166) //bane hunter
+	//	{
+ //           ct->rangeAttack.missile = MISSILE_HUNTER_PULSEGUN;
+	//		ct->meleeAttack.missile = MELEE_HUNTER;
+	//	}
+	//	else if(ct->entityClassId == 6032) //amoeboid
+	//	{
+ //           ct->rangeAttack.missile = MELEE_AMOEBOID;
+	//		ct->meleeAttack.missile = MELEE_AMOEBOID;
+	//	}
+	//	else if(ct->entityClassId == 10442) //AFS Mech
+	//	{
+ //           ct->rangeAttack.missile = MISSILE_AFSMECH_MG;
+	//		ct->meleeAttack.missile = MISSILE_AFSMECH_MG;
+	//	}
+	//	else if(ct->entityClassId == 3781) //Bane Stalker
+	//	{
+ //           ct->rangeAttack.missile = MISSILE_STALKER;
+	//		ct->meleeAttack.missile = MISSILE_STALKER;
+	//	}
 
-		creatureType_registerCreatureType(ct, buffer);
-	}
+	//	creatureType_registerCreatureType(ct, buffer);
+	//}
 }
