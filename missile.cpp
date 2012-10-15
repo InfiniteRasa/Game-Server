@@ -129,18 +129,10 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 		pym_addInt(&pms, 5); // dead
 		pym_list_end(&pms);
 		pym_tuple_end(&pms);
-<<<<<<< HEAD
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_UPDATEHEALTH, pym_getData(&pms), pym_getLen(&pms));
-	}
-	else if( targetType == ENTITYTYPE_CLIENT )
-	{
-		mapChannelClient_t *client = (mapChannelClient_t*)entity;
-		if( client->player->actor->state == ACTOR_STATE_DEAD )
-			return;
-        
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, client->player->actor, client->player->actor->entityId, METHODID_STATECHANGE, pym_getData(&pms), pym_getLen(&pms));
 		//direct decrease health
-		gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);										
-		client->player->actor->stats.healthCurrent -= missile->damageA;
+		//gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);										
+		//client->player->actor->stats.healthCurrent -= missile->damageA;
 		 //send death notification when health <= zero
 		if( client->player->actor->stats.healthCurrent <= 0 )
 		{
@@ -183,19 +175,11 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 				pym_addBool(&pms, true); // canRevive
 			pym_tuple_end(&pms);
 			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
-				                                    client->player->actor, 
-													client->player->actor->entityId, 
-													METHODID_PLAYERDEAD, 
-													pym_getData(&pms), pym_getLen(&pms));
-			
+					client->player->actor, 
+					client->player->actor->entityId, 
+					METHODID_PLAYERDEAD, 
+					pym_getData(&pms), pym_getLen(&pms));
 		}
-=======
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
-			client->player->actor, 
-			client->player->actor->entityId, 
-			METHODID_STATECHANGE, 
-			pym_getData(&pms), pym_getLen(&pms));
-
 		// fix health
 		client->player->actor->stats.healthCurrent = 0;
 		// send method id 595 "PlayerDead"
@@ -226,7 +210,7 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 			METHODID_PLAYERDEAD, 
 			pym_getData(&pms), pym_getLen(&pms));
 	}
-	// update health (Recv_UpdateHealth 380) or 285
+	// update health (even when dead)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
@@ -298,7 +282,6 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	else
 		printf("Unsupported entity type for missile_doDamage()\n");
 }
->>>>>>> Second part of combat update
 
 /*
  * Handles all weapon melee actions

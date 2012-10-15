@@ -334,7 +334,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		{
 			mapChannelClient_t *client = (mapChannelClient_t*)target;
 			// if target dead, set wander state
-			if( client->player->actor->stats.healthCurrent <= 0 )
+			if( client->player->actor->stats.healthCurrent <= 0 || client->player->actor->state == ACTOR_STATE_DEAD )
 			{
 				controller_setActionWander(creature);
 				return;
@@ -346,7 +346,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		else if( entityMgr_getEntityType(creature->controller.actionFighting.targetEntityId) == ENTITYTYPE_CREATURE )
 		{  
 			creature_t  *targetCreature = (creature_t*)target;
-			if( targetCreature->actor.stats.healthCurrent <= 0 )
+			if( targetCreature->actor.stats.healthCurrent <= 0 || targetCreature->actor.state == ACTOR_STATE_DEAD )
 			{
 				controller_setActionWander(creature);
 				return;

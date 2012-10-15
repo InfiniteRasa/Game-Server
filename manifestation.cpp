@@ -1312,9 +1312,9 @@ void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 p
  	 	
 	// move player to graveyard
 	netCompressedMovement_t netMovement = {0};
-	cm->player->actor->posX = 807.316;
-	cm->player->actor->posY = 294.055+1f;
-	cm->player->actor->posZ = 391.301;
+	cm->player->actor->posX = 786.92f;
+	cm->player->actor->posY = 294.33f+0.5f;
+	cm->player->actor->posZ = 362.38f;
 	netMovement.entityId = cm->player->actor->entityId;
 	netMovement.posX24b = cm->player->actor->posX * 256.0f;
 	netMovement.posY24b = cm->player->actor->posY * 256.0f;
