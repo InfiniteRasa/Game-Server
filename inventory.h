@@ -1,5 +1,4 @@
 
-
 typedef union
 {
 	struct 
@@ -10,7 +9,7 @@ typedef union
 	};
 	struct  
 	{
-		unsigned long long slot[250+16+5];
+		unsigned long long slot[250+17+5];
 		sint8 activeWeaponDrawer;
 	};
 }inventory_t;

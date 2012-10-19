@@ -9,11 +9,9 @@
 
 item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
 {
-item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
-if( !item )
-
-  { return NULL; }
-return item;
+	item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+	if( !item ) { return NULL; }
+	return item;
 }
 
 /*
@@ -499,7 +497,7 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 	}
 	if( item->itemTemplate->type == ITEMTYPE_ARMOR )
 	{
-		// Recv_ArmorInfo
+		// Recv_ArmorInfo <-- doesnt do anything really
 		pym_init(&pms);
 		pym_tuple_begin(&pms);	
 		pym_addInt(&pms, item->itemTemplate->currentHitPoints); // currentHitPoints
@@ -621,43 +619,39 @@ void inventory_initForClient(mapChannelClient_t *client)
 	item_t *testA;
 	item_t *testB;
 
-	testA = item_createFromTemplate("_Graviton_V01_CMN_Vest_15_to_19");
-	if( testA )
+	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Boots_01_to_02");
+	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		//---@ 4ae9585968 Disastorm
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
-	   
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
 	}
-	testA = item_createFromTemplate("_Graviton_V01_CMN_Legs_15_to_19");
-	if( testA )
+	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Gloves_01_to_02");
+	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
-	   
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
 	}
-	testA = item_createFromTemplate("_Graviton_V01_CMN_Helmet_15_to_19");
-	if( testA )
+	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Legs_01_to_02");
+	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
-	   
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
 	}
-	testA = item_createFromTemplate("[_Graviton_V01_CMN_Boots_15_to_19");
-	if( testA )
+	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Vest_01_to_02");
+	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
-	  
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
 	}
-	testA = item_createFromTemplate("_Graviton_V01_CMN_Gloves_15_to_19");
-	if( testA )
+	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Helmet_01_to_02");
+	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);	
-	    
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
 	}
+	
 	manifestation_updateAppearance(client);
+
 	testB = item_createFromTemplate("Weapon_Avatar_Rifle_Physical_UNC_01_to_05");
 	if( testB )
 	{
@@ -671,66 +665,6 @@ void inventory_initForClient(mapChannelClient_t *client)
 		item_sendInfo(testB);
 	}
 	testB = item_createFromTemplate("Weapon_Avatar_MachineGun_Physical_ELT_08_to_12");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v1_Physical_UNC_07_to_11");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Helmet_05_to_08");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Vest_05_to_08");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Gloves_05_to_08");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Legs_05_to_08");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Armor_T2_Reflective_V01_CMN_Boots_05_to_08");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Weapon_Avatar_PropellantGun_Ice_CMN_32_to_36");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Weapon_Avatar_GrenadeLauncher_Physical_CMN_35_to_39");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Weapon_Avatar_Shotgun_v3_Fire_CMN_34_to_38");
-	if( testB )
-	{
-		item_setLocationHomeinventory(testB, client);
-		item_sendInfo(testB);
-	}
-	testB = item_createFromTemplate("Test_Weapon_Avatar_Machinegun_V3");
 	if( testB )
 	{
 		item_setLocationHomeinventory(testB, client);

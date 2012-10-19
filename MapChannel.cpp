@@ -1,4 +1,4 @@
-#include"Global.h"
+#include "Global.h"
 
 /*
 	A MapChannel in general is a isolated thread of the server that is 100% responsible for one or multiple maps

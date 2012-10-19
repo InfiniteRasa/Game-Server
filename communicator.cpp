@@ -331,7 +331,10 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	pym_tuple_begin(&pms);
 	//pym_dict_begin(&pms);
 	//pym_addInt(&pms, 1);
-	pym_addUnicode(&pms, "Welcome to the InfiniteRasa Testing Server"); 
+	char* greeting = "Welcome to the Salsa Crew server.\nBuild date: ";
+	char buffer[100];
+	sprintf(buffer, "%s %s", greeting, __DATE__);
+	pym_addUnicode(&pms, buffer); 
 	//pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 8, 769, pym_getData(&pms), pym_getLen(&pms));
