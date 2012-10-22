@@ -116,7 +116,7 @@ bool controlpoint_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 			pym_tuple_begin(&pms);	// args
 			pym_tuple_end(&pms);
 			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, 230, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, METHODID_USE, pym_getData(&pms), pym_getLen(&pms));
 
 		}
 		return false; // immediately unregister timer (one-shot)

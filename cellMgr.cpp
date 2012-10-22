@@ -21,16 +21,7 @@ mapCell_t* cellMgr_getCell(mapChannel_t *mapChannel, sint32 x, sint32 z)
 	if( mapCell == NULL )
 	{
 		// create cell
-		//mapCell = (mapCell_t*)malloc(sizeof(mapCell_t));
-		//RtlZeroMemory(mapCell, sizeof(mapCell_t));
-		//mapCell->ht_npcList.
 		mapCell = new mapCell_t;
-		// init cell
-		//hashTable_init(&mapCell->ht_playerList, 8);
-		//hashTable_init(&mapCell->ht_playerNotifyList, 8);
-		//hashTable_init(&mapCell->ht_objectList, 8);
-		//hashTable_init(&mapCell->ht_npcList, 8);
-		//hashTable_init(&mapCell->ht_creatureList, 8);
 		if( mapChannel->mapCellInfo.loadedCellCount == mapChannel->mapCellInfo.loadedCellLimit )
 		{
 			// enlarge buffer
@@ -94,9 +85,6 @@ void cellMgr_addToWorld( mapChannelClient_t *client )
 					// notify me about all objects that are visible to the cell
 					if( nMapCell->ht_objectList.empty() == false )
 						dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());
-					// notify me about all npcs that are visible to the cell
-					if( nMapCell->ht_npcList.empty() == false )
-						npc_cellIntroduceNPCsToClient(mapChannel, client, &nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());
 					// notify me about all creatures that are visible to the cell
 					if( nMapCell->ht_creatureList.empty() == false )
 						creature_cellIntroduceCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				
@@ -218,34 +206,7 @@ void cellMgr_removeFromWorld(mapChannel_t *mapChannel, dynObject_t *dynObject)
 	}
 }
 
-// todo: removeFromWorld for dynObjects
 
-void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc)
-{
-	if( !npc )
-		return;
-	// register npc entity
-	entityMgr_registerEntity(npc->entityId, npc);
-	// get initial cell
-	uint32 x = (uint32)((npc->actor.posX / CELL_SIZE) + CELL_BIAS);
-	uint32 z = (uint32)((npc->actor.posZ / CELL_SIZE) + CELL_BIAS);
-	// calculate initial cell
-	npc->actor.cellLocation.x = x;
-	npc->actor.cellLocation.z = z;
-	// get cell
-	mapCell_t *mapCell = cellMgr_getCell(mapChannel, x, z);
-	if( mapCell )
-	{
-		// register object
-		//hashTable_set(&mapCell->ht_npcList, npc->actor.entityId, npc);
-		mapCell->ht_npcList.push_back(npc);
-		// notify all players of object
-		if( mapCell->ht_playerNotifyList.empty() == false )
-			npc_cellIntroduceNPCToClients(mapChannel, npc, &mapCell->ht_playerNotifyList[0], mapCell->ht_playerNotifyList.size());
-	}
-}
-
-// todo: removeFromWorld for npcs
 void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 {
 	if( !creature )
@@ -271,7 +232,6 @@ void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature)
 	}
 }
 
-// todo: removeFromWorld for creatures
 void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creature )
 {
 	if( !creature )
@@ -395,9 +355,6 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 						// remove object visibility
 						if( nMapCell->ht_objectList.empty() == false )
 							dynamicObject_cellDiscardObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());	
-						// remove npc visibility
-						if( nMapCell->ht_npcList.empty() == false )
-							npc_cellDiscardNPCsToClient(mapChannel, client, (npc_t**)&nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());	
 						// remove creature visibility
 						if( nMapCell->ht_creatureList.empty() == false )
 							creature_cellDiscardCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				
@@ -426,9 +383,6 @@ void cellMgr_updateVisibility( mapChannel_t *mapChannel )
 						// add object visibility client-side
 						if( nMapCell->ht_objectList.empty() == false )
 							dynamicObject_cellIntroduceObjectsToClient(mapChannel, client, &nMapCell->ht_objectList[0], nMapCell->ht_objectList.size());				
-						// add npc visibility client-side
-						if( nMapCell->ht_npcList.empty() == false )
-							npc_cellIntroduceNPCsToClient(mapChannel, client, (npc_t**)&nMapCell->ht_npcList[0], nMapCell->ht_npcList.size());				
 						// add creature visibility client-side
 						if( nMapCell->ht_creatureList.empty() == false )
 							creature_cellIntroduceCreaturesToClient(mapChannel, client, &nMapCell->ht_creatureList[0], nMapCell->ht_creatureList.size());				

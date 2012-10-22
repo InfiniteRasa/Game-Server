@@ -550,6 +550,12 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case METHODID_REQUESTNPCVENDING: // RequestNPCVending
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
+	case 431: // CompleteNPCObjective
+		npc_recv_CompleteNPCObjective(cm, pyString, pyStringLen);
+		return;
+	case 430: // CompleteNPCMission
+		npc_recv_CompleteNPCMission(cm, pyString, pyStringLen);
+		return;
 	case 522: // RequestSetAbilitySlot
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
@@ -923,7 +929,6 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 		navmesh_initForMapChannel(mapChannel);
 		dynamicObject_init(mapChannel);
 		mission_initForChannel(mapChannel);
-		npc_initForMapChannel(mapChannel); //---db use
 		missile_initForMapchannel(mapChannel);
 		spawnPool_initForMapChannel(mapChannel); //---todo:db use -done
 		controller_initForMapChannel(mapChannel);

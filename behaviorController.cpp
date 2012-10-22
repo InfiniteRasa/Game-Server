@@ -1,20 +1,10 @@
 #include "Global.h"
 #include <time.h>
 /*
-Behavior controller
-
+Behavior controller (AI)
 responsible for:
-npc and creature movement, decisions, combat or any actions.
+	creature movement, decisions, combat or any other AI actions.
 */
-
-
-/*
-* Called every 250 milliseconds for every NPC on the map
-*/
-void controller_npcThink(mapChannel_t *mapChannel, npc_t *npc)
-{
-
-}
 
 
 float calcAngle(float a_x, float a_y)
@@ -516,14 +506,6 @@ void controller_mapChannelThink(mapChannel_t *mapChannel)
 		mapCell_t *mapCell = mapChannel->mapCellInfo.loadedCellList[i];
 		if( mapCell == NULL ) // should never happen, but still do a check for safety
 			continue;
-		// npcs
-		if( mapCell->ht_npcList.empty() != true )
-		{
-			npc_t **npcList = &mapCell->ht_npcList[0];
-			sint32 npcCount = mapCell->ht_npcList.size();
-			for(sint32 f=0; f<npcCount; f++)
-				controller_npcThink(mapChannel, npcList[f]);
-		}
 		// creatures
 		if( mapCell->ht_creatureList.empty() != true )
 		{

@@ -46,15 +46,6 @@ unsigned long long entityMgr_getFreeEntityIdForObject()
 	return eid;
 }
 
-unsigned long long entityMgr_getFreeEntityIdForNPC()
-{
-	Thread::LockMutex(&csEntityMgr);
-	unsigned long long eid = ENTITYID_BASE + ceid_npc*16 + ENTITYTYPE_NPC;
-	ceid_npc++;
-	Thread::UnlockMutex(&csEntityMgr);
-	return eid;
-}
-
 unsigned long long entityMgr_getFreeEntityIdForCreature()
 {
 	Thread::LockMutex(&csEntityMgr);

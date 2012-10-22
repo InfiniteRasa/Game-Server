@@ -58,7 +58,8 @@ void cb_DataInterface_Creature_getCreatureTypeList(MYSQL *dbCon, diJob_creatureT
 	sprintf(queryText, "SELECT "
 		"id,name,nameId,classId,faction,"
 		"walkspeed,runspeed,hitpoints,"
-		"action1,action2,action3,action4,action5,action6,action7,action8"
+		"action1,action2,action3,action4,action5,action6,action7,action8,"
+		"wanderDistance"
 		" FROM creature_type");
 	// execute query
 	if( mysql_query(dbCon, queryText) )
@@ -93,8 +94,11 @@ void cb_DataInterface_Creature_getCreatureTypeList(MYSQL *dbCon, diJob_creatureT
 				idx++;
 			}
 			else
+			{
 				sscanf(dbRow[idx], "%d", &job->missile[i]); idx++;	
+			}
 		}
+		sscanf(dbRow[idx], "%f", &job->wanderDistance); idx++;
 		// do callback param1: mapchannel param2: list of creature type data
 		((void (*)(void*,void*))cb)(param, job);
 	}

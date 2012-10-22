@@ -114,7 +114,7 @@ void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 i
 	sint32 equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 )
 	return;
-	manifestation->actor->appearanceData[equipmentSlotId-1].classId = 0;
+	manifestation->appearanceData[equipmentSlotId-1].classId = 0;
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 itemClassId, uint32 hueAARRGGBB)
@@ -122,8 +122,8 @@ void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 item
 	sint32 equipmentSlotId = gameData_getEquipmentClassIdSlot(itemClassId);
 	if( equipmentSlotId == 0 )
 		return;
-	manifestation->actor->appearanceData[equipmentSlotId-1].classId = itemClassId;
-	manifestation->actor->appearanceData[equipmentSlotId-1].hue = hueAARRGGBB;
+	manifestation->appearanceData[equipmentSlotId-1].classId = itemClassId;
+	manifestation->appearanceData[equipmentSlotId-1].hue = hueAARRGGBB;
 }
 
 void manifestation_updateAppearance(mapChannelClient_t *owner)
@@ -136,23 +136,23 @@ void manifestation_updateAppearance(mapChannelClient_t *owner)
 	pym_dict_begin(&pms);
 	for(sint32 i=0; i<21; i++)
 	{
-		if( owner->player->actor->appearanceData[i].classId == 0 )
+		if( owner->player->appearanceData[i].classId == 0 )
 			continue;
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, owner->player->actor->appearanceData[i].classId); // classId
+			pym_addInt(&pms, owner->player->appearanceData[i].classId); // classId
 			// hue
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (sint32)(owner->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(owner->player->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (sint32)(owner->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (sint32)((owner->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(owner->player->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((owner->player->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 	}
@@ -217,8 +217,8 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	memset(manifestation->actor, 0x00, sizeof(actor_t));
 	for(sint32 i=0; i<SWAPSET_SIZE; i++)
 	{
-		manifestation->actor->appearanceData[i].classId = characterData->appearanceData[i].classId;
-		manifestation->actor->appearanceData[i].hue = characterData->appearanceData[i].hue;
+		manifestation->appearanceData[i].classId = characterData->appearanceData[i].classId;
+		manifestation->appearanceData[i].hue = characterData->appearanceData[i].hue;
 	}
 	manifestation->controllerUser = owner;
 	manifestation->actor->entityId = entityMgr_getFreeEntityIdForPlayer(); // generate an entityId
@@ -272,8 +272,16 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	owner->player->prestige = 0;
 	owner->player->experience = 0;
 	manifestation_updateStatsValues(owner, true);
-
-	
+	// initialize mission state map
+	// note that the number of missions must not change during runtime,
+	// since the mission state map is allocated exactly to fit this size.
+	// If you want to add missions during runtime you have to reallocate the mission state map
+	// for every single player that is currently logged in (and also do all the mission script prepare stuff in mission.cpp)
+	sint32 missionCount = mission_getNumberOfMissions();
+	sint32 missionStateMapSize = (missionCount+7)/8; // calculate how many bytes do we need
+	owner->player->missionStateMap = (uint8*)malloc(missionStateMapSize);
+	memset(owner->player->missionStateMap, 0x00, missionStateMapSize);
+	// todo: Load completed missions from db and set the appropriate bits in the missionStateMap
 	communicator_loginOk(mapChannel, owner);
 	cellMgr_addToWorld(owner); // will introduce the player to all clients, including the current owner
 	manifestation_assignPlayer(mapChannel, owner, manifestation);
@@ -321,24 +329,24 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_dict_begin(&pms);
 		for(sint32 i=0; i<21; i++)
 		{
-			if( tempClient->player->actor->appearanceData[i].classId == 0 )
+			if( tempClient->player->appearanceData[i].classId == 0 )
 				continue;
 			pym_addInt(&pms, i+1); // index(equipmentSlotId)
 			pym_tuple_begin(&pms);
-			pym_addInt(&pms, tempClient->player->actor->appearanceData[i].classId); // classId
+			pym_addInt(&pms, tempClient->player->appearanceData[i].classId); // classId
 			// hue
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (sint32)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(tempClient->player->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			// test .16
 			pym_tuple_begin(&pms);
-				pym_addInt(&pms, (sint32)(tempClient->player->actor->appearanceData[i].hue&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>8)&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>16)&0xFF));
-				pym_addInt(&pms, (sint32)((tempClient->player->actor->appearanceData[i].hue>>24)&0xFF));
+				pym_addInt(&pms, (sint32)(tempClient->player->appearanceData[i].hue&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>8)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>16)&0xFF));
+				pym_addInt(&pms, (sint32)((tempClient->player->appearanceData[i].hue>>24)&0xFF));
 			pym_tuple_end(&pms);
 			// end test .16
 			pym_tuple_end(&pms);
@@ -452,24 +460,24 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_dict_begin(&pms);
 	for(sint32 i=0; i<21; i++)
 	{
-		if( client->player->actor->appearanceData[i].classId == 0 )
+		if( client->player->appearanceData[i].classId == 0 )
 			continue;
 		pym_addInt(&pms, i+1); // index(equipmentSlotId)
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, client->player->actor->appearanceData[i].classId); // classId
+		pym_addInt(&pms, client->player->appearanceData[i].classId); // classId
 		// hue
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (sint32)(client->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(client->player->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// test .16
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, (sint32)(client->player->actor->appearanceData[i].hue&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>8)&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>16)&0xFF));
-			pym_addInt(&pms, (sint32)((client->player->actor->appearanceData[i].hue>>24)&0xFF));
+			pym_addInt(&pms, (sint32)(client->player->appearanceData[i].hue&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>8)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>16)&0xFF));
+			pym_addInt(&pms, (sint32)((client->player->appearanceData[i].hue>>24)&0xFF));
 		pym_tuple_end(&pms);
 		// end test .16
 		pym_tuple_end(&pms);

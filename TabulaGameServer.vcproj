@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\bin\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -739,10 +739,6 @@
 			>
 			<File
 				RelativePath=".\ClassDescriptions.txt"
-				>
-			</File>
-			<File
-				RelativePath=".\ToDo.txt"
 				>
 			</File>
 		</Filter>

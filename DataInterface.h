@@ -125,16 +125,12 @@ typedef struct
 typedef struct  
 {
 	unsigned long long npcID;
-	sint8 unicodeName[NPC_NAMELIMIT];
-	sint32 entityClassID;
-	float posX;
-	float posY;
-	float posZ;
-	sint32 currentContextId;
+	uint32 creatureTypeId;
+	sint32 npcPackageId;
 	struct  
 	{
-		sint32 classId;		// entityClassId
-		uint32 hue;	// 0xAABBGGRR
+		sint32 classId;	// entityClassId
+		uint32 hue;		// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
 }di_npcData_t;
 
@@ -151,6 +147,7 @@ typedef struct
 	float runspeed;
 	sint32 hitpoints;
 	sint32 missile[8]; // up to 8 different abilities/attacks
+	float wanderDistance;
 }diJob_creatureType_t;
 
 /* missile */
@@ -205,7 +202,7 @@ typedef struct
 	struct  
 	{
 		sint32 classId;		// entityClassId
-		uint32 hue;	// 0xAABBGGRR
+		uint32 hue;			// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
 }di_entityDataW_t;
 
@@ -279,6 +276,24 @@ typedef struct
 	// more todo
 }di_missionData_t;
 
+typedef struct  
+{
+	uint32 id;
+	uint32 missionId;
+	uint16 command;
+	uint16 state;
+	uint8 flags;
+	sint32 value1;
+	sint32 value2;
+	sint32 value3;
+}di_missionScriptLine_t;
+
+typedef struct  
+{
+	uint32 scriptLineCount;
+	di_missionScriptLine_t* scriptLines;
+}di_missionScript_t;
+
 /* job data blocks */
 
 typedef struct  
@@ -307,7 +322,6 @@ typedef struct
 
 typedef struct  
 {
-	uint32 mapContextId;
 	// output
 	sint32 outNpcCount;
 	di_npcData_t *outNpcList;
@@ -348,8 +362,8 @@ void DataInterface_Character_createCharacter(di_characterLayout_t *characterData
 void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void (*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
 
 /* npc */
-void DataInterface_NPC_getNPCList(uint32 mapContextId, void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
-void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
+void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
+//void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 unsigned long long DataInterface_NPC_getLastNPCEntityID();
 
 /* creatureType */
@@ -363,6 +377,7 @@ void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_
 
 /* mission */
 void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param);
+void DataInterface_Mission_getMissionScriptData(void (*cb)(void *param, di_missionScript_t *jobData), void *param);
 
 /* extra */
 void DataInterface_registerServerForAuth();
@@ -370,7 +385,7 @@ uint32 DataInterface_IPtoHex();
 uint32 DataInterface_getMyIP();
 sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asiOut);
 
-void DataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
+//void DataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
 void DataInterface_teleporter_getList(uint32 mapContextId, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);
 void DataInterface_teleporter_updateList( di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);

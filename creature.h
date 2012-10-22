@@ -17,7 +17,9 @@ typedef struct
 /* creature type */
 typedef struct _creatureType_t 
 {
+	sint32 typeId; // db id (used by mission system)
 	// actor info
+	actorAppearanceData_t appearanceData[21];
 	sint32 nameId; // if 0, use name field instead.
 	sint32 entityClassId;
 	char name[70];
@@ -31,8 +33,9 @@ typedef struct _creatureType_t
 	creatureMissile_t* actions[8]; // creature available
 	// todo fields
 	sint32 aggressionTime;
-
 	float wander_dist; // -- wander boundaries 
+	// npc data (only if creature is NPC)
+	npcData_t* npcData; 
 }creatureType_t;
 
 creatureType_t*		creatureType_createCreatureType(sint32 entityClassId, sint32 nameId);

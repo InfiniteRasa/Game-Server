@@ -187,12 +187,15 @@ static sint32 skillID2Idx[200] =
 #define SKILL_ID_T3_BIOTECHNICIAN_BIO_AUGMENTATION 173
 #define SKILL_ID_T3_SAPPER_SHIELD_EXTENDER 174
 
+
+
 /*
  * Manifestation/player struct
  */
 typedef struct _manifestation_t
 {
 	actor_t *actor;
+	actorAppearanceData_t appearanceData[21];
 	//long long controllerUserId;
 	mapChannelClient_t *controllerUser;
 	sint32 raceId;
@@ -213,6 +216,11 @@ typedef struct _manifestation_t
 	uint32 spentAttributePoints_body;
 	uint32 spentAttributePoints_mind;
 	uint32 spentAttributePoints_spirit;
+	// mission log
+	missionLogEntry_t missionLog[MISSION_LOG_LIMIT]; // must be sorted by missionId to allow binary search
+	sint32 activeMissionCount; // number of missions in the mission log
+	// mission state map (completed/not completed bitmask of ALL missions)
+	uint8* missionStateMap;
 }manifestation_t;
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData);

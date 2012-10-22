@@ -30,7 +30,6 @@ typedef struct
 	std::vector<mapChannelClient_t*> ht_playerList; // players currently in this cell
 	std::vector<mapChannelClient_t*> ht_playerNotifyList; // players that currently see this cell and should be informed about updates
 	std::vector<dynObject_t*> ht_objectList; // dynamic gameobjects that are in the cell
-	std::vector<npc_t*> ht_npcList; // dynamic npcs that are in the cell
 	std::vector<creature_t*> ht_creatureList; // dynamic creatures that are in the cell
 }mapCell_t;
 
@@ -57,9 +56,6 @@ void cellMgr_removeFromWorld( mapChannelClient_t *client );
 // add/remove object from the world
 void cellMgr_addToWorld(mapChannel_t *mapChannel, dynObject_t *dynObject);
 void cellMgr_removeFromWorld(mapChannel_t *mapChannel, dynObject_t *dynObject);
-// add/remove npc from the world
-void cellMgr_addToWorld(mapChannel_t *mapChannel, npc_t *npc);
-
 // add/remove creature from the world
 void cellMgr_addToWorld(mapChannel_t *mapChannel, creature_t *creature);
 void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *creat );

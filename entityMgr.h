@@ -4,14 +4,13 @@ void entityMgr_init();
 #define ENTITYTYPE_CLIENT	1
 #define ENTITYTYPE_ITEM		2
 #define ENTITYTYPE_OBJECT	3
-#define ENTITYTYPE_NPC		4
+//#define ENTITYTYPE_NPC		4 (removed)
 #define ENTITYTYPE_CREATURE	5
 
 unsigned long long entityMgr_getFreeEntityIdForClient();
 unsigned long long entityMgr_getFreeEntityIdForPlayer();
 unsigned long long entityMgr_getFreeEntityIdForItem();
 unsigned long long entityMgr_getFreeEntityIdForObject();
-unsigned long long entityMgr_getFreeEntityIdForNPC();
 unsigned long long entityMgr_getFreeEntityIdForCreature();
 
 uint8 entityMgr_getEntityType(unsigned long long entityId);

@@ -137,7 +137,11 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool);
 			if( creature == NULL )
 				continue;
-			creature_setLocation(creature, location->x+(float)((rand() % 5) - 2), location->y, location->z+(float)((rand() % 5) - 2), 0.0f, 0.0f);
+			// no random location if we spawn only one creature
+			if( spawnTypeCount == 1 )
+				creature_setLocation(creature, location->x, location->y, location->z, 0.0f, 0.0f);
+			else
+				creature_setLocation(creature, location->x+(float)((rand() % 5) - 2), location->y, location->z+(float)((rand() % 5) - 2), 0.0f, 0.0f);
 			cellMgr_addToWorld(mapChannel, creature);
 		}
 		if( spawnPool )

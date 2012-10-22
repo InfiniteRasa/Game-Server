@@ -4,13 +4,13 @@
 void _gameEffect_updateMovementMod(mapChannel_t *mapChannel, actor_t *actor)
 {
 	float movementMod = 1.0f; 
-	// check for sprsint32
+	// check for sprint
 	gameEffect_t *gameeffect = actor->activeEffects;
 	while( gameeffect )
 	{
 		if( gameeffect->typeId == EFFECT_TYPE_SPRINT )
 		{
-			// apply sprsint32 bonus
+			// apply sprint bonus
 			movementMod += 0.10f;
 			movementMod += (float)gameeffect->effectLevel * 0.10f;
 			break;

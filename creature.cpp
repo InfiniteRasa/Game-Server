@@ -317,6 +317,20 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 		// fix health
 		creature->actor.stats.healthCurrent = 0;
 	}
+	if( creature->type->npcData )
+	{
+		npc_creature_updateConversationStatus(client, creature);
+		// send Recv_NPCInfo (only npcPackageId)
+		// the only reason to send this is because the language lookup for mission objectives needs it...
+		if( creature->type->npcData->npcPackageId != 0 )
+		{
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, creature->type->npcData->npcPackageId); // the glorious npcPackageId
+			pym_tuple_end(&pms);
+			netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, &creature->actor, creature->actor.entityId, 490, pym_getData(&pms), pym_getLen(&pms));
+		}
+ 	}
 }
 
 void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 weaponId)
@@ -539,6 +553,7 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 	printf("Load creature type '%s'\n", jobData->name);
 	creatureType_t *creatureType = (creatureType_t*)malloc(sizeof(creatureType_t));
 	memset(creatureType, 0, sizeof(creatureType_t));
+	creatureType->typeId = jobData->id;
 	creatureType->entityClassId = jobData->classId;
 	creatureType->nameId = jobData->nameId;
 	strcpy(creatureType->name, jobData->name);
@@ -548,6 +563,7 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 	creatureType->maxHealth = jobData->hitpoints;
 	creatureType->walkspeed = jobData->walkspeed;
 	creatureType->runspeed = jobData->runspeed;
+	creatureType->wander_dist = jobData->wanderDistance;
 	// missile data (available attack actions for creature)
 	sint32 missileCount = 0;
 	for(sint32 i=0; i<8; i++)
@@ -564,7 +580,6 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 		missileCount++;
 	}
 	creatureType->aggressionTime = 5000;
-	creatureType->wander_dist = 4.0f;
 	creatureType_registerCreatureType(creatureType, jobData->id);
 }
 

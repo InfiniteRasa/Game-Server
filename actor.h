@@ -60,7 +60,7 @@ typedef struct _actor_t
 	sint8 name[64];
 	sint8 family[64];
 	actorStats_t stats;
-	actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? Is this used by creatures?
+	// actorAppearanceData_t appearanceData[21]; // should move this to manifestation and npc structure? Is this used by creatures?
 	float posX;
 	float posY;
 	float posZ;

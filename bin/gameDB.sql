@@ -4,7 +4,7 @@ Source Host: localhost
 Source Database: ir_gameserver
 Target Host: localhost
 Target Database: ir_gameserver
-Date: 15.10.2012 20:55:43
+Date: 23.10.2012 01:08:32
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -139,45 +139,17 @@ CREATE TABLE `creature_type` (
   `action6` int(11) DEFAULT NULL,
   `action7` int(11) DEFAULT NULL,
   `action8` int(11) DEFAULT NULL,
+  `wanderDistance` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
--- Table structure for mission
+-- Table structure for creature_type_npc
 -- ----------------------------
-DROP TABLE IF EXISTS `mission`;
-CREATE TABLE `mission` (
-  `missionId` int(11) NOT NULL,
-  `dispenserNPC` int(11) NOT NULL DEFAULT '0',
-  `collectorNPC` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`missionId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Table structure for missionstate
--- ----------------------------
-DROP TABLE IF EXISTS `missionstate`;
-CREATE TABLE `missionstate` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `character` int(11) NOT NULL,
-  `mission` int(11) NOT NULL,
-  `status` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Table structure for npc
--- ----------------------------
-DROP TABLE IF EXISTS `npc`;
-CREATE TABLE `npc` (
+DROP TABLE IF EXISTS `creature_type_npc`;
+CREATE TABLE `creature_type_npc` (
   `id` int(12) NOT NULL,
-  `name` varchar(56) NOT NULL,
-  `mapContextId` int(11) NOT NULL,
-  `posX` float NOT NULL,
-  `posY` float NOT NULL,
-  `posZ` float NOT NULL,
-  `rotation` float NOT NULL,
-  `entityClassID` int(11) NOT NULL,
+  `creatureTypeId` int(11) NOT NULL,
   `ad1_classId` int(11) NOT NULL,
   `ad1_hue` int(10) unsigned NOT NULL,
   `ad2_classId` int(11) NOT NULL,
@@ -220,31 +192,71 @@ CREATE TABLE `npc` (
   `ad20_hue` int(10) unsigned NOT NULL,
   `ad21_classId` int(11) NOT NULL,
   `ad21_hue` int(10) unsigned NOT NULL,
+  `npcPackageId` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- ----------------------------
--- Table structure for outdated_spawntype
+-- Table structure for mission
 -- ----------------------------
-DROP TABLE IF EXISTS `outdated_spawntype`;
-CREATE TABLE `outdated_spawntype` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
-  `maxcreatures` int(4) NOT NULL,
-  `spawnname` varchar(50) CHARACTER SET utf8 NOT NULL,
-  `creatures` varchar(70) CHARACTER SET utf8 NOT NULL,
-  `faction` int(4) NOT NULL,
-  `spawnanim` int(4) NOT NULL,
-  `locktime` int(8) NOT NULL,
-  `attackspeed` int(8) NOT NULL,
-  `velocity` float NOT NULL,
-  `attackaction` int(5) NOT NULL,
-  `attakstyle` int(2) NOT NULL,
-  `actionid` int(8) NOT NULL,
-  `melee_damage` int(10) NOT NULL,
-  `range_damage` int(10) NOT NULL,
-  `hitpoints` int(10) NOT NULL,
+DROP TABLE IF EXISTS `mission`;
+CREATE TABLE `mission` (
+  `missionId` int(11) NOT NULL,
+  `dispenserNPC` int(11) NOT NULL DEFAULT '0',
+  `collectorNPC` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`missionId`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Table structure for mission_location
+-- ----------------------------
+DROP TABLE IF EXISTS `mission_location`;
+CREATE TABLE `mission_location` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `x` float NOT NULL,
+  `y` float NOT NULL,
+  `z` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Table structure for mission_script
+-- ----------------------------
+DROP TABLE IF EXISTS `mission_script`;
+CREATE TABLE `mission_script` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `missionId` int(11) NOT NULL,
+  `command` smallint(6) NOT NULL,
+  `state` smallint(6) NOT NULL,
+  `flags` tinyint(4) NOT NULL,
+  `value1` int(11) NOT NULL,
+  `value2` int(11) NOT NULL,
+  `value3` int(11) NOT NULL,
+  `comment` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Table structure for mission_text
+-- ----------------------------
+DROP TABLE IF EXISTS `mission_text`;
+CREATE TABLE `mission_text` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `text` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Table structure for missionstate
+-- ----------------------------
+DROP TABLE IF EXISTS `missionstate`;
+CREATE TABLE `missionstate` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `character` int(11) NOT NULL,
+  `mission` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Table structure for pathnodes
@@ -292,7 +304,7 @@ CREATE TABLE `spawnpool` (
   `creatureMinCount6` int(10) DEFAULT NULL,
   `creatureMaxCount6` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=114 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=10000 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for teleporter
@@ -2154,39 +2166,49 @@ INSERT INTO `characters` VALUES ('63', 'Ololol', 'Name', '9', '1', '0', '1', '1'
 INSERT INTO `creature_action` VALUES ('1', 'melee attack thrax soldier', '174', '46', '0.5', '3.5', '1300', '500', '0', '5', '12');
 INSERT INTO `creature_action` VALUES ('2', 'range attack afs light soldier', '1', '133', '1', '20', '800', '500', '0', '10', '15');
 INSERT INTO `creature_action` VALUES ('3', 'thrax kick', '397', '1', '1', '4', '6000', '500', '950', '20', '22');
-INSERT INTO `creature_type` VALUES ('1', 'thrax_footsoldiers', '0', '25580', '0', '4', '9', '100', '1', '3', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('2', 'boargar_general_spawn', '0', '6031', '3', '6.2', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('3', 'bane_stalkerspawn_general', '0', '3781', '0', '3.3', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '5.9', '9', '250', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('5', 'forean_elder_normal', '0', '6163', '1', '4.9', '9', '200', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('6', 'afs_soldier_light_m', '0', '29765', '1', '5.7', '9', '210', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('7', 'afs_soldier_medium_f', '0', '29423', '1', '5.1', '9', '100', '2', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('8', 'thrax_footsoldiers_rifle', '0', '25581', '0', '5.4', '9', '300', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('9', 'afs_mech_standard', '0', '10442', '1', '5.6', '9', '400', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('10', 'bane_hunter_invasion', '0', '10166', '0', '5.3', '9', '275', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('11', 'bane_amoeboid_invasion', '0', '6032', '0', '5.1', '9', '350', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('12', 'thrax_footsoldier_invasion', '0', '25580', '0', '5.1', '9', '350', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('1', 'thrax_footsoldiers', '0', '25580', '0', '4', '9', '100', '1', '3', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('2', 'boargar_general_spawn', '0', '6031', '3', '6.2', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '4');
+INSERT INTO `creature_type` VALUES ('3', 'bane_stalkerspawn_general', '0', '3781', '0', '3.3', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '5.9', '9', '250', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('5', 'forean_elder_normal', '0', '6163', '1', '4.9', '9', '200', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('6', 'afs_soldier_light_m', '0', '29765', '1', '5.7', '9', '210', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('7', 'afs_soldier_medium_f', '0', '29423', '1', '3', '9', '100', '2', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('8', 'thrax_footsoldiers_rifle', '0', '25581', '0', '5.4', '9', '300', '0', '0', '0', '0', '0', '0', '0', '0', '3.5');
+INSERT INTO `creature_type` VALUES ('9', 'afs_mech_standard', '0', '10442', '1', '5.6', '9', '400', '0', '0', '0', '0', '0', '0', '0', '0', '2.5');
+INSERT INTO `creature_type` VALUES ('10', 'bane_hunter_invasion', '0', '10166', '0', '5.3', '9', '275', '0', '0', '0', '0', '0', '0', '0', '0', '4');
+INSERT INTO `creature_type` VALUES ('11', 'bane_amoeboid_invasion', '0', '6032', '0', '5.1', '9', '350', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('12', 'thrax_footsoldier_invasion', '0', '25580', '0', '5.1', '9', '350', '0', '0', '0', '0', '0', '0', '0', '0', '4');
+INSERT INTO `creature_type` VALUES ('13', 'Outpost Commander Rogers', '2973', '3846', '1', '5', '8.5', '550', '2', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('14', 'Council Elder Solis', '3005', '22636', '1', '5', '8.5', '500', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('15', 'Warrior Apirka', '2969', '22637', '1', '5', '8.5', '600', '2', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('16', 'Dying Forean', '0', '22637', '1', '0', '0', '1', null, null, null, null, null, null, null, null, '0');
+INSERT INTO `creature_type` VALUES ('17', 'Field Sgt. Witherspoon', '3072', '3846', '1', '5', '8.5', '550', '2', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type_npc` VALUES ('1', '13', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type_npc` VALUES ('2', '14', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type_npc` VALUES ('3', '15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type_npc` VALUES ('4', '16', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '726');
+INSERT INTO `creature_type_npc` VALUES ('5', '17', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `mission` VALUES ('1992', '4116', '4148');
-INSERT INTO `npc` VALUES ('4116', 'Catherine Jones', '1985', '-221.281', '101.051', '-65.4648', '0', '20972', '0', '0', '18271', '4286611584', '18299', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '12143', '4289039425', '9782', '4289039425', '18384', '4286611584', '18356', '4286611584', '7695', '4286886614', '0', '0', '0', '0', '25349', '4280300626', '0', '0');
-INSERT INTO `npc` VALUES ('4148', 'John Adams', '1985', '-206.129', '98.0234', '-48.1094', '0', '20975', '0', '0', '18271', '4286611584', '18299', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '6054', '0', '9355', '4293125348', '18384', '4286611584', '18356', '4286611584', '24010', '4286886614', '20824', '2155905152', '25336', '4282551464', '25349', '4293125348', '0', '0');
-INSERT INTO `npc` VALUES ('4119', '13th of 23', '1985', '-205.123', '98.3215', '-48.3427', '0', '3868', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `outdated_spawntype` VALUES ('1', '1', 'thrax_footsoldiers', '25580', '0', '2', '15000', '700', '5.1', '1', '0', '1', '5', '8', '295');
-INSERT INTO `outdated_spawntype` VALUES ('2', '1', 'boargar_general_spawn', '6031', '3', '0', '10000', '1000', '6.2', '10', '1', '174', '15', '15', '200');
-INSERT INTO `outdated_spawntype` VALUES ('3', '1', 'bane_stalkerspawn_general', '3781', '0', '0', '40000', '2700', '3.3', '108', '0', '1', '37', '100', '1000');
-INSERT INTO `outdated_spawntype` VALUES ('4', '1', 'forean_spearman_normal', '6043', '1', '0', '15000', '1800', '5.9', '204', '0', '1', '8', '0', '250');
-INSERT INTO `outdated_spawntype` VALUES ('5', '1', 'forean_elder_normal', '6163', '1', '0', '25000', '2000', '4.9', '203', '0', '1', '9', '8', '200');
-INSERT INTO `outdated_spawntype` VALUES ('6', '1', 'afs_soldier_light_m', '29765', '1', '0', '25000', '900', '5.7', '67', '0', '1', '5', '7', '210');
-INSERT INTO `outdated_spawntype` VALUES ('7', '1', 'afs_soldier_medium_f', '29423', '1', '0', '25000', '1100', '5.1', '67', '0', '1', '7', '8', '310');
-INSERT INTO `outdated_spawntype` VALUES ('8', '1', 'thrax_footsoldiers_rifle', '25581', '0', '0', '30000', '1200', '5.4', '79', '0', '1', '10', '11', '300');
-INSERT INTO `outdated_spawntype` VALUES ('9', '1', 'afs_mech_standard', '10442', '1', '0', '30000', '2000', '5.6', '293', '0', '1', '10', '11', '400');
-INSERT INTO `outdated_spawntype` VALUES ('10', '1', 'bane_hunter_invasion', '10166', '0', '2', '100000', '1500', '5.3', '1', '0', '1', '5', '9', '275');
-INSERT INTO `outdated_spawntype` VALUES ('11', '1', 'bane_amoeboid_invasion', '6032', '0', '0', '100000', '1500', '5.1', '6032', '1', '174', '7', '7', '350');
-INSERT INTO `outdated_spawntype` VALUES ('12', '1', 'thrax_footsoldier_invasion', '25580', '0', '2', '100000', '700', '5.1', '1', '0', '1', '10', '15', '350');
+INSERT INTO `mission_script` VALUES ('1', '429', '1', '0', '7', '13', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('2', '429', '2', '1', '7', '16', '5', '1', '');
+INSERT INTO `mission_script` VALUES ('3', '429', '3', '2', '7', '17', '0', '5', '');
+INSERT INTO `mission_script` VALUES ('4', '429', '5', '2', '7', '1000', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('5', '429', '6', '2', '7', '250', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('6', '429', '8', '0', '7', '10000044', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('7', '429', '9', '0', '7', '5', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('8', '429', '11', '1', '7', '5', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('9', '429', '13', '2', '7', '5', '0', '0', '');
+INSERT INTO `mission_script` VALUES ('10', '429', '11', '2', '7', '4', '0', '0', '');
 INSERT INTO `pathnodes` VALUES ('2', '-858993460', '-858993460', '-107374000', '-107374000', '-107374000', '-858993460');
 INSERT INTO `pathnodes` VALUES ('3', '-858993460', '-858993460', '-107374000', '-107374000', '-107374000', '-858993460');
 INSERT INTO `pathnodes` VALUES ('4', '31', '1220', '0', '-3.40282e38', '0', '22756288');
 INSERT INTO `pathnodes` VALUES ('5', '31', '1220', '176.902', '163.381', '-50.293', '1');
-INSERT INTO `spawnpool` VALUES ('108', '0', '1', '835.961', '294.027', '385.156', '1220', '1', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('108', '0', '0', '845', '294.027', '385.156', '1220', '7', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('109', '0', '0', '858.855', '294.21', '388', '1220', '13', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('110', '0', '0', '789.593', '287.281', '581.644', '1220', '14', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('111', '0', '0', '826.898', '301.39', '506.371', '1220', '15', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('112', '0', '0', '306.136', '271.4', '438.07', '1220', '16', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('107', '0', '0', '501.5', '238.8', '214', '1220', '17', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `teleporter` VALUES ('41', '8', '', '807.316', '294.055', '391.301', '0', '0', '0', '0', '0', '57');
 INSERT INTO `teleporter` VALUES ('42', '8', '', '508.633', '238.461', '224.934', '0', '0', '0', '0', '0', '49');
 INSERT INTO `teleporter` VALUES ('43', '8', '', '153.156', '163.004', '-110.672', '0', '0', '0', '0', '0', '61');

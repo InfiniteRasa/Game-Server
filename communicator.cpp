@@ -607,11 +607,6 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		netMgr_entityMovementTest(cm->cgm, 0, 0);
 		return true;
 	}
-	if( strcmp(textMsg, ".npc") == 0 )
-	{
-		npc_test(cm);
-		return true;
-	}
 	if( strcmp(textMsg, ".wipe") == 0 )
 	{
 		// 20110803
@@ -680,20 +675,24 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 	if( memcmp(textMsg, ".creature ", 10) == 0 )
 	{
 		//20110728 - thuvvik complete "creature dictionary" invocation ... cf creature.cpp line 289
-		/*sint8 *pch = textMsg + 10;
+		sint8 *pch = textMsg + 10;
 
 		sint32 creatureClass;
 		sint8 cmd[30];
 		sscanf(textMsg,"%s %d",cmd,&creatureClass);			
-		creatureType_t ctype = {0};
-		ctype.maxHealth = 150;
-		ctype.nameId = 0;
-		ctype.entityClassId = creatureClass;
+		creatureType_t* ctype = (creatureType_t*)malloc(sizeof(creatureType_t));
+		memset(ctype, 0x00, sizeof(creatureType_t));
+		ctype->maxHealth = 150;
+		ctype->nameId = 0;
+		ctype->entityClassId = creatureClass;
+		strcpy(ctype->name, "test npc");
+		// since this is just a test we create an new creature type (which should normally only be done on init)
+		//creatureType_createCreatureType(creatureClass, 0);
 
-		creature_t *creature = creature_createCreature(cm->mapChannel, &ctype, NULL,3);
+		creature_t *creature = creature_createCreature(cm->mapChannel, ctype, NULL);
 		creature_setLocation(creature, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ, 0.0f, 0.0f);
 		cellMgr_addToWorld(cm->mapChannel, creature);
-		//communicator_systemMessage(cm, "creature spawner deactivated");*/
+		//communicator_systemMessage(cm, "creature spawner deactivated");
 		return true;
 	}
 	//if( memcmp(textMsg, ".effect ", 8) == 0 )
@@ -756,30 +755,30 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			communicator_systemMessage(cm, "No entity selected");
 			return true;
 		}
-		if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
-		{
-			npc_t *npc = (npc_t*)entityMgr_get(cm->player->targetEntityId);
-			if( !npc )
-				return true;
-			communicator_systemMessage(cm, "Saving npc...");
-			di_npcData_t npcData = {0};
-			npcData.npcID = npc->entityId;
-			npcData.posX = npc->actor.posX;
-			npcData.posY = npc->actor.posY;
-			npcData.posZ = npc->actor.posZ;
-			npcData.entityClassID = npc->actor.entityClassId;
-			npcData.currentContextId = cm->mapChannel->mapInfo->contextId;
-			strcpy(npcData.unicodeName, npc->actor.name);
-			for(sint32 i=0; i<SWAPSET_SIZE; i++)
-			{
-				npcData.appearanceData[i].classId = npc->actor.appearanceData[i].classId;
-				npcData.appearanceData[i].hue = npc->actor.appearanceData[i].hue;
-			}
-			DataInterface_NPC_updateNPC(&npcData, NULL, NULL);
-			return true;
-		}
-		else
-			communicator_systemMessage(cm, "Cannot save selected entity");
+		//if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
+		//{
+		//	npc_t *npc = (npc_t*)entityMgr_get(cm->player->targetEntityId);
+		//	if( !npc )
+		//		return true;
+		//	communicator_systemMessage(cm, "Saving npc...");
+		//	di_npcData_t npcData = {0};
+		//	npcData.npcID = npc->entityId;
+		//	npcData.posX = npc->actor.posX;
+		//	npcData.posY = npc->actor.posY;
+		//	npcData.posZ = npc->actor.posZ;
+		//	npcData.entityClassID = npc->actor.entityClassId;
+		//	npcData.currentContextId = cm->mapChannel->mapInfo->contextId;
+		//	strcpy(npcData.unicodeName, npc->actor.name);
+		//	for(sint32 i=0; i<SWAPSET_SIZE; i++)
+		//	{
+		//		npcData.appearanceData[i].classId = npc->actor.appearanceData[i].classId;
+		//		npcData.appearanceData[i].hue = npc->actor.appearanceData[i].hue;
+		//	}
+		//	DataInterface_NPC_updateNPC(&npcData, NULL, NULL);
+		//	return true;
+		//}
+		//else
+		communicator_systemMessage(cm, "Cannot save selected entity");
 		return true;
 	}
 	if( strcmp(textMsg, ".traffic") == 0 )
@@ -813,29 +812,29 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
 	}
-	if( memcmp(textMsg, ".name ", 6) == 0 )
-	{
-		sint8 *pch = textMsg + 6;
-		//pch = strtok (textMsg+6, " ");
-		//if( pch )
-		if( *pch )
-		{
-			if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
-			{
-				npc_t *npc = (npc_t*)entityMgr_get(cm->player->targetEntityId);
-				if( !npc )
-					return true;
-				npc_updateName(cm->mapChannel, npc, pch);
-			}
-			else
-				communicator_systemMessage(cm, "Cannot set name of selection");
-		}
-		else
-		{
-			communicator_systemMessage(cm, "Wrong syntax");
-		}
-		return true;
-	}
+	//if( memcmp(textMsg, ".name ", 6) == 0 )
+	//{
+	//	sint8 *pch = textMsg + 6;
+	//	//pch = strtok (textMsg+6, " ");
+	//	//if( pch )
+	//	if( *pch )
+	//	{
+	//		if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
+	//		{
+	//			npc_t *npc = (npc_t*)entityMgr_get(cm->player->targetEntityId);
+	//			if( !npc )
+	//				return true;
+	//			npc_updateName(cm->mapChannel, npc, pch);
+	//		}
+	//		else
+	//			communicator_systemMessage(cm, "Cannot set name of selection");
+	//	}
+	//	else
+	//	{
+	//		communicator_systemMessage(cm, "Wrong syntax");
+	//	}
+	//	return true;
+	//}
 	if( memcmp(textMsg, ".look ", 6) == 0 )
 	{
 		sint8 *pch = textMsg + 6;
@@ -852,7 +851,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 					pch += 2;
 				sscanf(pch, "%X", &hue);
 			}
-			if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
+			/*if( entityMgr_getEntityType(cm->player->targetEntityId) == ENTITYTYPE_NPC )
 			{
 				npc_t *npc = (npc_t*)entityMgr_get(cm->player->targetEntityId);
 				if( !npc )
@@ -860,11 +859,54 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 				npc_updateAppearanceItem(cm->mapChannel, npc, itemClassId, hue);
 			}
 			else
-				communicator_systemMessage(cm, "Cannot set appearance of selection");
+				communicator_systemMessage(cm, "Cannot set appearance of selection");*/
+			communicator_systemMessage(cm, ".look needs to be updated :(");
 		}
 		else
 		{
 			communicator_systemMessage(cm, "Wrong syntax");
+		}
+		return true;
+	}
+	if( memcmp(textMsg, ".speed", 6) == 0 )
+	{
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addFloat(&pms, 7.0f); // 7x run speed!
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, cm->player->actor, cm->player->actor->entityId, 580, pym_getData(&pms), pym_getLen(&pms));	
+	}
+	if( memcmp(textMsg, ".goto ", 6) == 0 )
+	{
+		sint8 *pch = textMsg + 6;
+		pch = strtok (textMsg+6, " ");
+		float posX = 0.0f;
+		float posY = 0.0f;
+		float posZ = 0.0f;
+		if( pch )
+		{
+			sscanf(pch, "%f", &posX);
+			pch = strtok (NULL, " ");
+			if( pch )
+			{
+				sscanf(pch, "%f", &posY);
+				pch = strtok(NULL, " ");
+				if( pch )
+				{
+					sscanf(pch, "%f", &posZ);
+					// do teleport
+					netCompressedMovement_t netMovement = {0};
+					cm->player->actor->posX = posX;
+					cm->player->actor->posY = posY+0.5f;
+					cm->player->actor->posZ = posZ;
+					netMovement.entityId = cm->player->actor->entityId;
+					netMovement.posX24b = cm->player->actor->posX * 256.0f;
+					netMovement.posY24b = cm->player->actor->posY * 256.0f;
+					netMovement.posZ24b = cm->player->actor->posZ * 256.0f;
+					netMgr_sendEntityMovement(cm->cgm, &netMovement);
+				}
+			}
 		}
 		return true;
 	}

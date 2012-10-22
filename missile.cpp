@@ -24,9 +24,6 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	}
 	switch( targetType )
 	{
-	case ENTITYTYPE_NPC:
-		printf("Can't shoot NPCs yet\n");
-		return;
 	case ENTITYTYPE_CREATURE:
 		{ creature_t *creature = (creature_t*)entity;
 		targetActor = &creature->actor; }

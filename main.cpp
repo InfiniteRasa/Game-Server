@@ -240,6 +240,7 @@ sint32 main()
 	entityMgr_init();
 	communicator_init();
 	creature_init();
+	npc_init();
 	mission_init();
 	// init mapChannel manager
 	mapChannel_init();
