@@ -99,13 +99,9 @@ void gameEffect_attachSprint(mapChannel_t *mapChannel, actor_t *actor, sint32 ef
 	// 'isDebuff'
 	// 'isNegativeEffect'
 	pym_dict_end(&pms);
-	//pym_addNoneStruct(&pms);
-	//args ( variable)
-	//pym_tuple_begin(&pms);
-	
-	//pym_tuple_end(&pms);
-	//pym_addNoneStruct(&pms);
-
+	// args (variable)
+	pym_tuple_begin(&pms);
+	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, actor, actor->entityId, 74, pym_getData(&pms), pym_getLen(&pms));
 	// do ability specific work
