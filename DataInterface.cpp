@@ -120,16 +120,16 @@ void DataInterface_init()
 	INIParser* Parser = new INIParser("config.ini");
 	// Game Server Database
 	dbConInfo.dbHost = strdup(Parser->GetString("Game Server Database", "dbHost", "localhost").c_str());
-	dbConInfo.dbPort = Parser->GetInt("Game Server Database", "dbPort", 10061);
+	dbConInfo.dbPort = Parser->GetInt("Game Server Database", "dbPort", 3306);
 	dbConInfo.dbName = strdup(Parser->GetString("Game Server Database", "dbName", "ir_gameserver").c_str());
 	dbConInfo.dbUser = strdup(Parser->GetString("Game Server Database", "dbUser", "root").c_str());
-	dbConInfo.dbPass = strdup(Parser->GetString("Game Server Database", "dbPass", "usbw").c_str());
+	dbConInfo.dbPass = strdup(Parser->GetString("Game Server Database", "dbPass", "").c_str());
 	// Auth Server Database
 	AuthInfo.dbHost = strdup(Parser->GetString("Auth Server Database", "dbHost", "localhost").c_str());
-	AuthInfo.dbPort = Parser->GetInt("Auth Server Database", "dbPort", 10061);
+	AuthInfo.dbPort = Parser->GetInt("Auth Server Database", "dbPort", 3306);
 	AuthInfo.dbName = strdup(Parser->GetString("Auth Server Database", "dbName", "ir_authentication").c_str());
 	AuthInfo.dbUser = strdup(Parser->GetString("Auth Server Database", "dbUser", "root").c_str());
-	AuthInfo.dbPass = strdup(Parser->GetString("Auth Server Database", "dbPass", "usbw").c_str());
+	AuthInfo.dbPass = strdup(Parser->GetString("Auth Server Database", "dbPass", "").c_str());
 	// Game  Server options
 	AuthInfo.gsInfo.ServerIP	= strdup(Parser->GetString("Game Server", "IPAddress", "127.0.0.1").c_str());
 	AuthInfo.gsInfo.ServerIPHex = DataInterface_IPtoHex();
@@ -204,9 +204,9 @@ void DataInterface_registerServerForAuth()
 	if( mysql_query(AuthInfo.mysql_as, queryText2) )
 	{
 		printf("MySQL: Error registering the server in the database\n");
-		while(1) Sleep(1000);	
 	}
-	printf("MySQL: The server has been registered in the database\n");
+	else
+		printf("MySQL: The server has been registered in the database\n");
 	return;
 }
 

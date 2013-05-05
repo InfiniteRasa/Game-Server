@@ -216,9 +216,32 @@ sint32 CMSG_GL_CLIENTKEY(CLIENT_GAMELOGIN *cg, uint8 *data, sint32 len);
 
 /******** main **********/
 
+#ifdef _WIN32
+BOOL fileExists(LPCTSTR szPath)
+{
+	DWORD dwAttrib = GetFileAttributes(szPath);
+
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES);
+	//  && 	!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+}
+#endif
+
+
 sint32 main()
 {
-	//Init Winsock
+	// little workaround in case Visual Studio has the wrong the working directory
+	#ifdef _WIN32
+	if( fileExists("gameData") ) // is this directory in the current directory? Then everything is ok
+		; // just do nothing
+	else if( fileExists(".\\bin\\gameData") ) // is this directory in the relative bin directory? If yes, VS has the default working directory
+	{
+		SetCurrentDirectory(".\\bin\\"); // update working directory
+		printf("Working directory updated to .\\bin\\\n");
+	}
+	else
+		printf("\"gameData\" directory not found, this may cause problems\n");
+	#endif
+	// init Winsock
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2,2),&wsa);
 

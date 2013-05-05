@@ -10,6 +10,11 @@ void _gameData_loadEquipmentClassSlots()
 {
 	hashTable_init(&ht_equipmentClassSlots, 128);
 	file_t *file = fileMgr_open((sint8*)"gameData\\equipableClassEquipmentSlot.txt");
+	if( file == NULL )
+	{
+		printf("Failed to load \"gameData\\equipableClassEquipmentSlot.txt\"\nServer halted\n");
+		while( true ) ;
+	}
 	sint8 *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -32,6 +37,11 @@ void _gameData_loadStarterItemTemplateClassIds()
 {
 	hashTable_init(&ht_starterItemTemplateClassIds, 128);
 	file_t *file = fileMgr_open((sint8*)"gameData\\starterItemTemplateClassIds.txt");
+	if( file == NULL )
+	{
+		printf("Failed to load \"gameData\\starterItemTemplateClassIds.txt\"\nServer halted\n");
+		while( true ) ;
+	}
 	sint8 *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -58,6 +68,11 @@ void _gameData_loadMapInfo()
 	// read number of maps
 	mapInfoCount = 0;
 	file_t *file = fileMgr_open((sint8*)"gameData\\mapInfo.txt");
+	if( file == NULL )
+	{
+		printf("Failed to load \"gameData\\mapInfo.txt\"\nServer halted\n");
+		while( true ) ;
+	}
 	sint8 *line;
 	while( line = fileMgr_readLine(file) )
 	{
@@ -134,6 +149,11 @@ void _gameData_loadItemTemplates()
 	//sint8 *sData_currentCategoryName(sData_t *sData);
 	//sint8 *sData_findOption(sData_t *sData, sint8 *optionName);
 	sData_t *it = sData_open((sint8*)"gameData\\ItemTemplates.txt");
+	if( it == NULL )
+	{
+		printf("Failed to load \"gameData\\ItemTemplates.txt\"\nServer halted\n");
+		while( true ) ;
+	}
 	sint32 z = 0;
 	while( sData_nextCategory(it) )
 	{
