@@ -1219,7 +1219,7 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 
 	if( client->player->targetEntityId )
 	{
-		mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->refireTime, client->player, inventory_CurrentWeapon(client));
+		mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->weapon.refireTime, client->player, inventory_CurrentWeapon(client));
 	
 	}//--if: targed id	
 }

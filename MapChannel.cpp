@@ -322,10 +322,10 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *par
 
 void mapChannel_launchMissileForWeapon(mapChannelClient_t* client, item_t* weapon)
 {
-	switch(weapon->itemTemplate->toolType)
+	switch(weapon->itemTemplate->weapon.toolType)
 	{
 	case 9:
-		if(weapon->itemTemplate->classId == 29395)
+		if(weapon->itemTemplate->item.classId == 29395)
 			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 120, 1, 287); 
 		else
 			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 40, 1, 121); 
@@ -340,7 +340,7 @@ void mapChannel_launchMissileForWeapon(mapChannelClient_t* client, item_t* weapo
 		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 25, 1, 134); 
 		break;
 	case 15:
-		if(weapon->itemTemplate->classId == 29757)
+		if(weapon->itemTemplate->item.classId == 29757)
 			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 7); 
 		else
 			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 1); 
@@ -349,7 +349,7 @@ void mapChannel_launchMissileForWeapon(mapChannelClient_t* client, item_t* weapo
 		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 1, 3); 
 		break;
 	default:
-		printf("unknown weapontype \n");
+		printf("mapChannel_launchMissileForWeapon(): unknown weapontype\n");
 		return;
 	}
 }
@@ -602,11 +602,11 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 		mapChannel_recv_CharacterLogout(cm, pyString, pyStringLen);
 		return;
 	case METHODID_REQUESTWEAPONATTACK://player melee
-		if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27220)
+		if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 27220)
 			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 5); // rifle
-		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 27320)
+		else if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 27320)
 			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 6); // shotgun
-		else if(inventory_CurrentWeapon(cm)->itemTemplate->classId == 28066)
+		else if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 28066)
 			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 3); // machinegun
 		else
 			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 4); // pistol

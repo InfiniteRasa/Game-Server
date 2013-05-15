@@ -126,137 +126,198 @@ sint32 gameData_getStarterItemTemplateClassId(sint32 templateId)
 	return (sint32)hashTable_get(&ht_starterItemTemplateClassIds, templateId);	
 }
 
-hashTable_t ht_itemTemplateById;
-hashTable_t ht_itemTemplateByName;
+hashTable_t ht_itemTemplateId;
+// hashTable_t ht_itemTemplateByName;
 
 itemTemplate_t *gameData_getItemTemplateById(uint32 templateId)
 {
-	return (itemTemplate_t*)hashTable_get(&ht_itemTemplateById, templateId);	
+	return (itemTemplate_t*)hashTable_get(&ht_itemTemplateId, templateId);	
 }
 
-itemTemplate_t *gameData_getItemTemplateByName(sint8 *name)
+//itemTemplate_t *gameData_getItemTemplateByName(sint8 *name)
+//{
+//	return (itemTemplate_t*)hashTable_get(&ht_itemTemplateByName, name);	
+//}
+
+bool _itemTemplatesLoaded = false;
+
+/*
+ * Called when the mysql server returns the item templates
+ */
+void _item_loadItemTemplates(void *param, diJob_itemTemplate_t *jobData)
 {
-	return (itemTemplate_t*)hashTable_get(&ht_itemTemplateByName, name);	
+	printf("Loading %d item templates from db...\n", jobData->numberOfItemTemplates);
+	for(sint32 i=0; i<jobData->numberOfItemTemplates; i++)
+	{
+		itemTemplate_t* itemTemplate = (itemTemplate_t*)malloc(sizeof(itemTemplate_t));
+		memset(itemTemplate, 0x00, sizeof(itemTemplate_t));
+		itemTemplate->item.templateId = jobData->itemTemplateList[i].itemTemplateId;
+		itemTemplate->item.classId = jobData->itemTemplateList[i].classId;
+		itemTemplate->item.qualityId = jobData->itemTemplateList[i].qualityId;
+		itemTemplate->item.type = jobData->itemTemplateList[i].type;
+		itemTemplate->item.notTradable = jobData->itemTemplateList[i].notTradeableFlag;
+		itemTemplate->item.hasSellableFlag = jobData->itemTemplateList[i].hasSellableFlag;
+		itemTemplate->item.hasCharacterUniqueFlag = jobData->itemTemplateList[i].hasCharacterUniqueFlag;
+		itemTemplate->item.hasAccountUniqueFlag = jobData->itemTemplateList[i].hasAccountUniqueFlag;
+		itemTemplate->item.hasBoEFlag = jobData->itemTemplateList[i].hasBoEFlag;
+		itemTemplate->item.boundToCharacter = jobData->itemTemplateList[i].boundToCharacterFlag;
+		itemTemplate->item.notPlaceableInLockbox = jobData->itemTemplateList[i].notPlaceableInLockBoxFlag;
+		itemTemplate->item.inventoryCategory = jobData->itemTemplateList[i].inventoryCategory;
+		itemTemplate->item.reqLevel = jobData->itemTemplateList[i].reqLevel;
+		// validate some of the values
+		if( itemTemplate->item.inventoryCategory <= 0 )
+		{
+			printf("Warning: itemTemplate %d has invalid inventory category\n", jobData->itemTemplateList[i].itemTemplateId);
+			// manually fix the inventory category
+			itemTemplate->item.inventoryCategory = INVENTORY_CATEGORY_MISC;
+		}
+		// default values
+		itemTemplate->item.currentHitPoints = 100;
+		itemTemplate->item.maxHitPoints = 100;
+		// reset equipment data
+		itemTemplate->equipment.equiptmentSlotType = -1;
+		itemTemplate->equipment.requiredSkillId = -1;
+		itemTemplate->equipment.requiredSkillMinVal = -1;
+		// create entry
+		hashTable_set(&ht_itemTemplateId, jobData->itemTemplateList[i].itemTemplateId, itemTemplate);
+	}
+	// mark item templates as loaded
+	_itemTemplatesLoaded = true;
 }
 
+/*
+ * Called when the mysql server returns the item equipment data
+ * The equipment data is additional info for equitable items
+ * Note: The base item templates must already be loaded
+ */
+void _item_loadItemTemplatesEquipment(void *param, diJob_itemTemplateEquipment_t *jobData)
+{
+	printf("Loading %d equipment templates from db...\n", jobData->numberOfTemplates);
+	for(sint32 i=0; i<jobData->numberOfTemplates; i++)
+	{
+
+		// find the already existing template
+		itemTemplate_t* itemTemplate = (itemTemplate_t*)hashTable_get(&ht_itemTemplateId, jobData->itemTemplateEquipmentList[i].itemTemplateId);
+		if( itemTemplate == NULL )
+			continue; // equipment template has no item template
+		// load additional equipment info
+		if( itemTemplate->item.type != ITEMTYPE_WEAPON && itemTemplate->item.type != ITEMTYPE_ARMOR )
+		{
+			printf("Warning: itemTemplate %d has equipment data but is not a weapon/armor\n", jobData->itemTemplateEquipmentList[i].itemTemplateId);
+		}
+		itemTemplate->equipment.equiptmentSlotType = jobData->itemTemplateEquipmentList[i].slotType;
+		itemTemplate->equipment.requiredSkillId = jobData->itemTemplateEquipmentList[i].skillId;
+		itemTemplate->equipment.requiredSkillMinVal = jobData->itemTemplateEquipmentList[i].skillMinVal;
+	}
+	// mark item templates as loaded
+	_itemTemplatesLoaded = true;
+}
+
+
+/*
+ * Called when the mysql server returns the item armor data
+ * The armor data is additional info for equipable items
+ * Note: The base item templates must already be loaded
+ */
+void _item_loadItemTemplatesArmor(void *param, diJob_itemTemplateArmor_t *jobData)
+{
+	printf("Loading %d armor templates from db...\n", jobData->numberOfTemplates);
+	for(sint32 i=0; i<jobData->numberOfTemplates; i++)
+	{
+		// find the already existing template
+		itemTemplate_t* itemTemplate = (itemTemplate_t*)hashTable_get(&ht_itemTemplateId, jobData->itemTemplateArmorList[i].itemTemplateId);
+		if( itemTemplate == NULL )
+			continue; // equipment template has no item template
+		// load additional equipment info
+		if( itemTemplate->item.type != ITEMTYPE_ARMOR )
+		{
+			printf("Warning: itemTemplate %d has armor data but is not an armor\n", jobData->itemTemplateArmorList[i].itemTemplateId);
+		}
+		itemTemplate->armor.armorValue = jobData->itemTemplateArmorList[i].armorValue;
+		itemTemplate->item.maxHitPoints = itemTemplate->armor.armorValue;
+		itemTemplate->item.currentHitPoints = itemTemplate->armor.armorValue;
+		itemTemplate->armor.regenRate = jobData->itemTemplateArmorList[i].regenRate;
+		itemTemplate->armor.damageAbsorbed = jobData->itemTemplateArmorList[i].damageAbsorbed;
+	}
+	// mark item templates as loaded
+	_itemTemplatesLoaded = true;
+}
+
+/*
+ * Called when the mysql server returns the item weapon data
+ * The weapon data is additional info for equipable items
+ * Note: The base item templates must already be loaded
+ */
+void _item_loadItemTemplatesWeapon(void *param, diJob_itemTemplateWeapon_t *jobData)
+{
+	printf("Loading %d weapon templates from db...\n", jobData->numberOfTemplates);
+	for(sint32 i=0; i<jobData->numberOfTemplates; i++)
+	{
+		// find the already existing template
+		itemTemplate_t* itemTemplate = (itemTemplate_t*)hashTable_get(&ht_itemTemplateId, jobData->itemTemplateWeaponList[i].itemTemplateId);
+		if( itemTemplate == NULL )
+			continue; // equipment template has no item template
+		// load additional equipment info
+		if( itemTemplate->item.type != ITEMTYPE_WEAPON )
+		{
+			printf("Warning: itemTemplate %d has weapon data but is not an weapon\n", jobData->itemTemplateWeaponList[i].itemTemplateId);
+		}
+		itemTemplate->weapon.clipSize = jobData->itemTemplateWeaponList[i].clipSize;
+		itemTemplate->weapon.currentAmmo = jobData->itemTemplateWeaponList[i].currentAmmo;
+		itemTemplate->weapon.aimRate = jobData->itemTemplateWeaponList[i].aimRate;
+		itemTemplate->weapon.reloadTime = jobData->itemTemplateWeaponList[i].reloadTime;
+		itemTemplate->weapon.altActionId = jobData->itemTemplateWeaponList[i].altActionId;
+		itemTemplate->weapon.altActionArg = jobData->itemTemplateWeaponList[i].altActionArg;
+		itemTemplate->weapon.aeType = jobData->itemTemplateWeaponList[i].aeType;
+		itemTemplate->weapon.aeRadius = jobData->itemTemplateWeaponList[i].aeRadius;
+		itemTemplate->weapon.recoilAmount = jobData->itemTemplateWeaponList[i].recoilAmount;
+		itemTemplate->weapon.reuseOverride = jobData->itemTemplateWeaponList[i].reuseOverride;
+		itemTemplate->weapon.coolRate = jobData->itemTemplateWeaponList[i].coolRate;
+		itemTemplate->weapon.heatPerShot = jobData->itemTemplateWeaponList[i].heatPerShot;
+		itemTemplate->weapon.toolType = jobData->itemTemplateWeaponList[i].toolType;
+		itemTemplate->weapon.ammoPerShot = jobData->itemTemplateWeaponList[i].ammoPerShot;
+		itemTemplate->weapon.minDamage = jobData->itemTemplateWeaponList[i].minDamage;
+		itemTemplate->weapon.maxDamage = jobData->itemTemplateWeaponList[i].maxDamage;
+		itemTemplate->weapon.ammoClassId = jobData->itemTemplateWeaponList[i].ammoClassId;
+		itemTemplate->weapon.damageType = jobData->itemTemplateWeaponList[i].damageType;
+		itemTemplate->weapon.windupTime = jobData->itemTemplateWeaponList[i].windupTime;
+		itemTemplate->weapon.recoveryTime = jobData->itemTemplateWeaponList[i].recoveryTime;
+		itemTemplate->weapon.refireTime = jobData->itemTemplateWeaponList[i].refireTime;
+		itemTemplate->weapon.range = jobData->itemTemplateWeaponList[i].range;
+		itemTemplate->weapon.altMaxDamage = jobData->itemTemplateWeaponList[i].altMaxDamage;
+		itemTemplate->weapon.altDamageType = jobData->itemTemplateWeaponList[i].altDamageType;
+		itemTemplate->weapon.altRange = jobData->itemTemplateWeaponList[i].altRange;
+		itemTemplate->weapon.altAERadius = jobData->itemTemplateWeaponList[i].altAERadius;
+		itemTemplate->weapon.altAEType = jobData->itemTemplateWeaponList[i].altAEType;
+		itemTemplate->weapon.attackType = jobData->itemTemplateWeaponList[i].attackType;
+		// default values
+		itemTemplate->weapon.isJammed = false;
+	}
+	// mark item templates as loaded
+	_itemTemplatesLoaded = true;
+}
 
 void _gameData_loadItemTemplates()
 {
-	hashTable_init(&ht_itemTemplateById, 128);
-	hashTable_init(&ht_itemTemplateByName, 128);
-	//sData_t *sData_open(sint8 *path);
-	//bool sData_nextCategory(sData_t *sData);
-	//sint8 *sData_currentCategoryName(sData_t *sData);
-	//sint8 *sData_findOption(sData_t *sData, sint8 *optionName);
-	sData_t *it = sData_open((sint8*)"gameData\\ItemTemplates.txt");
-	if( it == NULL )
-	{
-		printf("Failed to load \"gameData\\ItemTemplates.txt\"\nServer halted\n");
-		while( true ) ;
-	}
-	sint32 z = 0;
-	while( sData_nextCategory(it) )
-	{
-		z++;
-		if( z >= 128 )
-		{
-			printf("Too many item templates :(\n");
-			Sleep(10000);
-			ExitProcess(-1);
-		}
-		sint8 *catName = sData_currentCategoryName(it);
-		printf("  IT: %s\n", catName);
-
-		sint8 *s_ClassId = sData_findOption(it, (sint8*)"classId");
-		sint8 *s_templateId = sData_findOption(it, (sint8*)"templateId");
-		if( !s_ClassId || !s_templateId )
-		{
-			printf("ClassID or TemplateID missing at [%s]\n", catName);
-			Sleep(10000);
-			ExitProcess(-1);
-		}
-
-		itemTemplate_t *itemTemplate = (itemTemplate_t*)malloc(sizeof(itemTemplate_t));
-		itemTemplate->classId = atoi((char*)s_ClassId);
-		itemTemplate->templateId = atoi((char*)s_templateId);
-		// get other states
-		sint8 *s_type = sData_findOption(it, (sint8*)"type");
-		if( s_type == NULL )
-		{
-			printf("'type' not set for [%s]\n", catName);
-			Sleep(10000);
-			ExitProcess(-1);
-		}
-		if( strcmp((char*)s_type, "WEAPON")==0 )
-		{
-			itemTemplate->type = ITEMTYPE_WEAPON;
-		}
-		else if( strcmp((char*)s_type, "ARMOR")==0 )
-		{
-			itemTemplate->type = ITEMTYPE_ARMOR;
-		}
-		else
-		{
-			printf("unknown type for [%s]\n", catName);
-			Sleep(10000);
-			ExitProcess(-1);
-		}
-
-		// Extra Info
-		
-		itemTemplate->currentHitPoints			= atoi((char*)sData_findOption(it, (sint8*)"currentHitPoints"));
-		itemTemplate->maxHitPoints				= atoi((char*)sData_findOption(it, (sint8*)"maxHitPoints"));
-		//s_info = sData_findOption(it, "modifiedBy");
-		itemTemplate->hasSellableFlag			= (bool)atoi((char*)sData_findOption(it, (sint8*)"hasSellableFlag"));
-		itemTemplate->hasCharacterUniqueFlag	= (bool)atoi((char*)sData_findOption(it, (sint8*)"hasCharacterUniqueFlag"));
-		itemTemplate->hasAccountUniqueFlag		= (bool)atoi((char*)sData_findOption(it, (sint8*)"hasAccountUniqueFlag"));
-		itemTemplate->hasBoEFlag				= (bool)atoi((char*)sData_findOption(it, (sint8*)"hasBoEFlag"));
-		itemTemplate->qualityId					= atoi((char*)sData_findOption(it, (sint8*)"qualityId"));
-		itemTemplate->boundToCharacter			= atoi((char*)sData_findOption(it, (sint8*)"boundToCharacter"));
-		itemTemplate->notTradable				= atoi((char*)sData_findOption(it, (sint8*)"notTradable"));
-		itemTemplate->notPlaceableInLockbox		= atoi((char*)sData_findOption(it, (sint8*)"notPlaceableInLockbox"));
-		itemTemplate->inventoryCategory			= atoi((char*)sData_findOption(it, (sint8*)"inventoryCategory"));
-
-		if (itemTemplate->type == ITEMTYPE_WEAPON)
-		{
-			itemTemplate->clipSize					= atoi((char*)sData_findOption(it, (sint8*)"clipSize"));
-			itemTemplate->currentAmmo				= atoi((char*)sData_findOption(it, (sint8*)"currentAmmo"));
-			itemTemplate->aimRate					= atof((char*)sData_findOption(it, (sint8*)"aimRate"));
-			itemTemplate->reloadTime				= atoi((char*)sData_findOption(it, (sint8*)"reloadTime"));
-			itemTemplate->altActionId				= atoi((char*)sData_findOption(it, (sint8*)"altActionId"));
-			itemTemplate->altActionArg				= atoi((char*)sData_findOption(it, (sint8*)"altActionArg"));
-			itemTemplate->aeType					= atoi((char*)sData_findOption(it, (sint8*)"aeType"));
-			itemTemplate->aeRadius					= atoi((char*)sData_findOption(it, (sint8*)"aeRadius"));
-			itemTemplate->recoilAmount				= atoi((char*)sData_findOption(it, (sint8*)"recoilAmount"));
-			//itemTemplate->reuseOverride			= atoi(sData_findOption(it, "reuseOverride"));
-			itemTemplate->coolRate					= atoi((char*)sData_findOption(it, (sint8*)"coolRate"));
-			itemTemplate->heatPerShot				= atof((char*)sData_findOption(it, (sint8*)"heatPerShot"));
-			itemTemplate->toolType					= atoi((char*)sData_findOption(it, (sint8*)"toolType"));
-			itemTemplate->isJammed					= (bool)atoi((char*)sData_findOption(it, (sint8*)"isJammed"));
-			itemTemplate->ammoPerShot				= atoi((char*)sData_findOption(it, (sint8*)"ammoPerShot"));
-			itemTemplate->minDamage					= atoi((char*)sData_findOption(it, (sint8*)"MinDamage"));
-			itemTemplate->maxDamage					= atoi((char*)sData_findOption(it, (sint8*)"MaxDamage"));
-			itemTemplate->ammoClassId				= atoi((char*)sData_findOption(it, (sint8*)"AmmoClassId"));
-			itemTemplate->damageType				= atoi((char*)sData_findOption(it, (sint8*)"DamageType"));
-			itemTemplate->windupTime				= atoi((char*)sData_findOption(it, (sint8*)"WindupTime"));
-			itemTemplate->recoveryTime				= atoi((char*)sData_findOption(it, (sint8*)"RecoveryTime"));
-			itemTemplate->refireTime				= atoi((char*)sData_findOption(it, (sint8*)"RefireTime"));
-			itemTemplate->range						= atoi((char*)sData_findOption(it, (sint8*)"Range"));
-			itemTemplate->altMaxDamage				= atoi((char*)sData_findOption(it, (sint8*)"AltMaxDamage"));
-			itemTemplate->altDamageType				= atoi((char*)sData_findOption(it, (sint8*)"AltDamageType"));
-			itemTemplate->altRange					= atoi((char*)sData_findOption(it, (sint8*)"AltRange"));
-			itemTemplate->altAERadius				= atoi((char*)sData_findOption(it, (sint8*)"AltAERadius"));
-			itemTemplate->altAEType					= atoi((char*)sData_findOption(it, (sint8*)"AltAEType"));
-			itemTemplate->attackType				= atoi((char*)sData_findOption(it, (sint8*)"AttackType"));
-		}
-		// Extra Info
-
-
-		// set
-		hashTable_set(&ht_itemTemplateById, itemTemplate->templateId, itemTemplate);
-		hashTable_set(&ht_itemTemplateByName, catName, itemTemplate);
-	}
-	sData_close(it);
+	hashTable_init(&ht_itemTemplateId, 1024);
+	// load item templates from db
+	_itemTemplatesLoaded = false;
+	DataInterface_Item_getItemTemplates(_item_loadItemTemplates, NULL);
+	while( _itemTemplatesLoaded == false ) Sleep(100);
+	// load additional equipment info data from db
+	_itemTemplatesLoaded = false;
+	DataInterface_Item_getItemEquipmentData(_item_loadItemTemplatesEquipment, NULL);
+	while( _itemTemplatesLoaded == false ) Sleep(100);
+	// load additional armor data
+	_itemTemplatesLoaded = false;
+	DataInterface_Item_getItemArmorData(_item_loadItemTemplatesArmor, NULL);
+	while( _itemTemplatesLoaded == false ) Sleep(100);
+	// load additional weapon data
+	_itemTemplatesLoaded = false;
+	DataInterface_Item_getItemWeaponData(_item_loadItemTemplatesWeapon, NULL);
+	while( _itemTemplatesLoaded == false ) Sleep(100);
+	// load additional misc data
+	// todo
 }
 
 

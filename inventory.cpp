@@ -1,10 +1,10 @@
 #include "global.h"
 
-#define ARMOR		 51
-#define DECORATION	 36
-#define EQUIPABLE	 4
-#define ITEM		 6
-#define WEAPON		 2
+#define AUGMENTATION_ARMOR		 51
+#define AUGMENTATION_DECORATION	 36
+#define AUGMENTATION_EQUIPABLE	 4
+#define AUGMENTATION_ITEM		 6
+#define AUGMENTATION_WEAPON		 2
 
 
 item_t* inventory_CurrentWeapon(mapChannelClient_t *client)
@@ -32,101 +32,175 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, uint8
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, itemTemplateId);			// templateId
-	pym_addInt(&pms, itemTemplate->classId);	// itemClass
+	pym_addInt(&pms, itemTemplateId);				// templateId
+	pym_addInt(&pms, itemTemplate->item.classId);	// itemClass
 	pym_dict_begin(&pms); // Info is a dict of { AugId : AugData }
 
-	if( itemTemplate->type == ITEMTYPE_ARMOR )
+	// we always send the item augmentation
+	// Item start
+	pym_addInt(&pms, AUGMENTATION_ITEM);
+	pym_tuple_begin(&pms);
+	pym_addBool(&pms, !itemTemplate->item.notTradable);		// kItemIdx_Tradable		= 0
+	pym_addInt(&pms, itemTemplate->item.maxHitPoints);		// kItemIdx_MaxHPs			= 1
+	pym_addInt(&pms, 1000);									// kItemIdx_BuybackPrice	= 2
+	// kItemIdx_Requirements	= 3
+	if( itemTemplate->item.reqLevel > 0 )
 	{
-		//printf("RequestTooltipForItemTemplateId for Armor\n");
-	}
-	if( itemTemplate->type == ITEMTYPE_WEAPON )
-	{
-		printf("RequestTooltipForItemTemplateId for Weapon\n");
-		// Item start
-		pym_addInt(&pms, ITEM);
+		pym_list_begin(&pms);	
 		pym_tuple_begin(&pms);
-			pym_addBool(&pms, !itemTemplate->notTradable);		// kItemIdx_Tradable		= 0
-			pym_addInt(&pms, itemTemplate->maxHitPoints);		// kItemIdx_MaxHPs			= 1
-			pym_addInt(&pms, 1000);								// kItemIdx_BuybackPrice	= 2
-			pym_addNoneStruct(&pms);							// kItemIdx_Requirements	= 3
-			//pym_tuple_begin(&pms);
-				pym_addNoneStruct(&pms);						// kItemIdx_ModuleIds		= 4
-			//pym_tuple_end(&pms);
-			pym_addNoneStruct(&pms);							// kItemIdx_RaceIds			= 5
+		pym_addInt(&pms, 1); // REQ_XP_LEVEL
+		pym_addInt(&pms, itemTemplate->item.reqLevel);		
 		pym_tuple_end(&pms);
-		//Item end
+		pym_list_end(&pms);	
+	}
+	else
+		pym_addNoneStruct(&pms); // no requirements					
+	// Item requirements are min/max level or attributes, for req. equipment skills use the AUGMENTATION_EQUIPABLE skill info 
+	//pym_tuple_begin(&pms);
+	pym_addNoneStruct(&pms);								// kItemIdx_ModuleIds		= 4
+	//pym_tuple_end(&pms);
+	pym_addNoneStruct(&pms);								// kItemIdx_RaceIds			= 5
+	pym_tuple_end(&pms);
+	// item end
+	// we always send the equipable augmentation if type is weapon or armor
+	if( itemTemplate->item.type == ITEMTYPE_WEAPON || itemTemplate->item.type == ITEMTYPE_ARMOR )
+	{
 		// Equipable start
-		pym_addInt(&pms, EQUIPABLE);
+		pym_addInt(&pms, AUGMENTATION_EQUIPABLE);
 		pym_tuple_begin(&pms);
-			// kEquipableIdx_SkillInfo = 0 (SkillId, MinSkillLvl)
-			pym_tuple_begin(&pms);
-				pym_addNoneStruct(&pms); // Skill ID
-				pym_addNoneStruct(&pms); // Skill Level
-			pym_tuple_end(&pms);
-			// kEquipableIdx_ResistList = 1 (damageType, resistValue)
-			pym_tuple_begin(&pms);
-			pym_tuple_end(&pms);
+		// kEquipableIdx_SkillInfo = 0 (SkillId, MinSkillLvl)
+		pym_tuple_begin(&pms);
+		if( itemTemplate->equipment.requiredSkillId <= 0 || itemTemplate->equipment.requiredSkillMinVal <= 0 )
+		{
+			pym_addNoneStruct(&pms); // Skill ID
+			pym_addNoneStruct(&pms); // Skill Level
+		}
+		else
+		{
+			pym_addInt(&pms, itemTemplate->equipment.requiredSkillId);
+			pym_addInt(&pms, itemTemplate->equipment.requiredSkillMinVal);
+		}
+		pym_tuple_end(&pms);
+		// kEquipableIdx_ResistList = 1 (damageType, resistValue)
+		pym_tuple_begin(&pms);
+		pym_tuple_end(&pms);
 		pym_tuple_end(&pms);
 		// Equipable end
-		// Weapon start
-		pym_addInt(&pms, WEAPON);
+	}
+	// armor specific augmentation data
+	if( itemTemplate->item.type == ITEMTYPE_ARMOR )
+	{
+		pym_addInt(&pms, AUGMENTATION_ARMOR);
 		pym_tuple_begin(&pms);
-			pym_addInt(&pms, itemTemplate->minDamage);			//kWeaponIdx_MinDamage		= 0
-			pym_addInt(&pms, itemTemplate->maxDamage);			//kWeaponIdx_MaxDamage		= 1
-			pym_addInt(&pms, itemTemplate->ammoClassId);		//kWeaponIdx_AmmoClassId	= 2 // standard grade cartridge
-			pym_addInt(&pms, itemTemplate->clipSize);			//kWeaponIdx_ClipSize		= 3
-			pym_addInt(&pms, itemTemplate->ammoPerShot);		//kWeaponIdx_AmmoPerShot	= 4
-			pym_addInt(&pms, itemTemplate->damageType);			//kWeaponIdx_DamageType		= 5 // normal
-			pym_addInt(&pms, itemTemplate->windupTime);			//kWeaponIdx_WindupTime		= 6 // autofire
-			pym_addInt(&pms, itemTemplate->recoveryTime);		//kWeaponIdx_RecoveryTime   = 7
-			pym_addInt(&pms, itemTemplate->refireTime);			//kWeaponIdx_RefireTime		= 8
-			pym_addInt(&pms, itemTemplate->reloadTime);			//kWeaponIdx_ReloadTime		= 9
-			pym_addInt(&pms, itemTemplate->range);				//kWeaponIdx_Range			= 10
-			pym_addInt(&pms, itemTemplate->aeRadius);			//kWeaponIdx_AERadius		= 11
-			//pym_addInt(&pms, itemTemplate->aeType);				//kWeaponIdx_AEType			= 12
-			 if (itemTemplate->aeType == 0)
-			{ pym_addNoneStruct(&pms); }
+		pym_addInt(&pms, itemTemplate->armor.regenRate); // regen rate
+		pym_tuple_end(&pms);
+	}
+	// weapon specific augmentation data
+	if( itemTemplate->item.type == ITEMTYPE_WEAPON )
+	{
+		// Weapon start
+		pym_addInt(&pms, AUGMENTATION_WEAPON);
+		pym_tuple_begin(&pms);
+			pym_addInt(&pms, itemTemplate->weapon.minDamage);			//kWeaponIdx_MinDamage		= 0
+			pym_addInt(&pms, itemTemplate->weapon.maxDamage);			//kWeaponIdx_MaxDamage		= 1
+			pym_addInt(&pms, itemTemplate->weapon.ammoClassId);			//kWeaponIdx_AmmoClassId	= 2 // standard grade cartridge
+			pym_addInt(&pms, itemTemplate->weapon.clipSize);			//kWeaponIdx_ClipSize		= 3
+			pym_addInt(&pms, itemTemplate->weapon.ammoPerShot);			//kWeaponIdx_AmmoPerShot	= 4
+			pym_addInt(&pms, itemTemplate->weapon.damageType);			//kWeaponIdx_DamageType		= 5 // normal
+			pym_addInt(&pms, itemTemplate->weapon.windupTime);			//kWeaponIdx_WindupTime		= 6 // autofire
+			pym_addInt(&pms, itemTemplate->weapon.recoveryTime);		//kWeaponIdx_RecoveryTime   = 7
+			pym_addInt(&pms, itemTemplate->weapon.refireTime);			//kWeaponIdx_RefireTime		= 8
+			pym_addInt(&pms, itemTemplate->weapon.reloadTime);			//kWeaponIdx_ReloadTime		= 9
+			pym_addInt(&pms, itemTemplate->weapon.range);				//kWeaponIdx_Range			= 10
+			pym_addInt(&pms, itemTemplate->weapon.aeRadius);			//kWeaponIdx_AERadius		= 11
+			//pym_addInt(&pms, itemTemplate->aeType);					//kWeaponIdx_AEType			= 12
+			if (itemTemplate->weapon.aeType == 0)
+				pym_addNoneStruct(&pms);
 			else
-			{ pym_addInt(&pms, itemTemplate->aeType); }        //kWeaponIdx_AEType      = 12
+				pym_addInt(&pms, itemTemplate->weapon.aeType);			       //kWeaponIdx_AEType      = 12
 
 			//kWeaponIdx_AltFire		= 13
 			pym_tuple_begin(&pms);		
-			if (itemTemplate->altActionId != 0)
+			if (itemTemplate->weapon.altActionId != 0)
 			{
-				pym_addInt(&pms, itemTemplate->altMaxDamage);	// kWeaponAltIdx_MaxDamage	= 0
-				pym_addInt(&pms, itemTemplate->altDamageType);	// kWeaponAltIdx_DamageType = 1
-				pym_addInt(&pms, itemTemplate->altRange);		// kWeaponAltIdx_Range		= 2
-				pym_addInt(&pms, itemTemplate->altAERadius);	// kWeaponAltIdx_AERadius	= 3
-				pym_addInt(&pms, itemTemplate->altAEType);		// kWeaponAltIdx_AEType		= 4
+				pym_addInt(&pms, itemTemplate->weapon.altMaxDamage);	// kWeaponAltIdx_MaxDamage	= 0
+				pym_addInt(&pms, itemTemplate->weapon.altDamageType);	// kWeaponAltIdx_DamageType = 1
+				pym_addInt(&pms, itemTemplate->weapon.altRange);		// kWeaponAltIdx_Range		= 2
+				pym_addInt(&pms, itemTemplate->weapon.altAERadius);		// kWeaponAltIdx_AERadius	= 3
+				pym_addInt(&pms, itemTemplate->weapon.altAEType);// kWeaponAltIdx_AEType		= 4
 			} else { pym_addNoneStruct(&pms); }
 			pym_tuple_end(&pms);
-			pym_addInt(&pms, itemTemplate->attackType);			//kWeaponIdx_AttackType		= 14 // ranged
-			pym_addInt(&pms, itemTemplate->toolType);			//kWeaponIdx_ToolType		= 15 // rifle
+			pym_addInt(&pms, itemTemplate->weapon.attackType);			//kWeaponIdx_AttackType		= 14 // ranged
+			pym_addInt(&pms, itemTemplate->weapon.toolType);			//kWeaponIdx_ToolType		= 15 // rifle
 		pym_tuple_end(&pms);
 		// Weapon end
 	}
-
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 12, 579, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void inventory_removeItem(mapChannelClient_t *client, sint32 inventoryType, sint32 entityId)
+/*
+ * Removes the item from the slot and also sends an update to the client
+ */
+void inventory_removeItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint32 slotIndex)
 {
-	// removeItem: 88
+	// get entityId from slot
+	sint64 entityId = 0;
+	if( inventoryType == INVENTORY_PERSONAL )
+	{
+		entityId = client->inventory.personalInventory[slotIndex];
+		client->inventory.personalInventory[slotIndex] = 0; // update slot
+	}
+	else if( inventoryType == INVENTORY_EQUIPPEDINVENTORY )
+	{
+		entityId = client->inventory.equippedInventory[slotIndex];
+		client->inventory.equippedInventory[slotIndex] = 0; // update slot
+	}
+	else if( inventoryType == INVENTORY_WEAPONDRAWERINVENTORY )
+	{
+		entityId = client->inventory.weaponDrawer[slotIndex];
+		client->inventory.weaponDrawer[slotIndex] = 0; // update slot
+	}
+	if( entityId == 0 )
+	{
+		printf("inventory_removeItemBySlot: Invalid inventoryType(%d)/slotIndex(%d)\n", inventoryType, slotIndex);
+		return;
+	}
+	// send inventoryRemoveItem
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, inventoryType); // inventoryType
 	pym_addInt(&pms, entityId); // entityID
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 88, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYREMOVEITEM, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void inventory_addItem(mapChannelClient_t *client, sint32 inventoryType, sint32 entityId, sint32 slotIndex)
+/*
+ * Adds the item to the inventory and sends an update to the client
+ */
+void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint64 entityId, sint32 slotIndex)
 {
-	// addItem 85
+	// set entityId in slot
+	if( inventoryType == INVENTORY_PERSONAL )
+	{
+		client->inventory.personalInventory[slotIndex] = entityId; // update slot
+	}
+	else if( inventoryType == INVENTORY_EQUIPPEDINVENTORY )
+	{
+		client->inventory.equippedInventory[slotIndex] = entityId; // update slot
+	}
+	else if( inventoryType == INVENTORY_WEAPONDRAWERINVENTORY )
+	{
+		client->inventory.weaponDrawer[slotIndex] = entityId; // update slot
+	}
+	else
+	{
+		printf("inventory_addItemBySlot: Invalid inventoryType(%d)\n", inventoryType);
+		return;
+	}
+	// send inventoryAddItem
 	pyMarshalString_t pms;
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -134,11 +208,16 @@ void inventory_addItem(mapChannelClient_t *client, sint32 inventoryType, sint32 
 	pym_addInt(&pms, entityId); // entityID
 	pym_addInt(&pms, slotIndex); // slotIndex
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 85, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYADDITEM, pym_getData(&pms), pym_getLen(&pms));
 }
 
+/*
+ * Creates an item entity from a item template
+ */
 item_t *item_create(itemTemplate_t *itemTemplate)//uint32 classId, uint32 templateId)
 {
+	if( itemTemplate == NULL )
+		return NULL; // "no-template items" must not exist
 	item_t *item = (item_t*)malloc(sizeof(item_t));
 	item->entityId = entityMgr_getFreeEntityIdForItem();
 	item->itemTemplate = itemTemplate;
@@ -149,35 +228,37 @@ item_t *item_create(itemTemplate_t *itemTemplate)//uint32 classId, uint32 templa
 	return item;
 }
 
-void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
-{
-	item->locationEntityId = owner->clientEntityId;
-	// find free slot
-	sint32 catIndex = 0;
-	if( item->itemTemplate->type == ITEMTYPE_WEAPON )
-		catIndex = 0;
-	else if( item->itemTemplate->type == ITEMTYPE_ARMOR )
-		catIndex = 0; // 50
-	else
-		__debugbreak();
-	for(sint32 i=0; i<50; i++)
-	{
-		if( owner->inventory.slot[catIndex+i] == 0 )
-		{
-			item->locationSlotIndex = catIndex+i;
-			break;
-		}
-	}
-}
+//void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
+//{
+//	item->locationEntityId = owner->clientEntityId;
+//	// find free slot
+//	sint32 catIndex = 0;
+//	if( item->itemTemplate->item.type == ITEMTYPE_WEAPON )
+//		catIndex = 0;
+//	else if( item->itemTemplate->item.type == ITEMTYPE_ARMOR )
+//		catIndex = 0; // 50
+//	else
+//		__debugbreak();
+//	for(sint32 i=0; i<50; i++)
+//	{
+//		if( owner->inventory.slot[catIndex+i] == 0 )
+//		{
+//			item->locationSlotIndex = catIndex+i;
+//			break;
+//		}
+//	}
+//}
 
 void item_setLocationEquippedinventory(item_t *item, mapChannelClient_t *owner)
 {
 	item->locationEntityId = owner->clientEntityId;
-	item->locationSlotIndex = gameData_getEquipmentClassIdSlot(item->itemTemplate->classId);
+	item->locationSlotIndex = gameData_getEquipmentClassIdSlot(item->itemTemplate->item.classId);
 }
 
-
-
+/*
+ * Tries to find an empty slot in the player's inventory
+ * Return -1 if no free slot was found, returns the slot index on success
+ */
 sint32 item_findFreePlayerinventorySpace(mapChannelClient_t *owner, sint32 itemType)
 {
 	if( itemType == ITEMTYPE_WEAPON || itemType == ITEMTYPE_ARMOR )
@@ -211,19 +292,15 @@ void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *client, uint8 *pySt
 		return;
 	if( toSlot < 0 || toSlot >= 250 )
 		return;
-	unsigned long long entityId = client->inventory.homeInventory[fromSlot];
+	unsigned long long entityId = client->inventory.personalInventory[fromSlot];
 	if( entityId == NULL )
 		return;
-	inventory_removeItem(client, 1, entityId);
-	inventory_addItem(client, 1, entityId, toSlot);
-	client->inventory.homeInventory[toSlot] = client->inventory.homeInventory[fromSlot];
-	client->inventory.homeInventory[fromSlot] = 0;
-	// send response
+	inventory_removeItemBySlot(client, INVENTORY_PERSONAL, fromSlot);
+	inventory_addItemBySlot(client, INVENTORY_PERSONAL, entityId, toSlot);
 }
 
 void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
-	printf("RequestEquipArmor pl0x\n");
 	pyUnmarshalString_t pums;
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
@@ -238,35 +315,47 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, si
 		printf("Unsupported inventory\n");
 		return;
 	}
-	printf("Src: %i ", srcSlot);
-	printf("Dst: %i ", dstSlot);
-	printf("Inv: %i\n", srcInventory);
 	if( srcSlot < 0 || srcSlot > 50 )
 		return;
-	//if( dstSlot < 0 || dstSlot >= 5 )
-	//	return;
-	unsigned long long swapId = client->inventory.equippedInventory[dstSlot];
-	if( client->inventory.homeInventory[srcSlot] )
-		inventory_removeItem(client, INVENTORY_PERSONAL, client->inventory.homeInventory[srcSlot]);
+	if( dstSlot < 0 || dstSlot > 17 )
+		return;
+	sint64 entityId_equippedItem = 0;
+	sint64 entityId_inventoryItem = 0;
+	entityId_equippedItem = client->inventory.equippedInventory[dstSlot]; // the old equipped item (can be none)
+	entityId_inventoryItem = client->inventory.personalInventory[srcSlot]; // the new equipped item (can be none)
+	// can we equip the item?
+	item_t *itemToEquip = NULL;
+	if( entityId_inventoryItem )
+	{
+		itemToEquip = (item_t*)entityMgr_get(entityId_inventoryItem);
+		// min level criteria met?
+		if( itemToEquip && client->player->actor->stats.level < itemToEquip->itemTemplate->item.reqLevel )
+		{
+			// level too low, cannot equip item
+			return;
+		}
+	}	
+	// swap items on the client and server
+	if( client->inventory.personalInventory[srcSlot] )
+		inventory_removeItemBySlot(client, INVENTORY_PERSONAL, srcSlot);
 	if( client->inventory.equippedInventory[dstSlot] )
-		inventory_removeItem(client, INVENTORY_EQUIPPEDINVENTORY, client->inventory.equippedInventory[dstSlot]);
-	if( client->inventory.equippedInventory[dstSlot] )
-		inventory_addItem(client, INVENTORY_PERSONAL, client->inventory.equippedInventory[dstSlot], srcSlot);
-	if( client->inventory.homeInventory[srcSlot] )
-		inventory_addItem(client, INVENTORY_EQUIPPEDINVENTORY, client->inventory.homeInventory[srcSlot], dstSlot);
-	client->inventory.equippedInventory[dstSlot] = client->inventory.homeInventory[srcSlot];
-	client->inventory.homeInventory[srcSlot] = swapId;
-
+		inventory_removeItemBySlot(client, INVENTORY_EQUIPPEDINVENTORY, dstSlot);
+	if( entityId_equippedItem )
+		inventory_addItemBySlot(client, INVENTORY_PERSONAL, entityId_equippedItem, srcSlot);
+	if( entityId_inventoryItem )
+		inventory_addItemBySlot(client, INVENTORY_EQUIPPEDINVENTORY, entityId_inventoryItem, dstSlot);
+	// update appearance
 	pyMarshalString_t pms;
-	item_t *item = (item_t*)entityMgr_get(client->inventory.equippedInventory[dstSlot]);
-	if( !item )
+	
+	if( !itemToEquip )
 	{
-		//remove item graphic if dequipped
-		item = (item_t*)entityMgr_get(swapId);
-		manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
-	}else
+		// remove item graphic if dequipped
+		item_t* prevEquippedItem = (item_t*)entityMgr_get(entityId_equippedItem);
+		manifestation_removeAppearanceItem(client->player, prevEquippedItem->itemTemplate->item.classId);
+	}
+	else
 	{
-		manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, itemToEquip->itemTemplate->item.classId, 0xFF808080);
 	}
 	manifestation_updateAppearance(client);
 }
@@ -292,49 +381,48 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, s
 	if( dstSlot < 0 || dstSlot >= 5 )
 		return;
 	// equip item
-	// todo: check entity type
-	// swap item
-	unsigned long long swapId = client->inventory.weaponDrawer[dstSlot];
-	if( client->inventory.homeInventory[srcSlot] )
-		inventory_removeItem(client, INVENTORY_PERSONAL, client->inventory.homeInventory[srcSlot]);
+	sint64 entityId_equippedItem = 0;
+	sint64 entityId_inventoryItem = 0;
+	entityId_equippedItem = client->inventory.weaponDrawer[dstSlot]; // the old equipped item (can be none)
+	entityId_inventoryItem = client->inventory.personalInventory[srcSlot]; // the new equipped item (can be none)
+	// can we equip the item?
+	item_t *itemToEquip = NULL;
+	if( entityId_inventoryItem )
+	{
+		itemToEquip = (item_t*)entityMgr_get(entityId_inventoryItem);
+		// min level criteria met?
+		if( itemToEquip && client->player->actor->stats.level < itemToEquip->itemTemplate->item.reqLevel )
+		{
+			// level too low, cannot equip item
+			return;
+		}
+	}	
+	// swap items on the client and server
+	if( client->inventory.personalInventory[srcSlot] )
+		inventory_removeItemBySlot(client, INVENTORY_PERSONAL, srcSlot);
 	if( client->inventory.weaponDrawer[dstSlot] )
-		inventory_removeItem(client, INVENTORY_WEAPONDRAWERINVENTORY, client->inventory.weaponDrawer[dstSlot]);
-	if( client->inventory.weaponDrawer[dstSlot] )
-		inventory_addItem(client, INVENTORY_PERSONAL, client->inventory.weaponDrawer[dstSlot], srcSlot);
-	if( client->inventory.homeInventory[srcSlot] )
-		inventory_addItem(client, INVENTORY_WEAPONDRAWERINVENTORY, client->inventory.homeInventory[srcSlot], dstSlot);
-	client->inventory.weaponDrawer[dstSlot] = client->inventory.homeInventory[srcSlot];
-	client->inventory.homeInventory[srcSlot] = swapId;
-	// update appearance if equipped on slot 0
-	pyMarshalString_t pms;
-	// update weapon drawer ( has no effect? )
-	//pym_init(&pms);
-	//pym_tuple_begin(&pms);
-	//pym_addInt(&pms, dstSlot); // slotId
-	//pym_addBool(&pms, false); // requested
-	//pym_tuple_end(&pms);
-	
-	
-	//netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, 574, pym_getData(&pms), pym_getLen(&pms));
-	//if( dstSlot == 0 && client->inventory.weaponDrawer[0] )
-	if( dstSlot == client->inventory.activeWeaponDrawer ) //---@ 4ae9585968 Disastorm
+		inventory_removeItemBySlot(client, INVENTORY_WEAPONDRAWERINVENTORY, dstSlot);
+	if( entityId_equippedItem )
+		inventory_addItemBySlot(client, INVENTORY_PERSONAL, entityId_equippedItem, srcSlot);
+	if( entityId_inventoryItem )
+		inventory_addItemBySlot(client, INVENTORY_WEAPONDRAWERINVENTORY, entityId_inventoryItem, dstSlot);
+	// update appearance
+	if( dstSlot == client->inventory.activeWeaponDrawer )
 	{
 		inventory_notifyEquipmentUpdate(client);
-		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[dstSlot]);
-		if( !item )
+		pyMarshalString_t pms;
+		if( !itemToEquip )
 		{
-			//remove item graphic if dequipped
-			item = (item_t*)entityMgr_get(swapId);
-			manifestation_removeAppearanceItem(client->player, item->itemTemplate->classId);
+			// remove item graphic if dequipped
+			item_t* prevEquippedItem = (item_t*)entityMgr_get(entityId_equippedItem);
+			manifestation_removeAppearanceItem(client->player, prevEquippedItem->itemTemplate->item.classId);
 		}
 		else
 		{
-			manifestation_setAppearanceItem(client->player, item->itemTemplate->classId, 0xFF808080);
+			manifestation_setAppearanceItem(client->player, itemToEquip->itemTemplate->item.classId, 0xFF808080);
 		}
 		manifestation_updateAppearance(client);
-	}
-	
-
+	}	
 }
 
 /*
@@ -362,7 +450,7 @@ void item_recv_RequestArmWeapon(mapChannelClient_t *cm, uint8 *pyString, sint32 
 	item_t *item = (item_t*)entityMgr_get(cm->inventory.weaponDrawer[cm->inventory.activeWeaponDrawer]);
 	if( !item )
   		return;
-	 manifestation_setAppearanceItem(cm->player, item->itemTemplate->classId, 0xFF808080);
+	manifestation_setAppearanceItem(cm->player, item->itemTemplate->item.classId, 0xFF808080);
 	manifestation_updateAppearance(cm);
 }
  
@@ -430,60 +518,61 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, item->entityId);									// entityID
-	pym_addInt(&pms, item->itemTemplate->classId);						// classID
+	pym_addInt(&pms, item->itemTemplate->item.classId);					// classID
 	pym_addNoneStruct(&pms);											// entityData (dunno)
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
 	// send item info
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-		pym_addInt(&pms, item->itemTemplate->currentHitPoints);			// 'currentHitPoints'
-		pym_addInt(&pms, item->itemTemplate->maxHitPoints);				// 'maxHitPoints'
-		pym_addUnicode(&pms, "Richard Garriott");						// Modified By
-		pym_addInt(&pms, item->itemTemplate->templateId);				// 'itemTemplateId'
-		pym_addBool(&pms, item->itemTemplate->hasSellableFlag);			// 'hasSellableFlag'
-		pym_addBool(&pms, item->itemTemplate->hasCharacterUniqueFlag);	// 'hasCharacterUniqueFlag'
-		pym_addBool(&pms, item->itemTemplate->hasAccountUniqueFlag);	// 'hasAccountUniqueFlag'
-		pym_addBool(&pms, item->itemTemplate->hasBoEFlag);				// 'hasBoEFlag'
+		pym_addInt(&pms, item->itemTemplate->item.currentHitPoints);			// 'currentHitPoints' --> Displayed as "Armor: x" in case of armor
+		pym_addInt(&pms, item->itemTemplate->item.maxHitPoints);				// 'maxHitPoints'
+		//pym_addUnicode(&pms, "Richard Garriott");								// Modified By
+		pym_addNoneStruct(&pms);
+		pym_addInt(&pms, item->itemTemplate->item.templateId);					// 'itemTemplateId'
+		pym_addBool(&pms, item->itemTemplate->item.hasSellableFlag);			// 'hasSellableFlag'
+		pym_addBool(&pms, item->itemTemplate->item.hasCharacterUniqueFlag);		// 'hasCharacterUniqueFlag'
+		pym_addBool(&pms, item->itemTemplate->item.hasAccountUniqueFlag);		// 'hasAccountUniqueFlag'
+		pym_addBool(&pms, item->itemTemplate->item.hasBoEFlag);					// 'hasBoEFlag'
 		// 'classModuleIds' (classLootModuleIds)
 		pym_list_begin(&pms);
 		pym_list_end(&pms);
 		// 'lootModuleIds'
 		pym_list_begin(&pms);
 		pym_list_end(&pms);
-		pym_addInt(&pms, item->itemTemplate->qualityId);				// 'qualityId'
+		pym_addInt(&pms, item->itemTemplate->item.qualityId);				// 'qualityId'
 		/*	QualitiIds:
 			MISSION = 1		NORMAL = 2		UNCOMMON = 3	
 			RARE = 4		EPIC = 5		LEGENDARY = 6
 			JUNK = 7	*/
-		pym_addInt(&pms, item->itemTemplate->boundToCharacter);			// 'boundToCharacter'
-		pym_addInt(&pms, item->itemTemplate->notTradable);				// 'notTradable'
-		pym_addInt(&pms, item->itemTemplate->notPlaceableInLockbox);	// 'notPlaceableInLockbox'
-		pym_addInt(&pms, item->itemTemplate->inventoryCategory);		// 'inventoryCategory'
+		pym_addInt(&pms, item->itemTemplate->item.boundToCharacter);		// 'boundToCharacter'
+		pym_addInt(&pms, item->itemTemplate->item.notTradable);				// 'notTradable'
+		pym_addInt(&pms, item->itemTemplate->item.notPlaceableInLockbox);	// 'notPlaceableInLockbox'
+		pym_addInt(&pms, item->itemTemplate->item.inventoryCategory);		// 'inventoryCategory'
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 469, pym_getData(&pms), pym_getLen(&pms)); // ItemInfo
 
-	if( item->itemTemplate->type == ITEMTYPE_WEAPON )
+	if( item->itemTemplate->item.type == ITEMTYPE_WEAPON )
 	{
 		// send weapon data
 		pym_init(&pms);
 		pym_tuple_begin(&pms);	
 			pym_addNoneStruct(&pms);//pym_addUnicode(&pms, "testName"); // weaponName - not used
-			pym_addInt(&pms, item->itemTemplate->clipSize);				// clipSize
-			pym_addInt(&pms, item->itemTemplate->currentAmmo);			// currentAmmo
-			pym_addFloat(&pms, item->itemTemplate->aimRate);			// aimRate
-			pym_addInt(&pms, item->itemTemplate->reloadTime);			// reloadTime
-			pym_addInt(&pms, item->itemTemplate->altActionId);			// altActionId
-			pym_addInt(&pms, item->itemTemplate->altActionArg);			// altActionArg
-			pym_addInt(&pms, item->itemTemplate->aeType);				// aeType
-			pym_addInt(&pms, item->itemTemplate->aeRadius);				//pym_addInt(&pms, 100); // aeRadius
-			pym_addInt(&pms, item->itemTemplate->recoilAmount);			// recoilAmount
+			pym_addInt(&pms, item->itemTemplate->weapon.clipSize);				// clipSize
+			pym_addInt(&pms, item->itemTemplate->weapon.currentAmmo);			// currentAmmo
+			pym_addFloat(&pms, item->itemTemplate->weapon.aimRate);			// aimRate
+			pym_addInt(&pms, item->itemTemplate->weapon.reloadTime);			// reloadTime
+			pym_addInt(&pms, item->itemTemplate->weapon.altActionId);			// altActionId
+			pym_addInt(&pms, item->itemTemplate->weapon.altActionArg);			// altActionArg
+			pym_addInt(&pms, item->itemTemplate->weapon.aeType);				// aeType
+			pym_addInt(&pms, item->itemTemplate->weapon.aeRadius);				//pym_addInt(&pms, 100); // aeRadius
+			pym_addInt(&pms, item->itemTemplate->weapon.recoilAmount);			// recoilAmount
 			pym_addNoneStruct(&pms);									// reuseOverride
-			pym_addInt(&pms, item->itemTemplate->coolRate);				// coolRate
-			pym_addFloat(&pms, item->itemTemplate->heatPerShot);		// heatPerShot
-			pym_addInt(&pms, item->itemTemplate->toolType);				// toolType ( PISTOL = 8 )
-			pym_addBool(&pms, item->itemTemplate->isJammed);			// isJammed
-			pym_addInt(&pms, item->itemTemplate->ammoPerShot);			// ammoPerShot
+			pym_addInt(&pms, item->itemTemplate->weapon.coolRate);				// coolRate
+			pym_addFloat(&pms, item->itemTemplate->weapon.heatPerShot);		// heatPerShot
+			pym_addInt(&pms, item->itemTemplate->weapon.toolType);				// toolType ( PISTOL = 8 )
+			pym_addBool(&pms, item->itemTemplate->weapon.isJammed);			// isJammed
+			pym_addInt(&pms, item->itemTemplate->weapon.ammoPerShot);			// ammoPerShot
 			pym_addString(&pms, "");									// cameraProfile
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 237, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
@@ -495,49 +584,55 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		//pym_tuple_end(&pms);
 		//netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 585, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
 	}
-	if( item->itemTemplate->type == ITEMTYPE_ARMOR )
+	if( item->itemTemplate->item.type == ITEMTYPE_ARMOR )
 	{
 		// Recv_ArmorInfo <-- doesnt do anything really
-		pym_init(&pms);
-		pym_tuple_begin(&pms);	
-		pym_addInt(&pms, item->itemTemplate->currentHitPoints); // currentHitPoints
-		pym_addInt(&pms, item->itemTemplate->maxHitPoints); // maxHitPoints
-		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 406, pym_getData(&pms), pym_getLen(&pms)); //ArmorInfo
+		// we dont need to send this, it is just an empty method on the client which has no effect
+		//pym_init(&pms);
+		//pym_tuple_begin(&pms);	
+		//pym_addInt(&pms, item->itemTemplate->item.currentHitPoints+2); // currentHitPoints
+		//pym_addInt(&pms, item->itemTemplate->item.maxHitPoints+3); // maxHitPoints
+		//pym_tuple_end(&pms);
+		//netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 406, pym_getData(&pms), pym_getLen(&pms)); //ArmorInfo
 	}
 }
 
-void item_sendEquippedInfo(item_t *item, mapChannelClient_t *owner)
-{
-	item_setLocationEquippedinventory(item, owner);
-	if( item->entityId == 0 )
-		return; 
+///*
+// * Used to send the client item info + item add when logging in
+// */
+//void item_sendEquippedInfo(item_t *item, mapChannelClient_t *owner)
+//{
+//	item_setLocationEquippedinventory(item, owner);
+//	if( item->entityId == 0 )
+//		return; 
+//	mapChannelClient_t *client = (mapChannelClient_t*)entityMgr_get(item->locationEntityId);
+//	if( client == NULL )
+//		return;
+//	if( item->locationSlotIndex >= 0 || item->locationSlotIndex < 16 )
+//	{
+//		client->inventory.equippedInventory[item->locationSlotIndex] = item->entityId;
+//		item_sendItemDataToClient(client, item);
+//		inventory_addItemBySlot(client, INVENTORY_EQUIPPEDINVENTORY, item->entityId, item->locationSlotIndex);
+//	}
+//}
+//
 
-	mapChannelClient_t *client = (mapChannelClient_t*)entityMgr_get(item->locationEntityId);
-	if( client == NULL )
-		return;
-	if( item->locationSlotIndex >= 0 || item->locationSlotIndex < 16 )
-	{
-		client->inventory.equippedInventory[item->locationSlotIndex] = item->entityId;
-		item_sendItemDataToClient(client, item);
-		inventory_addItem(client, 8, item->entityId, item->locationSlotIndex);
-	}
-}
-
-void item_sendInfo(item_t *item)
+/*
+ * Sends the item entity creation and info the the client
+ */
+void item_sendItemCreation(mapChannelClient_t* client, item_t *item)
 {
-	if( item->entityId == 0 )
-		return; // no location
-	// todo: check if entityId is mapChannelClient
-	mapChannelClient_t *client = (mapChannelClient_t*)entityMgr_get(item->locationEntityId);
-	if( client == NULL )
-		return;
-	if( item->locationSlotIndex >= 0 || item->locationSlotIndex < 250 )
-	{
-		client->inventory.homeInventory[item->locationSlotIndex] = item->entityId;
-		item_sendItemDataToClient(client, item);
-		inventory_addItem(client, 1, item->entityId, item->locationSlotIndex);
-	}
+	item_sendItemDataToClient(client, item);
+	//if( item->entityId == 0 )
+	//	return; // no location
+	//if( client == NULL )
+	//	return;
+	//if( item->locationSlotIndex >= 0 || item->locationSlotIndex < 250 )
+	//{
+	//	inventory_addItemBySlot(client, INVENTORY_PERSONAL, item->entityId, item->locationSlotIndex);
+	//}
+	//else
+	//	__debugbreak(); // todo
 }
 
 /*
@@ -570,11 +665,12 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_EQUIPMENTINFO, pym_getData(&pms), pym_getLen(&pms));
 }
 
-
-
-item_t* item_createFromTemplate(sint8 *name)
+/*
+ * Creates an item from a item templateId
+ */
+item_t* item_createFromTemplateId(uint32 itemTemplateId)
 {
-	itemTemplate_t *itemTemplate = gameData_getItemTemplateByName(name);
+	itemTemplate_t *itemTemplate = gameData_getItemTemplateById(itemTemplateId);
 	if( !itemTemplate )
 		return NULL;
 	item_t *item = item_create(itemTemplate);
@@ -582,19 +678,32 @@ item_t* item_createFromTemplate(sint8 *name)
 }
 
 
+
 void inventory_initForClient(mapChannelClient_t *client)
 {
 	pyMarshalString_t pms;
+
 	// create home inventory
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, INVENTORY_PERSONAL); // inventoryType
 	pym_list_begin(&pms);
 	/* {itemId, slotIndex} list */
+	//for(sint32 i=0; i<250; i++)
+	//{
+	//	if( client->inventory.personalInventory[i] != 0 )
+	//	{
+	//		pym_tuple_begin(&pms);
+	//		pym_addInt(&pms, 0+i); // key -> slot
+	//		pym_addInt(&pms, client->inventory.personalInventory[i]); // value -> entityId of item
+	//		pym_tuple_end(&pms);
+	//	}
+	//}
+	// note: Actually, we dont need to send any items for the personal inventory, as it has no effect
 	pym_list_end(&pms);
 	pym_addInt(&pms, 250); // maxSize (50 per category)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 86, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
 	// create weapon drawer
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -604,7 +713,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_list_end(&pms);
 	pym_addInt(&pms, 5); // maxSize
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 86, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
 	// create equipped inventory
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -614,40 +723,90 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_list_end(&pms);
 	pym_addInt(&pms, 5); // maxSize
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, 86, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
+
+	// test items
+	// (item templates + properties should be read from the db and created dynamically)
+	item_t* testItem = item_createFromTemplateId(127973);
+	// we manually update the location of the item (to avoid sending data yet)
+	testItem->locationEntityId = client->clientEntityId;
+	client->inventory.personalInventory[3] = testItem->entityId;
+
+	// item 2
+	testItem = item_createFromTemplateId(127982);
+	testItem->locationEntityId = client->clientEntityId;
+	client->inventory.personalInventory[4] = testItem->entityId;
+	// item 3
+	testItem = item_createFromTemplateId(45857);
+	testItem->locationEntityId = client->clientEntityId;
+	client->inventory.personalInventory[0] = testItem->entityId;
+	// item 4
+	testItem = item_createFromTemplateId(17131);
+	testItem->locationEntityId = client->clientEntityId;
+	client->inventory.personalInventory[1] = testItem->entityId;
+	// item 5
+	testItem = item_createFromTemplateId(17384);
+	testItem->locationEntityId = client->clientEntityId;
+	client->inventory.personalInventory[15] = testItem->entityId;
+
+	
+
+
+	// send inventory data - personal inventory
+	for(sint32 i=0; i<250; i++)
+	{
+		if( client->inventory.slot[i] == 0 )
+			continue;
+		// item in slot present
+		// get item handle
+		item_t* slotItem = (item_t*)entityMgr_get(client->inventory.slot[i]);
+		item_sendItemCreation(client, slotItem);
+		// make the item appear on the client
+		inventory_addItemBySlot(client, INVENTORY_PERSONAL, client->inventory.slot[i], i);
+	}
+	// send inventory data - equipment
+	
+	
+	// update appearance
+	// manifestation_setAppearanceItem
+
+
+
+
+
 	// test
-	item_t *testA;
+	/*item_t *testA;
 	item_t *testB;
 
 	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Boots_01_to_02");
 	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->item.classId, 0xFF808080);
 	}
 	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Gloves_01_to_02");
 	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->item.classId, 0xFF808080);
 	}
 	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Legs_01_to_02");
 	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->item.classId, 0xFF808080);
 	}
 	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Vest_01_to_02");
 	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->item.classId, 0xFF808080);
 	}
 	testA = item_createFromTemplate("Armor_T1_MotorAssist_V09_RAR_Helmet_01_to_02");
 	if (testA)
 	{
 		item_sendEquippedInfo(testA, client);
-		manifestation_setAppearanceItem(client->player, testA->itemTemplate->classId, 0xFF808080);
+		manifestation_setAppearanceItem(client->player, testA->itemTemplate->item.classId, 0xFF808080);
 	}
 	
 	manifestation_updateAppearance(client);
@@ -669,7 +828,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	{
 		item_setLocationHomeinventory(testB, client);
 		item_sendInfo(testB);
-	}
+	}*/
 }
 
 /*

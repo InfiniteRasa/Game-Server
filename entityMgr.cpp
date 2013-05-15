@@ -4,7 +4,6 @@ sint32 ceid_player = 0;
 sint32 ceid_client = 0;
 sint32 ceid_object = 0;
 sint32 ceid_item = 0;
-sint32 ceid_npc = 0;
 sint32 ceid_creature = 0;
 TMutex csEntityMgr;
 
@@ -92,16 +91,4 @@ void entityMgr_init()
 {
 	Thread::InitMutex(&csEntityMgr);	
 	hashTable_init(&ht_entityTable, 512);
-
-	// get current npc
-	unsigned long long npceid = DataInterface_NPC_getLastNPCEntityID();
-	if( npceid < ENTITYID_BASE )
-		npceid = ENTITYID_BASE;
-	// ceid_npc
-	npceid = (npceid - ENTITYID_BASE) / 16;
-	npceid++;
-	//npceid += 16;
-	//npceid &= ~0xF;
-	//npceid += ENTITYTYPE_NPC;
-	ceid_npc = npceid;
 }

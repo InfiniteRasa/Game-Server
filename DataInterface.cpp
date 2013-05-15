@@ -181,7 +181,7 @@ void DataInterface_registerServerForAuth()
 {
 
 	sint8 queryText1[1024];
-	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host='%s' AND port='%i' AND server_id='%i'  LIMIT 1", AuthInfo.gsInfo.ServerIP, AuthInfo.gsInfo.ServerPort, AuthInfo.gsInfo.ID);
+	wsprintf(queryText1, "SELECT server_id FROM game_servers WHERE host='%s' AND port='%i' AND server_id='%i' LIMIT 1", AuthInfo.gsInfo.ServerIP, AuthInfo.gsInfo.ServerPort, AuthInfo.gsInfo.ID);
 	if( mysql_query(AuthInfo.mysql_as, queryText1) )
 	{
 		printf("MySQL: Error checking server entry\n");

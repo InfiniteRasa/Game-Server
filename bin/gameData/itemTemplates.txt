@@ -1,3 +1,8 @@
+# This file is outdated and not used by the server anymore!
+# Use the db tables instead:
+# itemtemplate, itemtemplate_armor, itemtemplate_equipment, itemtemplate_weapon
+
+
 [Test_Weapon_Avatar_Machinegun_V3]
 templateId = 122874
 classId = 29757

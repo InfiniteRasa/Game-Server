@@ -14,7 +14,7 @@
 #define M_OP_COLLECTOR_REWARD_ITEM		4	// value1: templateId of item, value2: item count
 #define M_OP_COLLECTOR_REWARD_XP		5	// value1: xp
 #define M_OP_COLLECTOR_REWARD_CREDITS	6	// value1: credits
-#define M_OP_COLLECTOR_REWARD_PRESTIGE	7	// value1: credits
+#define M_OP_COLLECTOR_REWARD_PRESTIGE	7	// value1: prestige
 #define M_OP_MISSIONINFO_CATEGORYID		8	// value1: categoryId (missioncategorylanguage.py)
 #define M_OP_MISSIONINFO_LEVEL			9	// value1: mission level (not to be confused with required level)
 #define M_OP_NO_OP						10	// does nothing (placeholder)

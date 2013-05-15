@@ -3,7 +3,8 @@ typedef union
 {
 	struct 
 	{
-		unsigned long long homeInventory[50*5]; // 250 slots
+		// entry in inventory -> entityId
+		unsigned long long personalInventory[50*5]; // 250 slots
 		unsigned long long equippedInventory[17]; // armor
 		unsigned long long weaponDrawer[5];
 	};
@@ -60,3 +61,24 @@ void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, 
 #define INVENTORY_OUTBOXINVENTORY		13
 #define INVENTORY_WAGERINVENTORY		14
 #define INVENTORY_CLANINVENTORY			15
+
+#define INVENTORY_CATEGORY_EQUIPMENT	1
+#define INVENTORY_CATEGORY_CONSUMABLE	2
+#define INVENTORY_CATEGORY_CRAFTING		3
+#define INVENTORY_CATEGORY_MISSION		4
+#define INVENTORY_CATEGORY_MISC			5
+
+// equipment data slot type (not to be confused with real inventory slot index)
+#define EQUIPMENT_HELMET				1
+#define EQUIPMENT_SHOES					2
+#define EQUIPMENT_GLOVES				3
+#define EQUIPMENT_WEAPON				13
+#define EQUIPMENT_HAIR					14
+#define EQUIPMENT_TORSO					15
+#define EQUIPMENT_LEGS					16
+#define EQUIPMENT_FACE					17
+#define EQUIPMENT_WING					18
+#define EQUIPMENT_EYEWEAR				19
+#define EQUIPMENT_BEARD					20
+#define EQUIPMENT_MASK					21
+// there are a few more, like MECH_WEAPON_x, do we need these?

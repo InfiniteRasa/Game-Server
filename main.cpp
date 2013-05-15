@@ -229,7 +229,7 @@ BOOL fileExists(LPCTSTR szPath)
 
 sint32 main()
 {
-	// little workaround in case Visual Studio has the wrong the working directory
+	// little workaround in case Visual Studio has the wrong working directory
 	#ifdef _WIN32
 	if( fileExists("gameData") ) // is this directory in the current directory? Then everything is ok
 		; // just do nothing

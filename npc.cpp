@@ -646,7 +646,7 @@ void npc_recv_RequestNPCVending(mapChannelClient_t *client, uint8 *pyString, sin
 	//pym_tuple_begin(&pms);
 	//pym_dict_begin(&pms);
 	//	// test Item A
-	//	pym_addInt(&pms, client->inventory.homeInventory[0]); // itemId
+	//	pym_addInt(&pms, client->inventory.personalInventory[0]); // itemId
 	//	pym_tuple_begin(&pms); // itemInfo
 	//		pym_addInt(&pms, 1); // price
 	//		pym_addInt(&pms, 1); // entityId?

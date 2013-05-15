@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -697,6 +697,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\DataInterface_Items.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\DataInterface_Mission.cpp"
 					>
 				</File>
@@ -844,6 +848,10 @@
 					RelativePath=".\3rdparty\recastnavigation\DetourStatus.h"
 					>
 				</File>
+				<File
+					RelativePath=".\3rdparty\minINI\minIni.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="minINI"
@@ -854,10 +862,6 @@
 				</File>
 				<File
 					RelativePath=".\3rdparty\minINI\minIni.c"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdparty\minINI\minIni.h"
 					>
 				</File>
 			</Filter>

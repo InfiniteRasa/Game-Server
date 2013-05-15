@@ -266,6 +266,100 @@ typedef struct
 	di_teleporterData *tdata;
 }diJob_teleporterData;
 
+/* item templates */
+
+typedef struct  
+{	
+	sint32 itemTemplateId;
+	sint32 classId;
+	sint32 qualityId;
+	sint32 type;
+	sint32 reqLevel; // min level required
+	bool hasSellableFlag;
+	bool notTradeableFlag;
+	bool hasCharacterUniqueFlag;
+	bool hasAccountUniqueFlag;
+	bool hasBoEFlag;
+	bool boundToCharacterFlag;
+	bool notPlaceableInLockBoxFlag;
+	sint32 inventoryCategory;
+}diJob_itemTemplateEntry_t;
+
+typedef struct  
+{	
+	sint32 numberOfItemTemplates;
+	diJob_itemTemplateEntry_t* itemTemplateList;
+}diJob_itemTemplate_t;
+
+typedef struct  
+{	
+	sint32 itemTemplateId;
+	sint32 slotType;
+	sint32 skillId; // -1 if not used
+	sint32 skillMinVal;
+	// todo: Add appearance hue to this table?
+}diJob_itemTemplateEquipmentEntry_t;
+
+typedef struct  
+{	
+	sint32 numberOfTemplates;
+	diJob_itemTemplateEquipmentEntry_t* itemTemplateEquipmentList;
+}diJob_itemTemplateEquipment_t;
+
+typedef struct  
+{	
+	sint32 itemTemplateId;
+	sint32 damageAbsorbed; // damage absorbed
+	sint32 regenRate; // regen rate
+	sint32 armorValue; // body armor
+}diJob_itemTemplateArmorEntry_t;
+
+typedef struct  
+{	
+	sint32 numberOfTemplates;
+	diJob_itemTemplateArmorEntry_t* itemTemplateArmorList;
+}diJob_itemTemplateArmor_t;
+
+typedef struct  
+{
+	sint32  itemTemplateId;
+	uint32	clipSize;
+	uint32	currentAmmo;
+	float	aimRate;
+	uint32	reloadTime;
+	sint8	altActionId;
+	sint8	altActionArg;
+	sint8	aeType;
+	uint32	aeRadius;
+	uint32	recoilAmount;
+	sint8	reuseOverride;
+	uint32	coolRate;
+	float	heatPerShot;
+	sint8	toolType;
+	// bool	isJammed; -> Doesn't make much sense to have weapons that are "jammed" by default?
+	sint8	ammoPerShot;
+	uint32	minDamage;
+	uint32	maxDamage;
+	uint32	ammoClassId;
+	sint8	damageType;
+	sint32	windupTime;
+	uint32	recoveryTime;
+	uint32	refireTime;
+	uint32	range;
+	uint32	altMaxDamage;
+	sint8	altDamageType;
+	uint32	altRange;
+	uint32	altAERadius;
+	sint8	altAEType;
+	sint8	attackType;
+}diJob_itemTemplateWeaponEntry_t;
+
+typedef struct  
+{	
+	sint32 numberOfTemplates;
+	diJob_itemTemplateWeaponEntry_t* itemTemplateWeaponList;
+}diJob_itemTemplateWeapon_t;
+
 /* mission */
 
 typedef struct  
@@ -364,7 +458,6 @@ void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 s
 /* npc */
 void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
 //void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
-unsigned long long DataInterface_NPC_getLastNPCEntityID();
 
 /* creatureType */
 void DataInterface_Creature_getCreatureTypeList(void (*cb)(void *param, diJob_creatureType_t *jobData), void *param);
@@ -378,6 +471,12 @@ void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_
 /* mission */
 void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param);
 void DataInterface_Mission_getMissionScriptData(void (*cb)(void *param, di_missionScript_t *jobData), void *param);
+
+/* item template */
+void DataInterface_Item_getItemTemplates(void (*cb)(void *param, diJob_itemTemplate_t *jobData), void *param);
+void DataInterface_Item_getItemEquipmentData(void (*cb)(void *param, diJob_itemTemplateEquipment_t *jobData), void *param);
+void DataInterface_Item_getItemArmorData(void (*cb)(void *param, diJob_itemTemplateArmor_t *jobData), void *param);
+void DataInterface_Item_getItemWeaponData(void (*cb)(void *param, diJob_itemTemplateWeapon_t *jobData), void *param);
 
 /* extra */
 void DataInterface_registerServerForAuth();
