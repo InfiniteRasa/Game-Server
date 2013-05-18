@@ -9,7 +9,7 @@ void cb_DataInterface_Item_getItemTemplates(MYSQL *dbCon, diJob_itemTemplate_t *
 	sprintf(queryText, "SELECT "
 		"itemTemplateId,classId,"
 		"qualityId,`type`,hasSellableFlag,notTradeableFlag,hasCharacterUniqueFlag,hasAccountUniqueFlag,"
-		"hasBoEFlag,boundToCharacterFlag,notPlaceableInLockBoxFlag,inventoryCategory,reqLevel"
+		"hasBoEFlag,boundToCharacterFlag,notPlaceableInLockBoxFlag,inventoryCategory,buyPrice,sellPrice,reqLevel,stacksize"
 		" FROM itemTemplate");
 	// execute query
 	if( mysql_query(dbCon, queryText) )
@@ -33,7 +33,8 @@ void cb_DataInterface_Item_getItemTemplates(MYSQL *dbCon, diJob_itemTemplate_t *
 	{
 		// "id,itemTemplateId,classId,"
 		// "qualityId,`type`,hasSellableFlag,notTradeableFlag,hasCharacterUniqueFlag,hasAccountUniqueFlag,"
-		// "hasAccountUniqueFlag,hasBoEFlag,boundToCharacterFlag,notPlaceableInLockBoxFlag,inventoryCategory"
+		// "hasAccountUniqueFlag,hasBoEFlag,boundToCharacterFlag,notPlaceableInLockBoxFlag,inventoryCategory,"
+		// "buyPrice,sellPrice,reqLevel,stackcount"
 		sint32 idx = 0;
 		sint32 tmpValue = 0;
 		// itemTemplateId
@@ -72,6 +73,12 @@ void cb_DataInterface_Item_getItemTemplates(MYSQL *dbCon, diJob_itemTemplate_t *
 		// inventoryCategory
 		sscanf(dbRow[idx], "%d", &tmpValue); idx++;
 		job->itemTemplateList[i].inventoryCategory = tmpValue;
+		// buyPrice
+		sscanf(dbRow[idx], "%d", &tmpValue); idx++;
+		job->itemTemplateList[i].buyPrice = tmpValue;
+		// sellPrice
+		sscanf(dbRow[idx], "%d", &tmpValue); idx++;
+		job->itemTemplateList[i].sellPrice = tmpValue;
 		// reqLevel
 		if( dbRow[idx] )
 		{
@@ -83,6 +90,9 @@ void cb_DataInterface_Item_getItemTemplates(MYSQL *dbCon, diJob_itemTemplate_t *
 			idx++;
 		}
 		job->itemTemplateList[i].reqLevel = tmpValue;
+		// stacksize
+		sscanf(dbRow[idx], "%d", &tmpValue); idx++;
+		job->itemTemplateList[i].stacksize = tmpValue;
 		// next
 		i++;
 	}

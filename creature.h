@@ -34,8 +34,10 @@ typedef struct _creatureType_t
 	// todo fields
 	sint32 aggressionTime;
 	float wander_dist; // -- wander boundaries 
-	// npc data (only if creature is NPC)
+	// npc data (only if creature is a NPC)
 	npcData_t* npcData; 
+	// vendor data (only if creature is a vendor, creatures do not need to be a NPC to be a vendor serverside)
+	vendorData_t* vendorData;
 }creatureType_t;
 
 creatureType_t*		creatureType_createCreatureType(sint32 entityClassId, sint32 nameId);
@@ -49,7 +51,7 @@ typedef struct _creature_t
 {
 	creatureType_t *type;		// the creature 'layout'
 	actor_t			actor;		// the base actor object
-	sint32 updatePositionCounter; // decreases, when it hits 0 and the cell position changed, call creature_updateCellLocation() 
+	sint32			updatePositionCounter; // decreases, when it hits 0 and the cell position changed, call creature_updateCellLocation() 
 	// stats
 	//sint32 currentHealth; --> this is already stored in creature.actor.currentHealth
 	//sint32 attackspeed;

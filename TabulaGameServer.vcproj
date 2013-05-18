@@ -518,6 +518,14 @@
 							RelativePath=".\npc.h"
 							>
 						</File>
+						<File
+							RelativePath=".\vendor.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\vendor.h"
+							>
+						</File>
 					</Filter>
 					<Filter
 						Name="actor"

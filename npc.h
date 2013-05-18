@@ -1,7 +1,9 @@
-#define NPC_TYPE_NONE	0
-#define NPC_TYPE_VENDOR	1
 
+//// npc types
+//#define NPC_TYPE_NONE	0
+//#define NPC_TYPE_VENDOR	1
 
+// conversation types
 #define CONVO_STATUS_NONE 0
 #define CONVO_STATUS_UNAVAILABLE 1
 #define CONVO_STATUS_AVAILABLE 2
@@ -27,11 +29,6 @@
 #define	CONVO_STATUS_WARGAME_NEUTRAL_SAFE 22
 #define	CONVO_STATUS_IDLE 23
 
-typedef struct  
-{
-	sint8 vendorType;
-}metaNpc_vendor_t;
-
 typedef struct
 {
 	//uint8 relationFlags; // is collector, dispenser, objective etc.
@@ -46,10 +43,7 @@ typedef struct
 typedef struct _npc_t 
 {
 	//missionList_t *missionList;		// available missions
-	sint8 npcType;						// the npc type (see above)
-	union{								// union for easy pointer access of type specific data (although we have only one type for now)
-		metaNpc_vendor_t *metaVendor;
-	};
+	// sint8 npcType;						// the npc type (see above)
 	// mission data
 	npcDataRelatedMission_t* relatedMissions; // list of all missions that involve this NPC type
 	sint32 relatedMissionCount;
@@ -76,6 +70,8 @@ void npc_creature_updateConversationStatus(mapChannelClient_t *client, creature_
 
 void npc_recv_RequestNPCConverse(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void npc_recv_RequestNPCVending(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void npc_recv_RequestVendorSale(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void npc_recv_RequestVendorPurchase(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void npc_recv_AssignNPCMission(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void npc_recv_CompleteNPCObjective(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void npc_recv_CompleteNPCMission(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);

@@ -75,6 +75,9 @@ typedef struct
 		bool	notPlaceableInLockbox;
 		uint8	inventoryCategory;
 		sint32	reqLevel; // required level
+		sint32	buyPrice; // price in credits to buy the item from a vendor
+		sint32	sellPrice; // price in credits to sell the item to a vendor
+		sint32	stacksize; // max stacksize
 	}item;
 	// equipment data
 	struct  

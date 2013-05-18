@@ -9,6 +9,7 @@
 #include "dynamicObject.h"
 #include "npc.h"
 #include "creature.h"
+#include "vendor.h"
 #include "SpawnSystem.h"
 #include "combatMgr.h"
 #include "teleporter.h"

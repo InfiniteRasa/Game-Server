@@ -25,12 +25,23 @@ typedef struct
 	sint32 locationSlotIndex;
 	// template
 	itemTemplate_t *itemTemplate;
+	// item instance specific
+	sint32 stacksize;
 }item_t;
 
 void inventory_initForClient(mapChannelClient_t *client);
 item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
+
+void inventory_removeItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint32 slotIndex);
+void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint64 entityId, sint32 slotIndex);
+
+item_t* item_createFromTemplateId(uint32 itemTemplateId, sint32 stacksize);
+item_t* item_duplicate(item_t* item, sint32 newStacksize);
+void item_sendItemCreation(mapChannelClient_t* client, item_t *item);
+void item_sendItemDestruction(mapChannelClient_t *client, item_t *item);
+void item_free(item_t* item);
 
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);

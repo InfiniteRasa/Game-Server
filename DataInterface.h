@@ -134,6 +134,24 @@ typedef struct
 	}appearanceData[SWAPSET_SIZE];
 }di_npcData_t;
 
+/* vendor */
+
+typedef struct  
+{
+	uint32 itemTemplateId;
+	uint32 stacksize;
+	sint32 sequence;
+}di_vendorItemData_t;
+
+typedef struct  
+{
+	uint32 creatureTypeId;
+	sint32 vendorPackageId;
+	// list of items
+	uint32 numberOfItems;
+	di_vendorItemData_t* itemList;
+}di_vendorData_t;
+
 /* creature type */
 
 typedef struct  
@@ -174,7 +192,7 @@ typedef struct
 	sint32 id;
 	sint32 mode; // 0 -> automatic spawn, 1 -> base/outpost(CP) spawn, 2 -> scripted spawn (must be triggered)
 	sint8 animType; // 0 -> no animation, 1 -> bane dropship
-	sint32 respawnTimer; // only for automatic spawn, how long it takes to respawn creatures after all are killed
+	sint32 respawnTime; // only for automatic spawn, how long it takes to respawn creatures after all are killed
 	float posX;
 	float posY;
 	float posZ;
@@ -186,6 +204,23 @@ typedef struct
 		sint32 countMax;
 	}spawnSlot[6];
 }diJob_spawnpool_t;
+
+typedef struct
+{
+	sint32 mode;
+	sint8 animType;
+	sint32 respawnTime;
+	float posX;
+	float posY;
+	float posZ;
+	sint32 contextId;
+	struct  
+	{
+		sint32 creatureType;
+		sint32 countMin;
+		sint32 countMax;
+	}spawnSlot[6];
+}diData_spawnEntry_t;
 
 /* TEST:entitydata */
 
@@ -283,6 +318,9 @@ typedef struct
 	bool boundToCharacterFlag;
 	bool notPlaceableInLockBoxFlag;
 	sint32 inventoryCategory;
+	sint32 buyPrice;
+	sint32 sellPrice;
+	sint32 stacksize;
 }diJob_itemTemplateEntry_t;
 
 typedef struct  
@@ -423,6 +461,13 @@ typedef struct
 
 typedef struct  
 {
+	// output
+	sint32 outVendorCount;
+	di_vendorData_t *outVendorList;
+}diJob_vendorListData_t;
+
+typedef struct  
+{
 	di_npcData_t *npcData;
 }diJob_updateNPC_t;
 
@@ -457,6 +502,11 @@ void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 s
 
 /* npc */
 void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
+
+/* vendor */ 
+
+void DataInterface_Vendor_getVendorList(void (*cb)(void *param, diJob_vendorListData_t *jobData), void *param);
+
 //void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
 /* creatureType */
@@ -464,6 +514,7 @@ void DataInterface_Creature_getCreatureTypeList(void (*cb)(void *param, diJob_cr
 
 /* spawn system */
 void DataInterface_SpawnSystem_getSpawnPoolList(void (*cb)(void *param, diJob_spawnpool_t *jobData), void *param);
+void DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry);
 
 /* missile */
 void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_creatureAction_t *jobData), void *param);

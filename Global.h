@@ -47,6 +47,7 @@ typedef struct _npc_t npc_t;
 typedef struct _actor_t actor_t;
 typedef struct _creatureType_t creatureType_t;
 typedef struct _creature_t creature_t;
+typedef struct _vendorData_t vendorData_t;
 typedef struct _gameEffect_t gameEffect_t;
 typedef struct _spawnPool_t spawnPool_t;
 

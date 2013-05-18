@@ -6,7 +6,7 @@ void cb_DataInterface_SpawnSystem_getSpawnPoolList(MYSQL *dbCon, diJob_spawnpool
 {
 	sint8 queryText[4096];
 	sprintf(queryText, "SELECT "
-		"id,mode,animType,"
+		"id,mode,animType,respawnTime,"
 		"posx,posy,posz,contextid,"
 		// creature slots
 		"creatureType1,creatureMinCount1,creatureMaxCount1,"
@@ -41,6 +41,7 @@ void cb_DataInterface_SpawnSystem_getSpawnPoolList(MYSQL *dbCon, diJob_spawnpool
 		sscanf(dbRow[idx], "%d", &job->id); idx++;
 		sscanf(dbRow[idx], "%d", &job->mode); idx++;
 		sscanf(dbRow[idx], "%d", &job->animType); idx++;
+		sscanf(dbRow[idx], "%d", &job->respawnTime); idx++;
 		// location data
 		sscanf(dbRow[idx], "%f", &job->posX); idx++;
 		sscanf(dbRow[idx], "%f", &job->posY); idx++;
@@ -73,4 +74,54 @@ void DataInterface_SpawnSystem_getSpawnPoolList(void (*cb)(void *param, diJob_sp
 {	
 	diJob_spawnpool_t *job = (diJob_spawnpool_t*)DataInterface_allocJob(sizeof(diJob_spawnpool_t));
 	DataInterface_queueJob(job, cb_DataInterface_SpawnSystem_getSpawnPoolList, cb, param);
+}
+
+
+
+void cb_DataInterface_SpawnSystem_addSpawnPoint(MYSQL *dbCon, diData_spawnEntry_t *job, void *cb, void *param)
+{
+	char queryText[4096];
+	char subText[128];
+	sprintf(queryText, "INSERT INTO spawnpool "
+		"(mode,animType,respawnTime,"
+		"posx,posy,posz,contextid,"
+		// creature slots
+		"creatureType1,creatureMinCount1,creatureMaxCount1,"
+		"creatureType2,creatureMinCount2,creatureMaxCount2,"
+		"creatureType3,creatureMinCount3,creatureMaxCount3,"
+		"creatureType4,creatureMinCount4,creatureMaxCount4,"
+		"creatureType5,creatureMinCount5,creatureMaxCount5,"
+		"creatureType6,creatureMinCount6,creatureMaxCount6)"
+		" VALUES (%d,%d,%d,%f,%f,%f,%d", job->mode, job->animType, job->respawnTime, job->posX, job->posY, job->posZ, job->contextId);
+	// add creature spawn types and amount
+	for(sint32 i=0; i<6; i++)
+	{
+		if( job->spawnSlot[i].countMax == 0 )
+		{
+			strcat(queryText, ",NULL,NULL,NULL");
+		}
+		else
+		{
+			sprintf(subText, ",%d,%d,%d", job->spawnSlot[i].creatureType, job->spawnSlot[i].countMin, job->spawnSlot[i].countMax);
+			strcat(queryText, subText);
+		}
+	}
+	strcat(queryText, ");");
+	// execute query
+	if( mysql_query(dbCon, queryText) )
+	{
+		printf("Error in query\n");
+		while(1) Sleep(1000);	
+	}
+	DataInterface_freeJob(job);
+}
+
+/*
+ * Adds a new spawn entry to the database
+ */
+void DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry)
+{	
+	diData_spawnEntry_t *job = (diData_spawnEntry_t*)DataInterface_allocJob(sizeof(diData_spawnEntry_t));
+	RtlCopyMemory(job, spawnEntry, sizeof(diData_spawnEntry_t));
+	DataInterface_queueJob(job, cb_DataInterface_SpawnSystem_addSpawnPoint, NULL, NULL);
 }

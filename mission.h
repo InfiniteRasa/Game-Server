@@ -137,6 +137,8 @@ sint32 mission_getReward_prestige(mission_t* mission);
 sint32 mission_getReward_experience(mission_t* mission);
 void mission_buildRewardInfoTuple(mission_t* mission, pyMarshalString_t* pms);
 
+bool mission_isCreatureMissionDispenser(mission_t* mission, creature_t* creatureOrNPC);
+
 void mission_tryProgressMissionState(mapChannelClient_t *client, mission_t* mission, missionLogEntry_t* missionLogEntry);
 
 // mission log

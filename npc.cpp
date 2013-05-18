@@ -175,14 +175,29 @@ void npc_creature_updateConversationStatus(mapChannelClient_t *client, creature_
 		}
 		else if( mission_isCompletedByPlayer(client, npcData->relatedMissions[i].missionIndex) == false )
 		{
-			// mission available overwrites any other converse state
-			pym_addInt(&pms, CONVO_STATUS_AVAILABLE); // status - available
-			pym_tuple_begin(&pms); // data
-			pym_tuple_end(&pms);
-			statusSet = true;
-			break;
+			// check if the npc is actually the mission dispenser and not only a objective related npc
+			if( mission_isCreatureMissionDispenser(mission_getByIndex(npcData->relatedMissions[i].missionIndex), creature) )
+			{
+				// mission available overwrites any other converse state
+				pym_addInt(&pms, CONVO_STATUS_AVAILABLE); // status - available
+				pym_tuple_begin(&pms); // data
+				pym_tuple_end(&pms);
+				statusSet = true;
+				break;
+			}
 		}
 	}
+	// is NPC vendor?
+	if( creature->type->vendorData && statusSet == false )
+	{
+		// creature->npcData.isVendor
+		pym_addInt(&pms, CONVO_STATUS_VENDING); // status - vending
+		pym_tuple_begin(&pms); // data
+		pym_addInt(&pms, creature->type->vendorData->vendorPackageId); // vendorPackageId
+		pym_tuple_end(&pms);
+		statusSet = true;
+	}
+	// no status set yet? Send NONE conversation status
 	if( statusSet == false )
 	{
 		// no other status, set NONE status
@@ -192,7 +207,7 @@ void npc_creature_updateConversationStatus(mapChannelClient_t *client, creature_
 		statusSet = true;
 	}
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 489, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 489, pym_getData(&pms), pym_getLen(&pms)); // Recv_NPCConversationStatus
 }
 
 /*
@@ -265,7 +280,7 @@ void npc_recv_CompleteNPCObjective(mapChannelClient_t *client, uint8 *pyString, 
 }
 
 /*
- * Send by the client when completing a mission at the debriefing NPC
+ * Send by the client when completing a mission at the debriefing/collector NPC
  */
 void npc_recv_CompleteNPCMission(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
@@ -574,6 +589,14 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, uint8 *pyString, si
 		}
 		pym_dict_end(&pms);
 	}
+	// build info about vendor data
+	if( creature->type->vendorData )
+	{
+		pym_addInt(&pms, 11); // key: CONVO_TYPE_VENDING
+		pym_list_begin(&pms); // vendor packageId list
+		pym_addInt(&pms, creature->type->vendorData->vendorPackageId); // vendorPackageId (why do some parts support more than one vendorPackageId?)
+		pym_list_end(&pms);
+	}
 
 	//mission_t *missionAvailableList[16];
 	//sint32 missionAvailableCount; 
@@ -633,29 +656,170 @@ void npc_recv_RequestNPCConverse(mapChannelClient_t *client, uint8 *pyString, si
 
 void npc_recv_RequestNPCVending(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
 {
-	//pyUnmarshalString_t pums;
-	//pym_init(&pums, pyString, pyStringLen);
-	//if( !pym_unpackTuple_begin(&pums) )
-	//	return;
-	//unsigned long long entityId = pym_unpackLongLong(&pums);
-	//if( pums.unpackErrorEncountered )
-	//	return;
-	//// Vend (vendor augmentation specific)
-	//pyMarshalString_t pms;
-	//pym_init(&pms);
-	//pym_tuple_begin(&pms);
-	//pym_dict_begin(&pms);
-	//	// test Item A
-	//	pym_addInt(&pms, client->inventory.personalInventory[0]); // itemId
-	//	pym_tuple_begin(&pms); // itemInfo
-	//		pym_addInt(&pms, 1); // price
-	//		pym_addInt(&pms, 1); // entityId?
-	//	pym_tuple_end(&pms);
-	//// list of item entityIds?
-	////pym_addInt(&pms, 10); // weapon
-	//pym_dict_end(&pms);
-	//pym_tuple_end(&pms);
-	//netMgr_pythonAddMethodCallRaw(client->cgm, entityId, 569, pym_getData(&pms), pym_getLen(&pms));
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	unsigned long long entityId = pym_unpackLongLong(&pums);
+	if( pums.unpackErrorEncountered )
+		return;
+	// get creature
+	if( entityMgr_getEntityType(entityId) != ENTITYTYPE_CREATURE )
+	{
+		printf("npc_recv_RequestNPCVending: Target entity not a creature\n");
+		return;
+	}
+	creature_t* creature = (creature_t*)entityMgr_get(entityId);
+	if( creature == NULL || creature->type->vendorData == NULL )
+	{
+		printf("npc_recv_RequestNPCVending: Target entity is not valid\n");
+		return;
+	}
+	vendorData_t* vendorData = creature->type->vendorData;
+	// Vend (vendor augmentation specific)
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_dict_begin(&pms);
+	// iterate sold item list
+	for(sint32 i=0; i<vendorData->numberOfSoldItems; i++)
+	{
+		// note: We create the items in this function (on-demand) to avoid generating lots of possibly unused vendor items at server startup
+		// do we need to create the 'display-item'?
+		if( vendorData->soldItemList[i].itemInstance == NULL )
+		{
+			vendorData->soldItemList[i].itemInstance = item_createFromTemplateId(vendorData->soldItemList[i].itemTemplateId, 1);
+			if( vendorData->soldItemList[i].itemInstance == NULL )
+			{
+				printf("npc_recv_RequestNPCVending: Failed to create item from itemTemplateId %d for vendor creatureTypeId %d\n", vendorData->soldItemList[i].itemTemplateId, creature->type->typeId);
+				continue;
+			}
+		}
+		// tell client about item entity
+		item_t* vendingItem = vendorData->soldItemList[i].itemInstance;
+		// dont forget to destroy the entity once the client stops shopping
+		item_sendItemCreation(client, vendingItem);
+		// add item data to vending list
+		pym_addInt(&pms, vendingItem->entityId); // itemId
+		pym_tuple_begin(&pms); // itemInfo
+		pym_addInt(&pms, vendingItem->itemTemplate->item.buyPrice); // price
+		pym_addInt(&pms, vendorData->soldItemList[i].sequence); // sequence? Probably the order of the items in the list...
+		pym_tuple_end(&pms);
+	}
+	pym_dict_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, entityId, Vend, pym_getData(&pms), pym_getLen(&pms));
+}
+
+/*
+ * Called by the client when an item is sold to a vendor
+ * RPC parameters passed: (vendorEntityId, itemId, quantity)
+ */
+void npc_recv_RequestVendorSale(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	unsigned long long vendorEntityId = pym_unpackLongLong(&pums);
+	unsigned long long itemEntityId = pym_unpackLongLong(&pums);
+	sint32 itemQuantity = pym_unpackInt(&pums);
+	if( pums.unpackErrorEncountered )
+		return;
+	// note: Players can only sell items directly from their personal inventory
+	//       so we only have to scan there for the item entityId
+	sint32 slotIndex = -1;
+	for(sint32 i=0; i<250; i++)
+	{
+		if( (sint64)client->inventory.personalInventory[i] == (sint64)itemEntityId )
+		{
+			slotIndex = i;
+			break;
+		}
+	}
+	if( slotIndex == -1 )
+	{
+		printf("npc_recv_RequestVendorSale: Item entity not found in player's inventory\n");
+		return;
+	}
+	// get item handle
+	item_t* soldItem = (item_t*)entityMgr_get(itemEntityId);
+	if( soldItem == NULL )
+	{
+		printf("npc_recv_RequestVendorSale: Item reference found but item instance does not exist\n");
+		return;
+	}
+	// get sell price
+	sint32 realItemQuantity = min(itemQuantity, soldItem->stacksize);
+	sint32 sellPrice = soldItem->itemTemplate->item.sellPrice * realItemQuantity;
+	// remove item
+	// todo: Handle stacksizes correctly and only decrease item by quantity parameter
+	inventory_removeItemBySlot(client, INVENTORY_PERSONAL, slotIndex);
+	item_sendItemDestruction(client, soldItem);
+	item_free(soldItem);
+	// add credits to player
+	manifestation_GainCredits(client, sellPrice);
+}
+
+/*
+ * Called by the client when an item is bought from a vendor
+ * RPC parameters passed: (vendorEntityId, itemId, quantity)
+ */
+void npc_recv_RequestVendorPurchase(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
+{
+	pyUnmarshalString_t pums;
+	pym_init(&pums, pyString, pyStringLen);
+	if( !pym_unpackTuple_begin(&pums) )
+		return;
+	unsigned long long vendorEntityId = pym_unpackLongLong(&pums);
+	unsigned long long itemEntityId = pym_unpackLongLong(&pums);
+	sint32 itemQuantity = pym_unpackInt(&pums);
+	if( pums.unpackErrorEncountered )
+		return;
+	if( itemQuantity <= 0 )
+		return; // a quantity of less than 1 is not allowed
+	// get the instance of the bought item
+	item_t* boughtItem = (item_t*)entityMgr_get(itemEntityId);
+	if( boughtItem == NULL )
+	{
+		printf("npc_recv_RequestVendorPurchase: The item instance does not exist\n");
+		return;
+	}
+	// find free slot in inventory category
+	sint32 baseSlotIndex = (boughtItem->itemTemplate->item.inventoryCategory-1);
+	if( baseSlotIndex < 0 || baseSlotIndex >= 5 )
+	{
+		printf("npc_recv_RequestVendorPurchase: The item inventory category(%d) is not valid\n", baseSlotIndex);
+		return;
+	}
+	baseSlotIndex *= 50;
+	sint32 slotIndex = -1;
+	for(sint32 i=0; i<50; i++)
+	{
+		if( (sint64)client->inventory.personalInventory[baseSlotIndex+i] == 0 )
+		{
+			slotIndex = i+baseSlotIndex;
+			break;
+		}
+	}
+	if( slotIndex == -1 )
+	{
+		printf("npc_recv_RequestVendorPurchase: Inventory is full\n");
+		return;
+	}
+	// get buy price
+	sint32 buyPrice = boughtItem->itemTemplate->item.buyPrice * itemQuantity;
+	// has the player enough credits?
+	if( client->player->credits < buyPrice )
+		return; // not enough credits
+	// duplicate item
+	item_t* newItem = item_duplicate(boughtItem, itemQuantity);
+	if( newItem == NULL )
+		return; // could not duplicate item
+	item_sendItemCreation(client, newItem);
+	inventory_addItemBySlot(client, INVENTORY_PERSONAL, newItem->entityId, slotIndex); // also makes item appear on the client
+	// remove credits
+	manifestation_GainCredits(client, -buyPrice); // todo: maybe we should have a separate method for removing credits
 }
 
 /*
@@ -678,7 +842,6 @@ void _cb_npc_init(void *param, diJob_npcListData_t *jobData)
 		// allocate and init npc data
 		npcData_t* npc = (npcData_t*)malloc(sizeof(npcData_t));
 		memset(npc, 0x00, sizeof(npcData_t));
-		npc->npcType = NPC_TYPE_NONE;
 		creatureType->npcData = npc;
 		// set appearance info (maybe move appearance data into actor table?)
 		for(sint32 s=0; s<SWAPSET_SIZE; s++)

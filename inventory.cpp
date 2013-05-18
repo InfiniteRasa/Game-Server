@@ -42,7 +42,7 @@ void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *client, uint8
 	pym_tuple_begin(&pms);
 	pym_addBool(&pms, !itemTemplate->item.notTradable);		// kItemIdx_Tradable		= 0
 	pym_addInt(&pms, itemTemplate->item.maxHitPoints);		// kItemIdx_MaxHPs			= 1
-	pym_addInt(&pms, 1000);									// kItemIdx_BuybackPrice	= 2
+	pym_addInt(&pms, itemTemplate->item.sellPrice);			// kItemIdx_BuybackPrice	= 2
 	// kItemIdx_Requirements	= 3
 	if( itemTemplate->item.reqLevel > 0 )
 	{
@@ -214,7 +214,7 @@ void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, s
 /*
  * Creates an item entity from a item template
  */
-item_t *item_create(itemTemplate_t *itemTemplate)//uint32 classId, uint32 templateId)
+item_t *item_create(itemTemplate_t *itemTemplate, sint32 stacksize)
 {
 	if( itemTemplate == NULL )
 		return NULL; // "no-template items" must not exist
@@ -223,31 +223,23 @@ item_t *item_create(itemTemplate_t *itemTemplate)//uint32 classId, uint32 templa
 	item->itemTemplate = itemTemplate;
 	item->locationEntityId = 0;
 	item->locationSlotIndex = 0;
+	item->stacksize = stacksize;
 	// register item
 	entityMgr_registerEntity(item->entityId, item);
 	return item;
 }
 
-//void item_setLocationHomeinventory(item_t *item, mapChannelClient_t *owner)
-//{
-//	item->locationEntityId = owner->clientEntityId;
-//	// find free slot
-//	sint32 catIndex = 0;
-//	if( item->itemTemplate->item.type == ITEMTYPE_WEAPON )
-//		catIndex = 0;
-//	else if( item->itemTemplate->item.type == ITEMTYPE_ARMOR )
-//		catIndex = 0; // 50
-//	else
-//		__debugbreak();
-//	for(sint32 i=0; i<50; i++)
-//	{
-//		if( owner->inventory.slot[catIndex+i] == 0 )
-//		{
-//			item->locationSlotIndex = catIndex+i;
-//			break;
-//		}
-//	}
-//}
+/*
+ * Makes a 1:1 copy of the item with a different entityId
+ * The new item will have a stacksize of newStacksize
+ */
+item_t* item_duplicate(item_t* item, sint32 newStacksize)
+{
+	item_t* newItem = item_createFromTemplateId(item->itemTemplate->item.templateId, newStacksize);
+	newItem->stacksize = newStacksize;
+	// todo: Once we support stuff like item modifiers/modules we need to duplicate them in this function too
+	return newItem;
+}
 
 void item_setLocationEquippedinventory(item_t *item, mapChannelClient_t *owner)
 {
@@ -511,6 +503,33 @@ void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, 
 											 pym_getLen(&pms));
 }
 
+/*
+ * Send item entity destruction to client
+ */
+void item_sendItemDestruction(mapChannelClient_t *client, item_t *item)
+{
+	pyMarshalString_t pms;
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, item->entityId); // entityID
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, 5, DestroyPhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
+}
+
+/*
+ * Destroys the item instance and frees the entityId
+ * Before calling this method, make sure no inventory and no vendor references this item
+ * You should also call _sendItemDestruction() to clients that know about this item before calling this method
+ */
+void item_free(item_t* item)
+{
+	entityMgr_unregisterEntity(item->entityId);
+	free(item);
+}
+
+/*
+ * Send item entity creation and item data to client
+ */
 void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 {
 	pyMarshalString_t pms;
@@ -595,6 +614,12 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		//pym_tuple_end(&pms);
 		//netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 406, pym_getData(&pms), pym_getLen(&pms)); //ArmorInfo
 	}
+	// test set stackcount
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, item->stacksize); // stacksize
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, SetStackCount, pym_getData(&pms), pym_getLen(&pms));
 }
 
 ///*
@@ -668,12 +693,12 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 /*
  * Creates an item from a item templateId
  */
-item_t* item_createFromTemplateId(uint32 itemTemplateId)
+item_t* item_createFromTemplateId(uint32 itemTemplateId, sint32 stacksize)
 {
 	itemTemplate_t *itemTemplate = gameData_getItemTemplateById(itemTemplateId);
 	if( !itemTemplate )
 		return NULL;
-	item_t *item = item_create(itemTemplate);
+	item_t *item = item_create(itemTemplate, stacksize);
 	return item;
 }
 
@@ -727,25 +752,25 @@ void inventory_initForClient(mapChannelClient_t *client)
 
 	// test items
 	// (item templates + properties should be read from the db and created dynamically)
-	item_t* testItem = item_createFromTemplateId(127973);
+	item_t* testItem = item_createFromTemplateId(127973, 1);
 	// we manually update the location of the item (to avoid sending data yet)
 	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[3] = testItem->entityId;
 
 	// item 2
-	testItem = item_createFromTemplateId(127982);
+	testItem = item_createFromTemplateId(127982, 1);
 	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[4] = testItem->entityId;
 	// item 3
-	testItem = item_createFromTemplateId(45857);
+	testItem = item_createFromTemplateId(45857, 1);
 	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[0] = testItem->entityId;
 	// item 4
-	testItem = item_createFromTemplateId(17131);
+	testItem = item_createFromTemplateId(17131, 1);
 	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[1] = testItem->entityId;
 	// item 5
-	testItem = item_createFromTemplateId(17384);
+	testItem = item_createFromTemplateId(17384, 1);
 	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[15] = testItem->entityId;
 

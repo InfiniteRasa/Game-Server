@@ -105,7 +105,7 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 		creatureType_t* creatureType = creatureType_findType(spawnPool->spawnSlot[i].creatureType);
 		if( creatureType == NULL )
 		{
-			printf("Could not find creature typeId %s for spawnpool\n", spawnPool->spawnSlot[i].creatureType);
+			printf("Could not find creature typeId %d for spawnpool\n", spawnPool->spawnSlot[i].creatureType);
 			continue;
 		}
 		//spawnTypeIDList[i] = spawnPool->spawnTypes[rand()%spawnPool->spawnVariantCount];

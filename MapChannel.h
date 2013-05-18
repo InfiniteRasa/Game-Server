@@ -32,6 +32,8 @@ typedef struct _mapChannelClient_t
 	hashTable_t mission;
 	// object interaction
 	mapChannelClient_objectUse_t usedObject;
+	// gm flags
+	bool gmFlagAlwaysFriendly;
 }mapChannelClient_t;
 
 #define MAPCHANNEL_PLAYERQUEUE 32

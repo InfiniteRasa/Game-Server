@@ -9,31 +9,31 @@ void cb_DataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 	sint8 queryText[1024];
 	job->outNpcCount = 0;
 	job->outNpcList = NULL;
-	
+
 	wsprintf(queryText, "SELECT "
-	"id,creatureTypeId,"
-	"ad1_classId,ad1_hue,"
-	"ad2_classId,ad2_hue,"
-	"ad3_classId,ad3_hue,"
-	"ad4_classId,ad4_hue,"
-	"ad5_classId,ad5_hue,"
-	"ad6_classId,ad6_hue,"
-	"ad7_classId,ad7_hue,"
-	"ad8_classId,ad8_hue,"
-	"ad9_classId,ad9_hue,"
-	"ad10_classId,ad10_hue,"
-	"ad11_classId,ad11_hue,"
-	"ad12_classId,ad12_hue,"
-	"ad13_classId,ad13_hue,"
-	"ad14_classId,ad14_hue,"
-	"ad15_classId,ad15_hue,"
-	"ad16_classId,ad16_hue,"
-	"ad17_classId,ad17_hue,"
-	"ad18_classId,ad18_hue,"
-	"ad19_classId,ad19_hue,"
-	"ad20_classId,ad20_hue,"
-	"ad21_classId,ad21_hue,npcPackageId"
-	" FROM creature_type_npc");
+		"id,creatureTypeId,"
+		"ad1_classId,ad1_hue,"
+		"ad2_classId,ad2_hue,"
+		"ad3_classId,ad3_hue,"
+		"ad4_classId,ad4_hue,"
+		"ad5_classId,ad5_hue,"
+		"ad6_classId,ad6_hue,"
+		"ad7_classId,ad7_hue,"
+		"ad8_classId,ad8_hue,"
+		"ad9_classId,ad9_hue,"
+		"ad10_classId,ad10_hue,"
+		"ad11_classId,ad11_hue,"
+		"ad12_classId,ad12_hue,"
+		"ad13_classId,ad13_hue,"
+		"ad14_classId,ad14_hue,"
+		"ad15_classId,ad15_hue,"
+		"ad16_classId,ad16_hue,"
+		"ad17_classId,ad17_hue,"
+		"ad18_classId,ad18_hue,"
+		"ad19_classId,ad19_hue,"
+		"ad20_classId,ad20_hue,"
+		"ad21_classId,ad21_hue,npcPackageId"
+		" FROM creature_type_npc");
 	// execute query
 	if( mysql_query(dbCon, queryText) )
 	{
@@ -46,12 +46,9 @@ void cb_DataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 	sint32 npcCount = mysql_num_rows(dbResult);
 	di_npcData_t *npcDataList = (di_npcData_t*)malloc(sizeof(di_npcData_t) * npcCount);
 	//allocate the spawntypes/pools the same way
-	sint32 idx = 0;
+	di_npcData_t* npcData = npcDataList;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
-		di_npcData_t *npcData = npcDataList+idx;
-		idx++;
-
 		unsigned long long npc_id;
 		sint32 npc_creatureTypeId;
 		sint32 idx = 0;
@@ -65,6 +62,7 @@ void cb_DataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 			idx += 2;
 		}
 		sscanf(dbRow[idx], "%d", &npcData->npcPackageId); idx++;
+		npcData++;
 	}
 	mysql_free_result(dbResult);
 	job->outNpcList = npcDataList;
@@ -85,6 +83,113 @@ void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *j
 	diJob_npcListData_t *job = (diJob_npcListData_t*)DataInterface_allocJob(sizeof(diJob_npcListData_t));
 	DataInterface_queueJob(job, cb_DataInterface_NPC_getNPCList, cb, param);
 }
+
+/*
+ * Queries data from vendor_items table for a specific vendor
+ */
+void _cb_DataInterface_Vendor_getVendorItemList(MYSQL *dbCon, di_vendorData_t* vendorData)
+{
+	sint8 queryText[1024];
+	wsprintf(queryText, "SELECT "
+		"itemTemplateId,stacksize,sequence"
+		" FROM vendor_items WHERE creatureTypeId = %u", vendorData->creatureTypeId);
+	// execute query
+	if( mysql_query(dbCon, queryText) )
+	{
+		printf("Error in query\n");
+		while(1) Sleep(1000);	
+	}
+	MYSQL_RES *dbResult = mysql_store_result(dbCon);
+	MYSQL_ROW dbRow;
+	// allocate vendor item data
+	sint32 itemCount = mysql_num_rows(dbResult);
+	di_vendorItemData_t *vendorItemDataList = (di_vendorItemData_t*)malloc(sizeof(di_vendorItemData_t) * itemCount);
+	// parse mysql data
+	di_vendorItemData_t* vendorItemData = vendorItemDataList;
+	while((dbRow = mysql_fetch_row(dbResult)))
+	{
+		sint32 vendorItem_itemTemplateId = 0;
+		sint32 vendorItem_stacksize = 0;
+		sint32 vendorItem_sequence = 0;
+		sint32 idx = 0;
+		sscanf(dbRow[idx], "%d", &vendorItem_itemTemplateId); idx++;
+		sscanf(dbRow[idx], "%d", &vendorItem_stacksize); idx++;
+		sscanf(dbRow[idx], "%d", &vendorItem_sequence); idx++;
+		vendorItemData->itemTemplateId = vendorItem_itemTemplateId;
+		vendorItemData->stacksize = vendorItem_stacksize;
+		vendorItemData->sequence = vendorItem_sequence;
+		// next
+		vendorItemData++;
+	}
+	mysql_free_result(dbResult);
+	vendorData->itemList = vendorItemDataList;
+	vendorData->numberOfItems = itemCount;
+}
+
+/*
+ * Queries data from vendor table for all vendors
+ * Also, queries each vendor's item list
+ */
+void cb_DataInterface_Vendor_getVendorList(MYSQL *dbCon, diJob_vendorListData_t *job, void *cb, void *param)
+{
+	sint8 queryText[1024];
+	job->outVendorCount = 0;
+	job->outVendorList = NULL;
+
+	wsprintf(queryText, "SELECT "
+		"creatureTypeId,vendorPackageId"
+		" FROM vendor");
+	// execute query
+	if( mysql_query(dbCon, queryText) )
+	{
+		printf("Error in query\n");
+		while(1) Sleep(1000);	
+	}
+	MYSQL_RES *dbResult = mysql_store_result(dbCon);
+	MYSQL_ROW dbRow;
+	// allocate vendor data
+	sint32 vendorCount = mysql_num_rows(dbResult);
+	di_vendorData_t *vendorDataList = (di_vendorData_t*)malloc(sizeof(di_vendorData_t) * vendorCount);
+	// parse mysql data
+	di_vendorData_t* vendorData = vendorDataList;
+	while((dbRow = mysql_fetch_row(dbResult)))
+	{
+		sint32 vendor_creatureTypeId = 0;
+		sint32 vendor_packageId = 0;
+		sint32 idx = 0;
+		sscanf(dbRow[idx], "%d", &vendor_creatureTypeId); idx++;
+		sscanf(dbRow[idx], "%d", &vendor_packageId); idx++;
+		vendorData->creatureTypeId = vendor_creatureTypeId;
+		vendorData->vendorPackageId = vendor_packageId;
+		// for each vendor, query item data
+		_cb_DataInterface_Vendor_getVendorItemList(dbCon, vendorData);
+		// next
+		vendorData++;
+	}
+	mysql_free_result(dbResult);
+	job->outVendorList = vendorDataList;
+	job->outVendorCount = vendorCount;
+	// do callback param1: mapchannel param2: list of vendordata
+	((void (*)(void*,void*))cb)(param, job);
+	// free all item lists
+	for(uint32 i=0; i<vendorCount; i++)
+	{
+		if( job->outVendorList[i].itemList )
+			free(job->outVendorList[i].itemList);
+	}
+	// free vendor list
+	free(vendorDataList);
+	// free job
+	DataInterface_freeJob(job);
+}
+
+void DataInterface_Vendor_getVendorList(void (*cb)(void *param, diJob_vendorListData_t *jobData), void *param)
+{	
+	diJob_vendorListData_t *job = (diJob_vendorListData_t*)DataInterface_allocJob(sizeof(diJob_vendorListData_t));
+	DataInterface_queueJob(job, cb_DataInterface_Vendor_getVendorList, cb, param);
+}
+
+
 //
 //void cb_DataInterface_NPC_updateNPC(MYSQL *dbCon, diJob_updateNPC_t *job, void *cb, void *param)
 //{

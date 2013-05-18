@@ -437,6 +437,76 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		}
 		return true;
 	}
+	if( memcmp(textMsg, ".addspawn ", 10) == 0 )
+	{
+		// parse input
+		// mode, animType, respawnTime, creatureType1, creatureMin1, creatureMax1, ...
+		diData_spawnEntry_t spawnEntry = {0};
+		sint32 parse_mode = 0;
+		sint32 parse_animType = 0;
+		sint32 parse_respawnTimer = 0;
+		//float parse_posX = 0.0f;
+		//float parse_posY = 0.0f;
+		//float parse_posZ = 0.0f;
+		sint32 creatureType[6] = {0};
+		sint32 creatureMin[6] = {0};
+		sint32 creatureMax[6] = {0};
+
+		sint32 numberOfScannedVars = sscanf(textMsg+10, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &parse_mode, &parse_animType, &parse_respawnTimer, &creatureType[0], &creatureMin[0], &creatureMax[0], &creatureType[1], &creatureMin[1], &creatureMax[1], &creatureType[2], &creatureMin[2], &creatureMax[2], &creatureType[3], &creatureMin[3], &creatureMax[3], &creatureType[4], &creatureMin[4], &creatureMax[4], &creatureType[5], &creatureMin[5], &creatureMax[5]);
+		if( numberOfScannedVars < 6 )
+		{
+			communicator_systemMessage(cm, "Invalid parameters");
+			communicator_systemMessage(cm, "Format: mode animType respawnTime creatureType1 creatureMin1 creatureMax1 ...");
+			return true;
+		}
+		spawnEntry.mode = parse_mode;
+		spawnEntry.animType = parse_animType;
+		spawnEntry.respawnTime = parse_respawnTimer;
+		spawnEntry.posX = cm->player->actor->posX;
+		spawnEntry.posY = cm->player->actor->posY + 0.2f; // slightly increase height to not spawn creatures in the ground
+		spawnEntry.posZ = cm->player->actor->posZ;
+		spawnEntry.contextId = cm->mapChannel->mapInfo->contextId;
+		for(sint32 c=0; c<6; c++)
+		{
+			spawnEntry.spawnSlot[c].creatureType = creatureType[c];
+			spawnEntry.spawnSlot[c].countMin = creatureMin[c];
+			spawnEntry.spawnSlot[c].countMax = creatureMax[c];
+			if( spawnEntry.spawnSlot[c].countMin > spawnEntry.spawnSlot[c].countMax )
+			{
+				communicator_systemMessage(cm, "Spawn count min must not be greater than max");
+				return true;
+			}
+		}
+		// create spawn pool
+		spawnPool_t *spawnPool = (spawnPool_t*)malloc(sizeof(spawnPool_t));
+		memset(spawnPool, 0x00, sizeof(spawnPool_t));
+		spawnPool->locationCount = 1; // eventually add support for multiple spawn locations
+		spawnPool->locationList = (spawnLocation_t*)malloc(sizeof(spawnLocation_t) * spawnPool->locationCount);
+		spawnPool->locationList[0].x = spawnEntry.posX;
+		spawnPool->locationList[0].y = spawnEntry.posY;
+		spawnPool->locationList[0].z = spawnEntry.posZ;
+		spawnPool->animType = spawnEntry.animType;
+		spawnPool->mode = spawnEntry.mode;
+		for(sint32 spawnSlot=0; spawnSlot<SPAWNPOOL_SPAWNSLOTS; spawnSlot++)
+		{
+			spawnPool->spawnSlot[spawnSlot].creatureType = spawnEntry.spawnSlot[spawnSlot].creatureType;
+			spawnPool->spawnSlot[spawnSlot].countMin = spawnEntry.spawnSlot[spawnSlot].countMin;
+			spawnPool->spawnSlot[spawnSlot].countMax = spawnEntry.spawnSlot[spawnSlot].countMax;
+		}
+		spawnPool_activate(cm->mapChannel, spawnPool);
+		DataInterface_SpawnSystem_addSpawnPoint(&spawnEntry);
+		communicator_systemMessage(cm, "Added spawn");
+		return true;
+	}
+	if( memcmp(textMsg,".alwaysfriendly",15) == 0 )
+	{
+		cm->gmFlagAlwaysFriendly = !cm->gmFlagAlwaysFriendly;
+		if( cm->gmFlagAlwaysFriendly )
+			communicator_systemMessage(cm, "Enemy creatures will now NOT attack you on sight");
+		else
+			communicator_systemMessage(cm, "Enemy creatures will now attack you on sight");
+		return true;
+	}
 
 
 	//if( memcmp(textMsg,".spawner ",9) == 0 )
@@ -910,22 +980,51 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		}
 		return true;
 	}
-	//if( memcmp(textMsg, ".obj ", 5) == 0 )
-	//{
-	//	sint8 *pch = textMsg + 5;
-	//	if( *pch )
-	//	{
-	//		sint32 classId = 0;
-	//		sscanf(pch, "%d", &classId);
-	//		dynamicObject_developer_createCustom(cm->mapChannel, classId, cm->player->actor->posX, cm->player->actor->posY, cm->player->actor->posZ);
-	//		communicator_systemMessage(cm, "Created object");
-	//	}
-	//	else
-	//	{
-	//		communicator_systemMessage(cm, "Wrong syntax");
-	//	}
-	//	return true;
-	//}
+	if( memcmp(textMsg, ".obj ", 5) == 0 )
+	{
+		sint8 *pch = textMsg + 5;
+		if( *pch )
+		{
+			sint32 classId = 0;
+			sscanf(pch, "%d", &classId);
+			pyMarshalString_t pms;
+			// create object entity
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			sint64 randomEntityId = 100000 + rand()*6500 + rand();
+			pym_addInt(&pms, randomEntityId); // entityID
+			pym_addInt(&pms, classId); // classID
+			pym_addNoneStruct(&pms); // entityData (dunno)
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+			// set position
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			// position
+			pym_tuple_begin(&pms);
+			pym_addFloat(&pms, cm->player->actor->posX);	// x
+			pym_addFloat(&pms, cm->player->actor->posY+1.0f);	// y
+			pym_addFloat(&pms, cm->player->actor->posZ);	// z
+			pym_tuple_end(&pms); 
+			// rotation quaterninion
+			float qOut[4];
+
+			pym_tuple_begin(&pms);
+			pym_addFloat(&pms, 0.0f);
+			pym_addFloat(&pms, 0.0f);
+			pym_addFloat(&pms, 0.0f);
+			pym_addFloat(&pms, 1.0f);
+			pym_tuple_end(&pms);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, randomEntityId, 243, pym_getData(&pms), pym_getLen(&pms));	
+			communicator_systemMessage(cm, "Created object");
+		}
+		else
+		{
+			communicator_systemMessage(cm, "Wrong syntax");
+		}
+		return true;
+	}
 	if(  memcmp(textMsg,".teleport ",10) == 0 )
 	{
 		sint8 cmd[10];
@@ -1339,7 +1438,8 @@ void communicator_recv_whisper(mapChannelClient_t *cm, uint8 *pyString, sint32 p
 void communicator_init()
 {
 	Thread::InitMutex(&communicator.cs);
-	hashTable_init(&communicator.ht_playersByName, 2048); // 2048 players at max
+	hashTable_init(&communicator.ht_playersByName, 2048); // 2048 players
 	hashTable_init(&communicator.ht_channelsBySeed, 16); // 16 entries per default, more available (uint32 hashtable automatically expands)
 	hashTable_init(&communicator.ht_playersByEntityId, 16);
 }
+

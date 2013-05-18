@@ -83,7 +83,7 @@ void cb_DataInterface_teleporter_updateList(MYSQL *dbCon, diJob_teleporterData *
 	DataInterface_freeJob(job);
 }
 
-void DataInterface_teleporter_updateList( di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param)
+void DataInterface_teleporter_updateList(di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param)
 {	
 	diJob_teleporterData *job = (diJob_teleporterData*)DataInterface_allocJob(sizeof(diJob_teleporterData));
 	job->tdata = objectData;

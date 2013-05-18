@@ -596,3 +596,23 @@ void mission_buildRewardInfoTuple(mission_t* mission, pyMarshalString_t* pms)
 	pym_tuple_end(pms); 
 
 }
+
+/*
+ * Returns true if the passed creature/npc is a dispenser (mission giver) for the mission
+ * False is returned otherwise
+ * Also returns false when the creature/npc is just used for an objective (like 'Talk to NPC xyz')
+ */
+bool mission_isCreatureMissionDispenser(mission_t* mission, creature_t* creatureOrNPC)
+{
+	sint32 scriptLineTo = mission->stateMapping[1];
+	for(sint32 i=0; i<scriptLineTo; i++)
+	{
+		missionScriptLine_t* scriptline = mission->scriptLines + i;
+		if( scriptline->command == M_OP_DISPENSER )
+		{
+			if( (uint32)creatureOrNPC->type->typeId == (uint32)scriptline->value1 )
+				return true;
+		}
+	}
+	return false;
+}

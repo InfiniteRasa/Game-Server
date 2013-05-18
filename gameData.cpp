@@ -163,7 +163,10 @@ void _item_loadItemTemplates(void *param, diJob_itemTemplate_t *jobData)
 		itemTemplate->item.boundToCharacter = jobData->itemTemplateList[i].boundToCharacterFlag;
 		itemTemplate->item.notPlaceableInLockbox = jobData->itemTemplateList[i].notPlaceableInLockBoxFlag;
 		itemTemplate->item.inventoryCategory = jobData->itemTemplateList[i].inventoryCategory;
+		itemTemplate->item.buyPrice = jobData->itemTemplateList[i].buyPrice;
+		itemTemplate->item.sellPrice = jobData->itemTemplateList[i].sellPrice;
 		itemTemplate->item.reqLevel = jobData->itemTemplateList[i].reqLevel;
+		itemTemplate->item.stacksize = jobData->itemTemplateList[i].stacksize;
 		// validate some of the values
 		if( itemTemplate->item.inventoryCategory <= 0 )
 		{

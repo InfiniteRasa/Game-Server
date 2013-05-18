@@ -313,7 +313,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 		pym_addInt(&pms, 5); // dead
 		pym_list_end(&pms);
 		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, &creature->actor, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 206, pym_getData(&pms), pym_getLen(&pms));
 		// fix health
 		creature->actor.stats.healthCurrent = 0;
 	}
@@ -328,7 +328,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 			pym_tuple_begin(&pms);
 			pym_addInt(&pms, creature->type->npcData->npcPackageId); // the glorious npcPackageId
 			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, &creature->actor, creature->actor.entityId, 490, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 490, pym_getData(&pms), pym_getLen(&pms));
 		}
  	}
 }
@@ -346,7 +346,7 @@ void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 we
 			pym_tuple_begin(&pms);
 				// hue
 				pym_addInt(&pms, (sint32)( 0xFF808080			& 0xFF));
-				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)		& 0xFF));
 				pym_addInt(&pms, (sint32)((0xFF808080 >> 16)	& 0xFF));
 				pym_addInt(&pms, (sint32)((0xFF808080 >> 24)	& 0xFF));
 			pym_tuple_end(&pms);
@@ -354,7 +354,7 @@ void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 we
 			pym_tuple_begin(&pms);
 				// hue
 				pym_addInt(&pms, (sint32)( 0xFF808080			& 0xFF));
-				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)	& 0xFF));
+				pym_addInt(&pms, (sint32)((0xFF808080 >> 8)		& 0xFF));
 				pym_addInt(&pms, (sint32)((0xFF808080 >> 16)	& 0xFF));
 				pym_addInt(&pms, (sint32)((0xFF808080 >> 24)	& 0xFF));
 			pym_tuple_end(&pms);

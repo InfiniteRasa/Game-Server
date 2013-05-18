@@ -103,7 +103,7 @@ bool controller_checkForAttackableEntityInRange(mapChannel_t *mapChannel, creatu
 	float foundEntity_distance = range*range+100.0f; // value that is guaranteed to be higher than the found creature
 	uint64 foundEntity_entityId = 0;
 
-	// check all cells for players
+	// check all cells for players and other creatures
 	for(sint32 ix=minX; ix<=maxX; ix++)
 	{
 		for(sint32 iz=minZ; iz<=maxZ; iz++)
@@ -119,6 +119,8 @@ bool controller_checkForAttackableEntityInRange(mapChannel_t *mapChannel, creatu
 					{
 						mapChannelClient_t* player = itr[0];
 						++itr;
+						if( player->gmFlagAlwaysFriendly )
+							continue;
 						if( player->player->actor->stats.healthCurrent <= 0 )
 							continue;
 						// check distance

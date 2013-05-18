@@ -68,6 +68,7 @@ void spawnPool_setCriteriaCellCreatureCount(spawnPool_t *spawnPool, sint32 maxCo
 bool spawnPool_setCreatureVariant(spawnPool_t *spawnPool, sint32 index, sint8 *creatureTypeName);
 void spawnPool_initSpawnLocations(spawnPool_t *spawnPool, sint32 number);
 void spawnPool_setSpawnLocation(spawnPool_t *spawnPool, sint32 index, float x, float y, float z, uint16 typeMask);
+void spawnPool_activate(mapChannel_t *mapChannel, spawnPool_t *spawnPool);
 
 // count dropships
 void spawnPool_increaseQueueCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool);

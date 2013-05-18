@@ -550,6 +550,12 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case METHODID_REQUESTNPCVENDING: // RequestNPCVending
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
+	case RequestVendorSale:
+		npc_recv_RequestVendorSale(cm, pyString, pyStringLen);
+		return;
+	case RequestVendorPurchase:
+		npc_recv_RequestVendorPurchase(cm, pyString, pyStringLen);
+		return;
 	case 431: // CompleteNPCObjective
 		npc_recv_CompleteNPCObjective(cm, pyString, pyStringLen);
 		return;

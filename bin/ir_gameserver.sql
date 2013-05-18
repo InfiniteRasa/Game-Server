@@ -4,7 +4,7 @@ Source Host: localhost
 Source Database: ir_gameserver
 Target Host: localhost
 Target Database: ir_gameserver
-Date: 15.05.2013 23:53:23
+Date: 19.05.2013 01:15:08
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -69,7 +69,7 @@ CREATE TABLE `characters` (
   `posZ` float NOT NULL,
   `rotation` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=65 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=66 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Table structure for creature_action
@@ -113,7 +113,7 @@ CREATE TABLE `creature_type` (
   `action8` int(11) DEFAULT NULL,
   `wanderDistance` float NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=20 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for creature_type_npc
@@ -186,6 +186,9 @@ CREATE TABLE `itemtemplate` (
   `notPlaceableInLockBoxFlag` tinyint(4) NOT NULL DEFAULT '0',
   `inventoryCategory` tinyint(4) NOT NULL DEFAULT '0',
   `reqLevel` int(11) NOT NULL,
+  `buyPrice` int(11) NOT NULL,
+  `sellPrice` int(11) NOT NULL,
+  `stacksize` int(11) NOT NULL,
   `comment` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`itemTemplateId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -325,6 +328,7 @@ CREATE TABLE `spawnpool` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `mode` tinyint(2) NOT NULL,
   `animType` tinyint(2) NOT NULL,
+  `respawnTime` int(11) NOT NULL,
   `posx` float NOT NULL,
   `posy` float NOT NULL,
   `posz` float NOT NULL,
@@ -348,7 +352,7 @@ CREATE TABLE `spawnpool` (
   `creatureMinCount6` int(10) DEFAULT NULL,
   `creatureMaxCount6` int(10) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10000 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=10041 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for teleporter
@@ -371,22 +375,40 @@ CREATE TABLE `teleporter` (
 ) ENGINE=MyISAM AUTO_INCREMENT=45 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
+-- Table structure for vendor
+-- ----------------------------
+DROP TABLE IF EXISTS `vendor`;
+CREATE TABLE `vendor` (
+  `creatureTypeId` int(11) NOT NULL,
+  `vendorPackageId` int(11) NOT NULL,
+  PRIMARY KEY (`creatureTypeId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+-- ----------------------------
+-- Table structure for vendor_items
+-- ----------------------------
+DROP TABLE IF EXISTS `vendor_items`;
+CREATE TABLE `vendor_items` (
+  `creatureTypeId` int(11) NOT NULL,
+  `itemTemplateId` int(11) NOT NULL,
+  `sequence` int(11) NOT NULL,
+  `stacksize` int(11) NOT NULL,
+  PRIMARY KEY (`creatureTypeId`,`itemTemplateId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+-- ----------------------------
 -- Records 
 -- ----------------------------
-INSERT INTO `characters` VALUES ('50', 'Bootcamper', 'Warfare', '5', '1', '0', '1', '2', '18328', '4286611584', '18271', '4286611584', '18299', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3672', '4280300626', '18384', '4286611584', '18356', '4286611584', '20824', '4286886614', '0', '0', '0', '0', '0', '0', '0', '0', '1220', '184.43', '163.12', '-53.75', '0');
-INSERT INTO `characters` VALUES ('49', 'Richard', 'Garriott', '4', '1', '1', '2', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3672', '4280300626', '0', '0', '0', '0', '20824', '4286886614', '0', '0', '0', '0', '0', '0', '0', '0', '1991', '-87.67', '10', '100', '0');
-INSERT INTO `characters` VALUES ('48', 'OMG', 'WTF', '1', '1', '0', '1', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3672', '4280300626', '0', '0', '0', '0', '20824', '4286886614', '0', '0', '0', '0', '0', '0', '0', '0', '1220', '784', '295', '380', '0');
-INSERT INTO `characters` VALUES ('61', 'Wexx', 'Gronzer', '6', '1', '0', '2', '1', '10908', '4286611584', '7054', '4286611584', '10909', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3812', '4280300626', '7052', '4286611584', '7053', '4286611584', '24743', '4284117347', '0', '0', '0', '0', '0', '0', '0', '0', '1148', '-73.9', '116.9', '730.1', '0');
-INSERT INTO `characters` VALUES ('62', 'Anthrax', 'Dennton', '3', '1', '0', '4', '1', '10908', '4286611584', '7054', '4286611584', '10909', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3812', '4280300626', '7052', '4286611584', '7053', '4286611584', '24744', '4280891507', '0', '0', '25336', '4282551464', '0', '0', '0', '0', '1220', '894.9', '307.9', '347.1', '0');
-INSERT INTO `characters` VALUES ('63', 'Ololol', 'Name', '9', '1', '0', '1', '1', '10908', '4286611584', '7054', '4286611584', '10909', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '9782', '4280300626', '7052', '4286611584', '7053', '4286611584', '24005', '4286886614', '0', '0', '25336', '4282551464', '25346', '4280300626', '0', '0', '1220', '894.9', '307.9', '347.1', '0');
+INSERT INTO `characters` VALUES ('65', 'Richard', 'Garriott', '1', '1', '0', '1', '1', '10908', '4286611584', '7054', '4286611584', '10909', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '3672', '4280300626', '7052', '4286611584', '7053', '4286611584', '20824', '4286886614', '0', '0', '0', '0', '0', '0', '0', '0', '1220', '894.9', '307.9', '347.1', '0');
+INSERT INTO `characters` VALUES ('63', 'Salsa', 'Name', '9', '1', '0', '1', '1', '10908', '4286611584', '7054', '4286611584', '10909', '4286611584', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '9782', '4280300626', '7052', '4286611584', '7053', '4286611584', '24005', '4286886614', '0', '0', '25336', '4282551464', '25346', '4280300626', '0', '0', '1220', '894.9', '307.9', '347.1', '0');
 INSERT INTO `creature_action` VALUES ('1', 'melee attack thrax soldier', '174', '46', '0.5', '3.5', '1300', '500', '0', '5', '12');
 INSERT INTO `creature_action` VALUES ('2', 'range attack afs light soldier', '1', '133', '1', '20', '800', '500', '0', '10', '15');
 INSERT INTO `creature_action` VALUES ('3', 'thrax kick', '397', '1', '1', '4', '6000', '500', '950', '20', '22');
 INSERT INTO `creature_type` VALUES ('1', 'thrax_footsoldiers', '0', '25580', '0', '4', '9', '100', '1', '3', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('2', 'boargar_general_spawn', '0', '6031', '3', '6.2', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '4');
 INSERT INTO `creature_type` VALUES ('3', 'bane_stalkerspawn_general', '0', '3781', '0', '3.3', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '2');
-INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '5.9', '9', '250', '0', '0', '0', '0', '0', '0', '0', '0', '2');
-INSERT INTO `creature_type` VALUES ('5', 'forean_elder_normal', '0', '6163', '1', '4.9', '9', '200', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '3', '9', '250', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('5', 'forean_elder_normal', '0', '6163', '1', '3', '9', '200', '0', '0', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('6', 'afs_soldier_light_m', '0', '29765', '1', '5.7', '9', '210', '0', '0', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('7', 'afs_soldier_medium_f', '0', '29423', '1', '3', '9', '100', '2', '0', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('8', 'thrax_footsoldiers_rifle', '0', '25581', '0', '5.4', '9', '300', '0', '0', '0', '0', '0', '0', '0', '0', '3.5');
@@ -399,17 +421,191 @@ INSERT INTO `creature_type` VALUES ('14', 'Council Elder Solis', '3005', '22636'
 INSERT INTO `creature_type` VALUES ('15', 'Warrior Apirka', '2969', '22637', '1', '5', '8.5', '600', '2', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('16', 'Dying Forean', '0', '22637', '1', '0', '0', '1', null, null, null, null, null, null, null, null, '0');
 INSERT INTO `creature_type` VALUES ('17', 'Field Sgt. Witherspoon', '3072', '3846', '1', '5', '8.5', '550', '2', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type` VALUES ('18', 'young_forest_boargar', '7803', '6031', '3', '4.5', '7', '70', '0', '0', '0', '0', '0', '0', '0', '0', '3');
+INSERT INTO `creature_type` VALUES ('19', 'Supply Sergeant Maddrey', '8508', '20975', '1', '3', '9', '400', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('1', '13', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('2', '14', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('3', '15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('4', '16', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '726');
 INSERT INTO `creature_type_npc` VALUES ('5', '17', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `itemtemplate` VALUES ('17131', '27120', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '1', 'Weapon_Avatar_Pistol_Physical_UNC_01_to_04');
-INSERT INTO `itemtemplate` VALUES ('17384', '27220', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '1', 'Weapon_Avatar_Rifle_Physical_UNC_01_to_05');
-INSERT INTO `itemtemplate` VALUES ('45857', '23221', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '1', 'Motor Assist Helmet v9?');
-INSERT INTO `itemtemplate` VALUES ('122874', '29757', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '50', 'Test_Weapon_Avatar_Machinegun_V3');
-INSERT INTO `itemtemplate` VALUES ('127973', '23312', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '13', 'Motor Assist Boots v1?');
-INSERT INTO `itemtemplate` VALUES ('127982', '23323', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '13', 'Motor Assist Gloves v1?');
+INSERT INTO `creature_type_npc` VALUES ('6', '19', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `itemtemplate` VALUES ('28', '3147', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '2', '1', '50000', 'Standard Grade Cartridges - Ammo_Cartridge_1_Standard_Grade');
+INSERT INTO `itemtemplate` VALUES ('17131', '27120', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '1', '100', '26', '1', 'Weapon_Avatar_Pistol_Physical_UNC_01_to_04');
+INSERT INTO `itemtemplate` VALUES ('17384', '27220', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '1', '100', '26', '1', 'Weapon_Avatar_Rifle_Physical_UNC_01_to_05');
+INSERT INTO `itemtemplate` VALUES ('44917', '21969', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '50', '13', '100', 'Class I Basic Med Pack - Consumable_Medpack_01A_05');
+INSERT INTO `itemtemplate` VALUES ('44918', '21974', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '100', '26', '100', 'Class I Standard Med Pack - Consumable_Medpack_01B_05');
+INSERT INTO `itemtemplate` VALUES ('44919', '21975', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '200', '51', '100', 'Class I Advanced Med Pack - Consumable_Medpack_01C_05');
+INSERT INTO `itemtemplate` VALUES ('44920', '21976', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '100', '26', '100', 'Class II Basic Med Pack - Consumable_Medpack_02A_10');
+INSERT INTO `itemtemplate` VALUES ('44921', '21977', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '200', '51', '100', 'Class II Standard Med Pack - Consumable_Medpack_02B_10');
+INSERT INTO `itemtemplate` VALUES ('45031', '3147', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '2', '1', '50000', 'Standard Grade Cartridges - Ammo_Cartridge_1_Standard_Grade');
+INSERT INTO `itemtemplate` VALUES ('45047', '22530', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '400', '101', '100', 'Class II Advanced Med Pack - Consumable_Medpack_02C_10');
+INSERT INTO `itemtemplate` VALUES ('45048', '22531', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '150', '38', '100', 'Class III Basic Med Pack - Consumable_Medpack_03A_15');
+INSERT INTO `itemtemplate` VALUES ('45049', '22532', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '300', '76', '100', 'Class III Standard Med Pack - Consumable_Medpack_03B_15');
+INSERT INTO `itemtemplate` VALUES ('45050', '22533', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '600', '151', '100', 'Class III Advanced Med Pack - Consumable_Medpack_03C_15');
+INSERT INTO `itemtemplate` VALUES ('45051', '22534', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '200', '51', '100', 'Class IV Basic Med Pack - Consumable_Medpack_04A_20');
+INSERT INTO `itemtemplate` VALUES ('45052', '22535', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '400', '101', '100', 'Class IV Standard Med Pack - Consumable_Medpack_04B_20');
+INSERT INTO `itemtemplate` VALUES ('45053', '22536', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '800', '201', '100', 'Class IV Advanced Med Pack - Consumable_Medpack_04C_20');
+INSERT INTO `itemtemplate` VALUES ('45054', '22537', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '250', '63', '100', 'Class V Basic Med Pack - Consumable_Medpack_05A_25');
+INSERT INTO `itemtemplate` VALUES ('45055', '22538', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '500', '126', '100', 'Class V Standard Med Pack - Consumable_Medpack_05B_25');
+INSERT INTO `itemtemplate` VALUES ('45056', '22539', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '1000', '251', '100', 'Class V Advanced Med Pack - Consumable_Medpack_05C_25');
+INSERT INTO `itemtemplate` VALUES ('45057', '22540', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '300', '76', '100', 'Class VI Basic Med Pack - Consumable_Medpack_06A_30');
+INSERT INTO `itemtemplate` VALUES ('45058', '22541', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '600', '151', '100', 'Class VI Standard Med Pack - Consumable_Medpack_06B_30');
+INSERT INTO `itemtemplate` VALUES ('45059', '22542', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '1200', '301', '100', 'Class VI Advanced Med Pack - Consumable_Medpack_06C_30');
+INSERT INTO `itemtemplate` VALUES ('45060', '22543', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '350', '88', '100', 'Class VII Basic Med Pack - Consumable_Medpack_07A_35');
+INSERT INTO `itemtemplate` VALUES ('45061', '22544', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '700', '176', '100', 'Class VII Standard Med Pack - Consumable_Medpack_07B_35');
+INSERT INTO `itemtemplate` VALUES ('45062', '22545', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '1400', '351', '100', 'Class VII Advanced Med Pack - Consumable_Medpack_07C_35');
+INSERT INTO `itemtemplate` VALUES ('45063', '22546', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '400', '101', '100', 'Class VIII Basic Med Pack - Consumable_Medpack_08A_40');
+INSERT INTO `itemtemplate` VALUES ('45064', '22547', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '800', '201', '100', 'Class VIII Standard Med Pack - Consumable_Medpack_08B_40');
+INSERT INTO `itemtemplate` VALUES ('45065', '22548', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '1600', '401', '100', 'Class VIII Advanced Med Pack - Consumable_Medpack_08C_40');
+INSERT INTO `itemtemplate` VALUES ('45066', '22549', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '450', '113', '100', 'Class IX Basic Med Pack - Consumable_Medpack_09A_45');
+INSERT INTO `itemtemplate` VALUES ('45067', '22550', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '900', '226', '100', 'Class IX Standard Med Pack - Consumable_Medpack_09B_45');
+INSERT INTO `itemtemplate` VALUES ('45068', '22551', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '1800', '451', '100', 'Class IX Advanced Med Pack - Consumable_Medpack_09C_45');
+INSERT INTO `itemtemplate` VALUES ('45069', '22552', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '500', '126', '100', 'Class X Basic Med Pack - Consumable_Medpack_10A_50');
+INSERT INTO `itemtemplate` VALUES ('45070', '22553', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '1000', '251', '100', 'Class X Standard Med Pack - Consumable_Medpack_10B_50');
+INSERT INTO `itemtemplate` VALUES ('45071', '22554', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '2000', '501', '100', 'Class X Advanced Med Pack - Consumable_Medpack_10C_50');
+INSERT INTO `itemtemplate` VALUES ('45125', '22616', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '75', '20', '5000', 'Class I Fragmentation Grenade - Consumable_Grenade_Physical_01_05');
+INSERT INTO `itemtemplate` VALUES ('45133', '21975', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '200', '51', '100', 'Class I Advanced Med Pack - Consumable_Medpack_01C_05');
+INSERT INTO `itemtemplate` VALUES ('45441', '22957', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '6', '150', '38', '5000', 'Class II Fragmentation Grenade - Consumable_Grenade_Physical_02_10');
+INSERT INTO `itemtemplate` VALUES ('45442', '22959', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '11', '225', '57', '5000', 'Class III Fragmentation Grenade - Consumable_Grenade_Physical_03_15');
+INSERT INTO `itemtemplate` VALUES ('45443', '22960', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '16', '300', '76', '5000', 'Class IV Fragmentation Grenade - Consumable_Grenade_Physical_04_20');
+INSERT INTO `itemtemplate` VALUES ('45444', '22961', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '21', '375', '95', '5000', 'Class V Fragmentation Grenade - Consumable_Grenade_Physical_05_25');
+INSERT INTO `itemtemplate` VALUES ('45445', '22962', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '26', '450', '113', '5000', 'Class VI Fragmentation Grenade - Consumable_Grenade_Physical_06_30');
+INSERT INTO `itemtemplate` VALUES ('45446', '22963', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '31', '525', '132', '5000', 'Class VII Fragmentation Grenade - Consumable_Grenade_Physical_07_35');
+INSERT INTO `itemtemplate` VALUES ('45447', '22964', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '36', '600', '151', '5000', 'Class VIII Fragmentation Grenade - Consumable_Grenade_Physical_08_40');
+INSERT INTO `itemtemplate` VALUES ('45448', '22965', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '41', '675', '170', '5000', 'Class IX Fragmentation Grenade - Consumable_Grenade_Physical_09_45');
+INSERT INTO `itemtemplate` VALUES ('45449', '22966', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '46', '750', '188', '5000', 'Class X Fragmentation Grenade - Consumable_Grenade_Physical_10_50');
+INSERT INTO `itemtemplate` VALUES ('45857', '23221', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '1', '200', '51', '1', 'Motor Assist Helmet v9?');
+INSERT INTO `itemtemplate` VALUES ('47593', '23917', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '50', '13', '100', 'Class I Res Trauma Kit - Consumable_Res_Sickness_Kit_01_05');
+INSERT INTO `itemtemplate` VALUES ('47594', '23918', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '150', '38', '100', 'Class II Res Trauma Kit - Consumable_Res_Sickness_Kit_02_10');
+INSERT INTO `itemtemplate` VALUES ('47595', '23919', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '250', '63', '100', 'Class III Res Trauma Kit - Consumable_Res_Sickness_Kit_03_15');
+INSERT INTO `itemtemplate` VALUES ('47596', '23920', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '500', '126', '100', 'Class IV Res Trauma Kit - Consumable_Res_Sickness_Kit_04_20');
+INSERT INTO `itemtemplate` VALUES ('47597', '23921', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '750', '188', '100', 'Class V Res Trauma Kit - Consumable_Res_Sickness_Kit_05_25');
+INSERT INTO `itemtemplate` VALUES ('47598', '23922', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '1000', '251', '100', 'Class VI Res Trauma Kit - Consumable_Res_Sickness_Kit_06_30');
+INSERT INTO `itemtemplate` VALUES ('47599', '23923', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '2000', '501', '100', 'Class VII Res Trauma Kit - Consumable_Res_Sickness_Kit_07_35');
+INSERT INTO `itemtemplate` VALUES ('47600', '23924', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '3000', '751', '100', 'Class VIII Res Trauma Kit - Consumable_Res_Sickness_Kit_08_40');
+INSERT INTO `itemtemplate` VALUES ('47601', '23925', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '4000', '1001', '100', 'Class IX Res Trauma Kit - Consumable_Res_Sickness_Kit_09_45');
+INSERT INTO `itemtemplate` VALUES ('47602', '23926', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '5000', '1251', '100', 'Class X Res Trauma Kit - Consumable_Res_Sickness_Kit_10_50');
+INSERT INTO `itemtemplate` VALUES ('110903', '25930', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '4', '2', '50000', 'Improved Grade Cartridges - Ammo_Cartridge_2_Improved_Grade');
+INSERT INTO `itemtemplate` VALUES ('110904', '25931', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '8', '3', '50000', 'High Grade Cartridges - Ammo_Cartridge_3_High_Grade');
+INSERT INTO `itemtemplate` VALUES ('110905', '25932', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '20', '6', '50000', 'Select Grade Cartridges - Ammo_Cartridge_4_Select_Grade');
+INSERT INTO `itemtemplate` VALUES ('110906', '25933', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '50', '13', '50000', 'Elite Grade Cartridges - Ammo_Cartridge_5_Elite_Grade');
+INSERT INTO `itemtemplate` VALUES ('111012', '26262', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '80', '21', '5000', 'Class I Concussion Grenade - Consumable_Grenade_Sonic_01_05');
+INSERT INTO `itemtemplate` VALUES ('111013', '26263', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '6', '160', '41', '5000', 'Class II Concussion Grenade - Consumable_Grenade_Sonic_02_10');
+INSERT INTO `itemtemplate` VALUES ('111014', '26264', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '11', '240', '61', '5000', 'Class III Concussion Grenade - Consumable_Grenade_Sonic_03_15');
+INSERT INTO `itemtemplate` VALUES ('111015', '26265', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '16', '320', '81', '5000', 'Class IV Concussion Grenade - Consumable_Grenade_Sonic_04_20');
+INSERT INTO `itemtemplate` VALUES ('111016', '26266', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '21', '400', '101', '5000', 'Class V Concussion Grenade - Consumable_Grenade_Sonic_05_25');
+INSERT INTO `itemtemplate` VALUES ('111017', '26267', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '26', '480', '121', '5000', 'Class VI Concussion Grenade - Consumable_Grenade_Sonic_06_30');
+INSERT INTO `itemtemplate` VALUES ('111018', '26268', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '31', '560', '141', '5000', 'Class VII Concussion Grenade - Consumable_Grenade_Sonic_07_35');
+INSERT INTO `itemtemplate` VALUES ('111019', '26269', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '36', '640', '161', '5000', 'Class VIII Concussion Grenade - Consumable_Grenade_Sonic_08_40');
+INSERT INTO `itemtemplate` VALUES ('111020', '26270', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '41', '720', '181', '5000', 'Class IX Concussion Grenade - Consumable_Grenade_Sonic_09_45');
+INSERT INTO `itemtemplate` VALUES ('111021', '26271', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '46', '800', '201', '5000', 'Class X Concussion Grenade - Consumable_Grenade_Sonic_10_50');
+INSERT INTO `itemtemplate` VALUES ('111022', '26272', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '80', '21', '5000', 'Class I EMP Grenade - Consumable_Grenade_EMP_01_05');
+INSERT INTO `itemtemplate` VALUES ('111023', '26273', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '6', '160', '41', '5000', 'Class II EMP Grenade - Consumable_Grenade_EMP_02_10');
+INSERT INTO `itemtemplate` VALUES ('111024', '26274', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '11', '240', '61', '5000', 'Class III EMP Grenade - Consumable_Grenade_EMP_03_15');
+INSERT INTO `itemtemplate` VALUES ('111025', '26275', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '16', '320', '81', '5000', 'Class IV EMP Grenade - Consumable_Grenade_EMP_04_20');
+INSERT INTO `itemtemplate` VALUES ('111026', '26276', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '21', '400', '101', '5000', 'Class V EMP Grenade - Consumable_Grenade_EMP_05_25');
+INSERT INTO `itemtemplate` VALUES ('111027', '26277', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '26', '480', '121', '5000', 'Class VI EMP Grenade - Consumable_Grenade_EMP_06_30');
+INSERT INTO `itemtemplate` VALUES ('111028', '26278', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '31', '560', '141', '5000', 'Class VII EMP Grenade - Consumable_Grenade_EMP_07_35');
+INSERT INTO `itemtemplate` VALUES ('111029', '26279', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '36', '640', '161', '5000', 'Class VIII EMP Grenade - Consumable_Grenade_EMP_08_40');
+INSERT INTO `itemtemplate` VALUES ('111030', '26280', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '41', '720', '181', '5000', 'Class IX EMP Grenade - Consumable_Grenade_EMP_09_45');
+INSERT INTO `itemtemplate` VALUES ('111031', '26281', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '46', '800', '201', '5000', 'Class X EMP Grenade - Consumable_Grenade_EMP_10_50');
+INSERT INTO `itemtemplate` VALUES ('111032', '26282', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '75', '20', '5000', 'Class I Incendiary Grenade - Consumable_Grenade_Fire_01_05');
+INSERT INTO `itemtemplate` VALUES ('111033', '26283', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '6', '150', '38', '5000', 'Class II Incendiary Grenade - Consumable_Grenade_Fire_02_10');
+INSERT INTO `itemtemplate` VALUES ('111034', '26284', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '11', '225', '57', '5000', 'Class III Incendiary Grenade - Consumable_Grenade_Fire_03_15');
+INSERT INTO `itemtemplate` VALUES ('111035', '26285', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '16', '300', '76', '5000', 'Class IV Incendiary Grenade - Consumable_Grenade_Fire_04_20');
+INSERT INTO `itemtemplate` VALUES ('111036', '26286', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '21', '375', '95', '5000', 'Class V Incendiary Grenade - Consumable_Grenade_Fire_05_25');
+INSERT INTO `itemtemplate` VALUES ('111037', '26287', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '26', '450', '113', '5000', 'Class VI Incendiary Grenade - Consumable_Grenade_Fire_06_30');
+INSERT INTO `itemtemplate` VALUES ('111038', '26288', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '31', '525', '132', '5000', 'Class VII Incendiary Grenade - Consumable_Grenade_Fire_07_35');
+INSERT INTO `itemtemplate` VALUES ('111039', '26289', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '36', '600', '151', '5000', 'Class VIII Incendiary Grenade - Consumable_Grenade_Fire_08_40');
+INSERT INTO `itemtemplate` VALUES ('111040', '26290', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '41', '675', '170', '5000', 'Class IX Incendiary Grenade - Consumable_Grenade_Fire_09_45');
+INSERT INTO `itemtemplate` VALUES ('111041', '26291', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '46', '750', '188', '5000', 'Class X Incendiary Grenade - Consumable_Grenade_Fire_10_50');
+INSERT INTO `itemtemplate` VALUES ('111042', '26292', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '1', '100', '26', '5000', 'Class I Cryogenic Grenade - Consumable_Grenade_Ice_01_05');
+INSERT INTO `itemtemplate` VALUES ('111043', '26293', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '6', '200', '51', '5000', 'Class II Cryogenic Grenade - Consumable_Grenade_Ice_02_10');
+INSERT INTO `itemtemplate` VALUES ('111044', '26294', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '11', '300', '76', '5000', 'Class III Cryogenic Grenade - Consumable_Grenade_Ice_03_15');
+INSERT INTO `itemtemplate` VALUES ('111045', '26295', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '16', '400', '101', '5000', 'Class IV Cryogenic Grenade - Consumable_Grenade_Ice_04_20');
+INSERT INTO `itemtemplate` VALUES ('111046', '26296', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '21', '500', '126', '5000', 'Class V Cryogenic Grenade - Consumable_Grenade_Ice_05_25');
+INSERT INTO `itemtemplate` VALUES ('111047', '26297', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '26', '600', '151', '5000', 'Class VI Cryogenic Grenade - Consumable_Grenade_Ice_06_30');
+INSERT INTO `itemtemplate` VALUES ('111048', '26298', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '31', '700', '176', '5000', 'Class VII Cryogenic Grenade - Consumable_Grenade_Ice_07_35');
+INSERT INTO `itemtemplate` VALUES ('111049', '26299', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '36', '800', '201', '5000', 'Class VIII Cryogenic Grenade - Consumable_Grenade_Ice_08_40');
+INSERT INTO `itemtemplate` VALUES ('111050', '26300', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '41', '900', '226', '5000', 'Class IX Cryogenic Grenade - Consumable_Grenade_Ice_09_45');
+INSERT INTO `itemtemplate` VALUES ('111051', '26301', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '46', '1000', '251', '5000', 'Class X Cryogenic Grenade - Consumable_Grenade_Ice_10_50');
+INSERT INTO `itemtemplate` VALUES ('111133', '26386', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '100', '26', '5000', 'Class I Armor Charger - Consumable_Restore_Armor_Kit_05_to_09');
+INSERT INTO `itemtemplate` VALUES ('111135', '26388', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '2250', '563', '5000', 'Restore Power Kit - Consumable_Restore_Power_Kit_05_to_09');
+INSERT INTO `itemtemplate` VALUES ('111136', '26389', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '500', '126', '5000', 'Class I Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_05_to_09');
+INSERT INTO `itemtemplate` VALUES ('111227', '26537', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '500', '126', '5000', 'Class II EMP Bomb - Consumable_Bomb_EMP_02_10');
+INSERT INTO `itemtemplate` VALUES ('111228', '26538', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '1000', '251', '5000', 'Class III EMP Bomb - Consumable_Bomb_EMP_03_15');
+INSERT INTO `itemtemplate` VALUES ('111229', '26539', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '1500', '376', '5000', 'Class IV EMP Bomb - Consumable_Bomb_EMP_04_20');
+INSERT INTO `itemtemplate` VALUES ('111230', '26540', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '2000', '501', '5000', 'Class V EMP Bomb - Consumable_Bomb_EMP_05_25');
+INSERT INTO `itemtemplate` VALUES ('111231', '26541', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '3000', '751', '5000', 'Class VI EMP Bomb - Consumable_Bomb_EMP_06_30');
+INSERT INTO `itemtemplate` VALUES ('111232', '26542', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '4000', '1001', '5000', 'Class VII EMP Bomb - Consumable_Bomb_EMP_07_35');
+INSERT INTO `itemtemplate` VALUES ('111233', '26543', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '6000', '1501', '5000', 'Class VIII EMP Bomb - Consumable_Bomb_EMP_08_40');
+INSERT INTO `itemtemplate` VALUES ('111234', '26544', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '8000', '2001', '5000', 'Class IX EMP Bomb - Consumable_Bomb_EMP_09_45');
+INSERT INTO `itemtemplate` VALUES ('111235', '26545', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '10000', '2501', '5000', 'Class X EMP Bomb - Consumable_Bomb_EMP_10_50');
+INSERT INTO `itemtemplate` VALUES ('111238', '26537', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '500', '126', '5000', 'Class II EMP Bomb - Consumable_Bomb_EMP_02_10');
+INSERT INTO `itemtemplate` VALUES ('111239', '26538', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '1000', '251', '5000', 'Class III EMP Bomb - Consumable_Bomb_EMP_03_15');
+INSERT INTO `itemtemplate` VALUES ('111240', '26539', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '1500', '376', '5000', 'Class IV EMP Bomb - Consumable_Bomb_EMP_04_20');
+INSERT INTO `itemtemplate` VALUES ('111241', '26540', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '2000', '501', '5000', 'Class V EMP Bomb - Consumable_Bomb_EMP_05_25');
+INSERT INTO `itemtemplate` VALUES ('111242', '26541', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '3000', '751', '5000', 'Class VI EMP Bomb - Consumable_Bomb_EMP_06_30');
+INSERT INTO `itemtemplate` VALUES ('111243', '26542', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '4000', '1001', '5000', 'Class VII EMP Bomb - Consumable_Bomb_EMP_07_35');
+INSERT INTO `itemtemplate` VALUES ('111244', '26543', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '6000', '1501', '5000', 'Class VIII EMP Bomb - Consumable_Bomb_EMP_08_40');
+INSERT INTO `itemtemplate` VALUES ('111245', '26544', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '8000', '2001', '5000', 'Class IX EMP Bomb - Consumable_Bomb_EMP_09_45');
+INSERT INTO `itemtemplate` VALUES ('111246', '26545', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '10000', '2501', '5000', 'Class X EMP Bomb - Consumable_Bomb_EMP_10_50');
+INSERT INTO `itemtemplate` VALUES ('111247', '10000058', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '260', '66', '5000', 'Class I EMP Bomb - Consumable_Bomb_EMP_01_05');
+INSERT INTO `itemtemplate` VALUES ('117205', '26863', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '50', 'Smoke Grenade - Consumable_Smoke_Grenade');
+INSERT INTO `itemtemplate` VALUES ('117206', '26863', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '50', 'Smoke Grenade - Consumable_Smoke_Grenade');
+INSERT INTO `itemtemplate` VALUES ('117207', '26871', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Blue firework - Consumable_Fireworks_Blue');
+INSERT INTO `itemtemplate` VALUES ('117208', '26872', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Red firework - Consumable_Fireworks_Red');
+INSERT INTO `itemtemplate` VALUES ('117209', '26873', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Green firework - Consumable_Fireworks_Green');
+INSERT INTO `itemtemplate` VALUES ('117210', '26874', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'White firework - Consumable_Fireworks_White');
+INSERT INTO `itemtemplate` VALUES ('117211', '26875', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Orange firework - Consumable_Fireworks_Orange');
+INSERT INTO `itemtemplate` VALUES ('117212', '26876', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Purple firework - Consumable_Fireworks_Purple');
+INSERT INTO `itemtemplate` VALUES ('117213', '26877', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Yellow firework - Consumable_Fireworks_Yellow');
+INSERT INTO `itemtemplate` VALUES ('117214', '26878', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Firecrackers - Consumable_Fireworks_Blackcats');
+INSERT INTO `itemtemplate` VALUES ('117215', '26879', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Fountain firework - Consumable_Fireworks_Fountain');
+INSERT INTO `itemtemplate` VALUES ('117217', '26880', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '1000', 'Multi firework - Consumable_Fireworks_Multi');
+INSERT INTO `itemtemplate` VALUES ('117222', '26882', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '50', 'Flare Gun - Consumable_Flare_Gun_Red');
+INSERT INTO `itemtemplate` VALUES ('118781', '28416', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1000', '251', '50', 'One-Way Personal Waypoint - Consumable_Temp_Wormhole_1');
+INSERT INTO `itemtemplate` VALUES ('118782', '28417', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '2500', '626', '50', 'Two-Way Personal Waypoint - Consumable_Temp_Wormhole_2');
+INSERT INTO `itemtemplate` VALUES ('118783', '28418', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '5000', '1251', '50', 'Two-Way Squad Waypoint - Consumable_Temp_Wormhole_3');
+INSERT INTO `itemtemplate` VALUES ('118809', '28463', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '750', '188', '5000', 'Class II Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_10_to_14');
+INSERT INTO `itemtemplate` VALUES ('118810', '28464', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '1200', '301', '5000', 'Class III Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_15_to_19');
+INSERT INTO `itemtemplate` VALUES ('118811', '28465', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '1800', '451', '5000', 'Class IV Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_20_to_24');
+INSERT INTO `itemtemplate` VALUES ('118812', '28466', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '2800', '701', '5000', 'Class V Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_25_to_29');
+INSERT INTO `itemtemplate` VALUES ('118813', '28467', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '4400', '1101', '5000', 'Class VI Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_30_to_34');
+INSERT INTO `itemtemplate` VALUES ('118814', '28468', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '6700', '1676', '5000', 'Class VII Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_35_to_39');
+INSERT INTO `itemtemplate` VALUES ('118815', '28469', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '10300', '2576', '5000', 'Class VIII Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_40_to_44');
+INSERT INTO `itemtemplate` VALUES ('118816', '28470', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '16000', '4001', '5000', 'Class IX Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_45_to_49');
+INSERT INTO `itemtemplate` VALUES ('118817', '28471', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '25000', '6251', '5000', 'Class X Adrenaline Booster - Consumable_Restore_Adrenaline_Kit_50_to_54');
+INSERT INTO `itemtemplate` VALUES ('118893', '28484', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '200', '51', '5000', 'Class II Armor Charger - Consumable_Restore_Armor_Kit_10_to_14');
+INSERT INTO `itemtemplate` VALUES ('118894', '28485', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '300', '76', '5000', 'Class III Armor Charger - Consumable_Restore_Armor_Kit_15_to_19');
+INSERT INTO `itemtemplate` VALUES ('118895', '28486', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '400', '101', '5000', 'Class IV Armor Charger - Consumable_Restore_Armor_Kit_20_to_24');
+INSERT INTO `itemtemplate` VALUES ('118896', '28487', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '500', '126', '5000', 'Class V Armor Charger - Consumable_Restore_Armor_Kit_25_to_29');
+INSERT INTO `itemtemplate` VALUES ('118897', '28488', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '600', '151', '5000', 'Class VI Armor Charger - Consumable_Restore_Armor_Kit_30_to_34');
+INSERT INTO `itemtemplate` VALUES ('118898', '28489', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '700', '176', '5000', 'Class VII Armor Charger - Consumable_Restore_Armor_Kit_35_to_39');
+INSERT INTO `itemtemplate` VALUES ('118899', '28490', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '800', '201', '5000', 'Class VIII Armor Charger - Consumable_Restore_Armor_Kit_40_to_44');
+INSERT INTO `itemtemplate` VALUES ('118900', '28491', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '900', '226', '5000', 'Class IX Armor Charger - Consumable_Restore_Armor_Kit_45_to_49');
+INSERT INTO `itemtemplate` VALUES ('118901', '28492', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '1000', '251', '5000', 'Class X Armor Charger - Consumable_Restore_Armor_Kit_50_to_54');
+INSERT INTO `itemtemplate` VALUES ('118902', '28493', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '10', '3000', '751', '5000', 'Class II Power Charger - Consumable_Restore_Power_Kit_10_to_14');
+INSERT INTO `itemtemplate` VALUES ('118903', '28494', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '15', '3750', '938', '5000', 'Class III Power Charger - Consumable_Restore_Power_Kit_15_to_19');
+INSERT INTO `itemtemplate` VALUES ('118904', '28495', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '20', '4500', '1126', '5000', 'Class IV Power Charger - Consumable_Restore_Power_Kit_20_to_24');
+INSERT INTO `itemtemplate` VALUES ('118905', '28496', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '25', '5250', '1313', '5000', 'Class V Power Charger - Consumable_Restore_Power_Kit_25_to_29');
+INSERT INTO `itemtemplate` VALUES ('118906', '28497', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '30', '6000', '1501', '5000', 'Class VI Power Charger - Consumable_Restore_Power_Kit_30_to_34');
+INSERT INTO `itemtemplate` VALUES ('118907', '28498', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '35', '6750', '1688', '5000', 'Class VII Power Charger - Consumable_Restore_Power_Kit_35_to_39');
+INSERT INTO `itemtemplate` VALUES ('118908', '28499', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '40', '7500', '1876', '5000', 'Class VIII Power Charger - Consumable_Restore_Power_Kit_40_to_44');
+INSERT INTO `itemtemplate` VALUES ('118909', '28500', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '45', '8250', '2063', '5000', 'Class IX Power Charger - Consumable_Restore_Power_Kit_45_to_49');
+INSERT INTO `itemtemplate` VALUES ('118910', '28501', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '50', '9000', '2251', '5000', 'Class X Power Charger - Consumable_Restore_Power_Kit_50_to_54');
+INSERT INTO `itemtemplate` VALUES ('121683', '28888', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '500', '126', '5000', 'Mag Flash Grenade - Consumable_Magflash_Grenade');
+INSERT INTO `itemtemplate` VALUES ('122034', '29110', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'Attribute Respec Token - Consumable_Respec_Attributes');
+INSERT INTO `itemtemplate` VALUES ('122035', '29111', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'Skill Respec Token - Consumable_Respec_Skills');
+INSERT INTO `itemtemplate` VALUES ('122036', '29112', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'Experience Booster - Consumable_XP_Booster');
+INSERT INTO `itemtemplate` VALUES ('122874', '29757', '2', '1', '1', '0', '0', '0', '0', '0', '0', '1', '50', '25000', '6251', '1', 'Test_Weapon_Avatar_Machinegun_V3');
+INSERT INTO `itemtemplate` VALUES ('127973', '23312', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '13', '1275', '320', '1', 'Motor Assist Boots v1?');
+INSERT INTO `itemtemplate` VALUES ('127982', '23323', '2', '2', '1', '0', '0', '0', '0', '0', '0', '1', '13', '850', '213', '1', 'Motor Assist Gloves v1?');
+INSERT INTO `itemtemplate` VALUES ('131919', '30586', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'PAU Angel Activator - Consumable_PAU_Angle_Booster');
+INSERT INTO `itemtemplate` VALUES ('131920', '30587', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'PAU Vulcan Activator - Consumable_PAU_Vulcan_Booster');
+INSERT INTO `itemtemplate` VALUES ('131921', '30586', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '1', '1', '100', 'PAU Angel Activator - Consumable_PAU_Angle_Booster');
+INSERT INTO `itemtemplate` VALUES ('131966', '30653', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '0', '25000', '6251', '100', 'Hyper Experience Booster - Consumable_XP_Booster_Sunset');
+INSERT INTO `itemtemplate` VALUES ('10000002', '10000058', '2', '3', '1', '0', '0', '0', '0', '0', '0', '2', '5', '260', '66', '5000', 'Class I EMP Bomb - Consumable_Bomb_EMP_01_05');
 INSERT INTO `itemtemplate_armor` VALUES ('45857', '10', '2', '656');
 INSERT INTO `itemtemplate_armor` VALUES ('127973', '15', '4', '1805');
 INSERT INTO `itemtemplate_armor` VALUES ('127982', '18', '3', '1204');
@@ -23108,13 +23304,64 @@ INSERT INTO `pathnodes` VALUES ('2', '-858993460', '-858993460', '-107374000', '
 INSERT INTO `pathnodes` VALUES ('3', '-858993460', '-858993460', '-107374000', '-107374000', '-107374000', '-858993460');
 INSERT INTO `pathnodes` VALUES ('4', '31', '1220', '0', '-3.40282e38', '0', '22756288');
 INSERT INTO `pathnodes` VALUES ('5', '31', '1220', '176.902', '163.381', '-50.293', '1');
-INSERT INTO `spawnpool` VALUES ('108', '0', '0', '845', '294.027', '385.156', '1220', '7', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('109', '0', '0', '858.855', '294.21', '388', '1220', '13', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('110', '0', '0', '789.593', '287.281', '581.644', '1220', '14', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('111', '0', '0', '826.898', '301.39', '506.371', '1220', '15', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('112', '0', '0', '306.136', '271.4', '438.07', '1220', '16', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('107', '0', '0', '501.5', '238.8', '214', '1220', '17', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('108', '0', '0', '0', '845', '294.027', '385.156', '1220', '7', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('109', '0', '0', '0', '858.855', '294.21', '388', '1220', '13', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('110', '0', '0', '0', '789.593', '287.281', '581.644', '1220', '14', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('111', '0', '0', '0', '826.898', '301.39', '506.371', '1220', '15', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('112', '0', '0', '0', '306.136', '271.4', '438.07', '1220', '16', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('107', '0', '0', '0', '501.5', '238.8', '214', '1220', '17', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('113', '0', '0', '0', '680.64', '286.48', '474.38', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10001', '0', '0', '0', '685.66', '289.75', '496.92', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10009', '0', '0', '80', '728.199', '294.583', '440.43', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10010', '0', '0', '80', '700.992', '285.059', '440.254', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10011', '0', '0', '80', '702.129', '285.059', '455.516', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10012', '0', '0', '80', '708.789', '286.313', '472.664', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10013', '0', '0', '80', '661.293', '289.856', '456.723', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10014', '0', '0', '80', '645.824', '287.38', '434.973', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10015', '0', '0', '80', '615.867', '287.013', '430.449', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10016', '0', '0', '80', '622.312', '288.86', '407.727', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10017', '0', '0', '80', '636.555', '288.235', '387.828', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10018', '0', '0', '80', '630.441', '288.477', '358.746', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10019', '0', '0', '80', '607.52', '289.759', '392.902', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10020', '0', '0', '80', '586.16', '290.43', '391.68', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10021', '0', '0', '80', '604.543', '288.899', '360.438', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10022', '0', '0', '80', '569.602', '298.473', '415.531', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10023', '0', '0', '80', '552.766', '300.688', '406.445', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10024', '0', '0', '80', '538.066', '299.403', '428.578', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10025', '0', '0', '80', '524.602', '302.446', '419.125', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10026', '0', '0', '80', '511.234', '304.294', '436.996', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10027', '0', '0', '80', '515.309', '300.555', '455.828', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10028', '0', '0', '80', '545.148', '288.13', '472.844', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10029', '0', '0', '80', '577.188', '288.419', '454.75', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10030', '0', '0', '80', '590.043', '287.919', '440.422', '1220', '2', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10031', '0', '0', '80', '833.754', '299.989', '411.469', '1220', '4', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10032', '0', '0', '80', '833.98', '301.544', '495.238', '1220', '4', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10033', '0', '0', '80', '786.738', '301.544', '513.727', '1220', '4', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10034', '0', '0', '80', '754.324', '294.216', '418.133', '1220', '4', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10035', '0', '0', '80', '815.879', '294.47', '396.441', '1220', '5', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10036', '0', '0', '80', '812.945', '294.677', '383.363', '1220', '5', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10037', '0', '1', '25', '778.52', '280.544', '606.699', '1220', '8', '1', '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10038', '0', '1', '80', '607.492', '287.013', '430.625', '1220', '8', '1', '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10039', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10040', '0', '0', '0', '754.359', '294.169', '396.984', '1220', '19', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `teleporter` VALUES ('41', '8', '', '807.316', '294.055', '391.301', '0', '0', '0', '0', '0', '57');
 INSERT INTO `teleporter` VALUES ('42', '8', '', '508.633', '238.461', '224.934', '0', '0', '0', '0', '0', '49');
 INSERT INTO `teleporter` VALUES ('43', '8', '', '153.156', '163.004', '-110.672', '0', '0', '0', '0', '0', '61');
 INSERT INTO `teleporter` VALUES ('44', '8', '', '-142.109', '220.27', '-499.461', '0', '0', '0', '0', '0', '51');
+INSERT INTO `vendor` VALUES ('19', '10');
+INSERT INTO `vendor_items` VALUES ('19', '28', '10', '200');
+INSERT INTO `vendor_items` VALUES ('19', '45031', '11', '200');
+INSERT INTO `vendor_items` VALUES ('19', '45125', '0', '200');
+INSERT INTO `vendor_items` VALUES ('19', '45441', '5', '200');
+INSERT INTO `vendor_items` VALUES ('19', '110903', '12', '200');
+INSERT INTO `vendor_items` VALUES ('19', '110904', '13', '200');
+INSERT INTO `vendor_items` VALUES ('19', '110905', '14', '200');
+INSERT INTO `vendor_items` VALUES ('19', '110906', '15', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111012', '1', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111013', '6', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111022', '2', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111023', '7', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111032', '3', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111033', '8', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111042', '4', '200');
+INSERT INTO `vendor_items` VALUES ('19', '111043', '9', '200');
