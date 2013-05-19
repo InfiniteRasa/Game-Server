@@ -4,6 +4,7 @@ pyMarshalString::pyMarshalString()
 {
 	this->Init();
 	// todo: dynamic buffer allocation ?
+	//		 global buffer pointer instead of local buffer?
 }
 
 pyMarshalString::~pyMarshalString()
@@ -233,36 +234,40 @@ unsigned int pyMarshalString::Length()
 
 ////////////////////////////////////////////////////
 
-pyMarshalString& pyMarshalString::operator<<(int value)
-{
-	this->AddInt(value);
-	return *this;
-}
+pyMarshalString& pyMarshalString::operator<<(uint64 value)
+{ this->AddInt(value); return *this; } // need to cast?
+
+pyMarshalString& pyMarshalString::operator<<(sint64 value)
+{ this->AddInt(value); return *this; }
+
+pyMarshalString& pyMarshalString::operator<<(uint32 value)
+{ this->AddInt(value); return *this; }
+
+pyMarshalString& pyMarshalString::operator<<(sint32 value)
+{ this->AddInt(value); return *this; }
+
+pyMarshalString& pyMarshalString::operator<<(uint16 value)
+{ this->AddInt(value); return *this; }
+
+pyMarshalString& pyMarshalString::operator<<(sint16 value)
+{ this->AddInt(value); return *this; }
 
 pyMarshalString& pyMarshalString::operator<<(char* value)
-{
-	this->AddString(value);
-	return *this;
-}
+{ this->AddString(value); return *this; }
 
 pyMarshalString& pyMarshalString::operator<<(bool value)
-{
-	this->AddBool(value);
-	return *this;
-}
+{ this->AddBool(value); return *this; }
 
 pyMarshalString& pyMarshalString::operator<<(float value)
-{
-	this->AddFloat(value);
-	return *this;
-}
+{ this->AddFloat(value); return *this; }
 
 pyMarshalString& pyMarshalString::operator<<(char value)
 {
-	if (value == '(') { this->TupleBegin(); }
-	if (value == ')') { this->TupleEnd();   }
-	if (value == '[') { this->ListBegin();  }
-	if (value == ']') { this->ListEnd();    }
+	if (value == '(') { this->TupleBegin();		}
+	if (value == ')') { this->TupleEnd();		}
+	if (value == '[') { this->ListBegin();		}
+	if (value == ']') { this->ListEnd();		}
+	if (value == 'N') { this->AddNoneStruct();	}
 
 	return *this;
 }
