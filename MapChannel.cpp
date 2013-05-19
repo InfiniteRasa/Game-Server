@@ -322,36 +322,39 @@ void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *par
 
 void mapChannel_launchMissileForWeapon(mapChannelClient_t* client, item_t* weapon)
 {
-	switch(weapon->itemTemplate->weapon.toolType)
-	{
-	case 9:
-		if(weapon->itemTemplate->item.classId == 29395)
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 120, 1, 287); 
-		else
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 40, 1, 121); 
-		break;
-	case 10:
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 90, 1, 6); 
-		break;
-	case 8:
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 15, 1, 133); 
-		break;
-	case 7:
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 25, 1, 134); 
-		break;
-	case 15:
-		if(weapon->itemTemplate->item.classId == 29757)
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 7); 
-		else
-			missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 1); 
-		break;
-	case 22:
-		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 1, 3); 
-		break;
-	default:
-		printf("mapChannel_launchMissileForWeapon(): unknown weapontype\n");
-		return;
-	}
+	sint32 damageRange = weapon->itemTemplate->weapon.maxDamage-weapon->itemTemplate->weapon.minDamage;
+	damageRange = max(damageRange, 1); // to avoid division by zero in the next line
+	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, weapon->itemTemplate->weapon.minDamage+(rand()%damageRange), weapon->itemTemplate->weapon.altActionId, weapon->itemTemplate->weapon.altActionArg); 
+	//switch(weapon->itemTemplate->weapon.toolType)
+	//{
+	//case 9:
+	//	if(weapon->itemTemplate->item.classId == 29395)
+	//		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 120, 1, 287); 
+	//	else
+	//		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 40, 1, 121); 
+	//	break;
+	//case 10:
+	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 90, 1, 6); 
+	//	break;
+	//case 8:
+	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 15, 1, 133); 
+	//	break;
+	//case 7:
+	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 25, 1, 134); 
+	//	break;
+	//case 15:
+	//	if(weapon->itemTemplate->item.classId == 29757)
+	//		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 149, 7); 
+	//	else
+	//		missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 1, 133);//149, 1); 
+	//	break;
+	//case 22:
+	//	missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, 20, 1, 3); 
+	//	break;
+	//default:
+	//	printf("mapChannel_launchMissileForWeapon(): unknown weapontype\n");
+	//	return;
+	//}
 }
 
 

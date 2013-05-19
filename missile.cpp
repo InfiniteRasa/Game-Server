@@ -18,7 +18,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	void *entity = entityMgr_get(targetEntityId);
 	if( entity == NULL )
 	{
-		printf("the missile target doesnt exist: %u\n",targetEntityId);
+		printf("the missile target doesnt exist: %u\n", targetEntityId);
 		// entity does not exist
 		return;
 	}
@@ -60,7 +60,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	pym_addInt(&pms, missile.actionId); // actionId
 	pym_addInt(&pms, missile.argId); // actionArgId (subaction)
 	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, origin, origin->entityId, 126, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, origin, origin->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
 	// append to list
 	mapChannel->missileInfo.list.push_back(missile);
 }
