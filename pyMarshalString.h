@@ -1,5 +1,6 @@
-#include <string>
+
 #pragma once
+#include "Global.h"
 
 #define BUFFER_SIZE 2048
 typedef struct
@@ -43,10 +44,19 @@ class pyMarshalString
 		unsigned char* Data();
 		unsigned int Length();
 
-		pyMarshalString& operator<<(int   value);
+		// custom types
+		pyMarshalString& operator<<(uint64 value);
+		pyMarshalString& operator<<(sint64 value);
+		pyMarshalString& operator<<(uint32 value);
+		pyMarshalString& operator<<(sint32 value);
+		pyMarshalString& operator<<(uint16 value);
+		pyMarshalString& operator<<(sint16 value);
+		// default types
 		pyMarshalString& operator<<(char* value);
 		pyMarshalString& operator<<(bool  value);
 		pyMarshalString& operator<<(float value);
-
+		// char shortcuts
 		pyMarshalString& operator<<(char  value);
+
+		
 };
