@@ -316,13 +316,14 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		// set attributes - Recv_AttributeInfo (29)
 		manifestation_buildAttributeInfoPacket(client, &pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
-		// PreloadData
-		pym_init(&pms);
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 0); // weaponId
-		pym_addInt(&pms, 25); // abilities
-		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
+		// doesnt seem important (its only for loading gfx early?)
+		//// PreloadData
+		//pym_init(&pms);
+		//pym_tuple_begin(&pms);
+		//pym_addInt(&pms, 0); // weaponId
+		//pym_addInt(&pms, 25); // abilities
+		//pym_tuple_end(&pms);
+		//netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
 		// Recv_AppearanceData (27)
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
@@ -1328,6 +1329,7 @@ void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 p
 	netMovement.posY24b = cm->player->actor->posY * 256.0f;
 	netMovement.posZ24b = cm->player->actor->posZ * 256.0f;
 	netMgr_sendEntityMovement(cm->cgm, &netMovement);
+
 
 	// rebuild players  health/status /etc..
 	cm->player->actor->stats.healthCurrent = cm->player->actor->stats.healthCurrentMax;

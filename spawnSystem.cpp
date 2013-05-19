@@ -90,9 +90,8 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 	sint32 rSpawnLoc = rand()%spawnPool->locationCount;
 	spawnLocation_t *location = spawnPool->locationList+rSpawnLoc;
 	// is spawnpoint cooled down?
-	/*if( (time-location->lastSpawnTime) < spawnPool->spawnLocationLockTime)
+	if( time < spawnPool->spawnLockTime )
 		return true;
-	location->lastSpawnTime = time;*/
 	// create list of units to spawn
 	creatureType_t* spawnTypeList[64];
 	sint32 spawnTypeCount = 0;
@@ -171,6 +170,8 @@ void spawnPool_increaseQueueCount(mapChannel_t *mapChannel, spawnPool_t *spawnPo
 void spawnPool_decreaseQueueCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool)
 {
 	spawnPool->dropshipQueue--;
+	if( (spawnPool->dropshipQueue + spawnPool->queuedCreatures + spawnPool->aliveCreatures) == 0 )
+		spawnPool->spawnLockTime = GetTickCount() + spawnPool->respawnTime;
 }
 
 void spawnPool_increaseAliveCreatureCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool)
@@ -191,6 +192,8 @@ void spawnPool_increaseQueuedCreatureCount(mapChannel_t *mapChannel, spawnPool_t
 void spawnPool_decreaseAliveCreatureCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool)
 {
 	spawnPool->aliveCreatures--;
+	if( (spawnPool->dropshipQueue + spawnPool->queuedCreatures + spawnPool->aliveCreatures) == 0 )
+		spawnPool->spawnLockTime = GetTickCount() + spawnPool->respawnTime;
 }
 
 void spawnPool_decreaseDeadCreatureCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool)
@@ -201,6 +204,8 @@ void spawnPool_decreaseDeadCreatureCount(mapChannel_t *mapChannel, spawnPool_t *
 void spawnPool_decreaseQueuedCreatureCount(mapChannel_t *mapChannel, spawnPool_t *spawnPool, sint32 count)
 {
 	spawnPool->queuedCreatures-=count;
+	if( (spawnPool->dropshipQueue + spawnPool->queuedCreatures + spawnPool->aliveCreatures) == 0 )
+		spawnPool->spawnLockTime = GetTickCount() + spawnPool->respawnTime;
 }
 
 //###################################### init spawnpool #####################################
@@ -226,6 +231,8 @@ void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnpool_t *jobData)
 
 	spawnPool->animType = jobData->animType;
 	spawnPool->mode = jobData->mode;
+
+	spawnPool->respawnTime = jobData->respawnTime * 1000; // convert to ms
 
 	for(sint32 spawnSlot=0; spawnSlot<SPAWNPOOL_SPAWNSLOTS; spawnSlot++)
 	{

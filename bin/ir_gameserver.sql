@@ -4,7 +4,7 @@ Source Host: localhost
 Source Database: ir_gameserver
 Target Host: localhost
 Target Database: ir_gameserver
-Date: 19.05.2013 01:15:08
+Date: 19.05.2013 16:29:18
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -88,7 +88,7 @@ CREATE TABLE `creature_action` (
   `minDamage` int(10) NOT NULL,
   `maxDamage` int(10) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Table structure for creature_type
@@ -404,10 +404,13 @@ INSERT INTO `characters` VALUES ('63', 'Salsa', 'Name', '9', '1', '0', '1', '1',
 INSERT INTO `creature_action` VALUES ('1', 'melee attack thrax soldier', '174', '46', '0.5', '3.5', '1300', '500', '0', '5', '12');
 INSERT INTO `creature_action` VALUES ('2', 'range attack afs light soldier', '1', '133', '1', '20', '800', '500', '0', '10', '15');
 INSERT INTO `creature_action` VALUES ('3', 'thrax kick', '397', '1', '1', '4', '6000', '500', '950', '20', '22');
+INSERT INTO `creature_action` VALUES ('4', 'young boargar melee', '174', '10', '1', '4', '2500', '500', '0', '10', '20');
+INSERT INTO `creature_action` VALUES ('5', 'forean spearman melee', '174', '11', '1', '6', '3000', '500', '0', '10', '45');
+INSERT INTO `creature_action` VALUES ('6', 'forean spearman lighting', '203', '1', '5', '20', '2800', '500', '0', '5', '30');
 INSERT INTO `creature_type` VALUES ('1', 'thrax_footsoldiers', '0', '25580', '0', '4', '9', '100', '1', '3', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('2', 'boargar_general_spawn', '0', '6031', '3', '6.2', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '4');
 INSERT INTO `creature_type` VALUES ('3', 'bane_stalkerspawn_general', '0', '3781', '0', '3.3', '9', '100', '0', '0', '0', '0', '0', '0', '0', '0', '2');
-INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '3', '9', '250', '0', '0', '0', '0', '0', '0', '0', '0', '2');
+INSERT INTO `creature_type` VALUES ('4', 'forean_spearman_normal', '0', '6043', '1', '3', '9', '250', '5', '6', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('5', 'forean_elder_normal', '0', '6163', '1', '3', '9', '200', '0', '0', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('6', 'afs_soldier_light_m', '0', '29765', '1', '5.7', '9', '210', '0', '0', '0', '0', '0', '0', '0', '0', '2');
 INSERT INTO `creature_type` VALUES ('7', 'afs_soldier_medium_f', '0', '29423', '1', '3', '9', '100', '2', '0', '0', '0', '0', '0', '0', '0', '2');
@@ -421,7 +424,7 @@ INSERT INTO `creature_type` VALUES ('14', 'Council Elder Solis', '3005', '22636'
 INSERT INTO `creature_type` VALUES ('15', 'Warrior Apirka', '2969', '22637', '1', '5', '8.5', '600', '2', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('16', 'Dying Forean', '0', '22637', '1', '0', '0', '1', null, null, null, null, null, null, null, null, '0');
 INSERT INTO `creature_type` VALUES ('17', 'Field Sgt. Witherspoon', '3072', '3846', '1', '5', '8.5', '550', '2', '0', '0', '0', '0', '0', '0', '0', '0');
-INSERT INTO `creature_type` VALUES ('18', 'young_forest_boargar', '7803', '6031', '3', '4.5', '7', '70', '0', '0', '0', '0', '0', '0', '0', '0', '3');
+INSERT INTO `creature_type` VALUES ('18', 'young_forest_boargar', '7803', '6031', '3', '4.5', '7', '70', '4', '0', '0', '0', '0', '0', '0', '0', '3');
 INSERT INTO `creature_type` VALUES ('19', 'Supply Sergeant Maddrey', '8508', '20975', '1', '3', '9', '400', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('1', '13', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('2', '14', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
@@ -23304,14 +23307,14 @@ INSERT INTO `pathnodes` VALUES ('2', '-858993460', '-858993460', '-107374000', '
 INSERT INTO `pathnodes` VALUES ('3', '-858993460', '-858993460', '-107374000', '-107374000', '-107374000', '-858993460');
 INSERT INTO `pathnodes` VALUES ('4', '31', '1220', '0', '-3.40282e38', '0', '22756288');
 INSERT INTO `pathnodes` VALUES ('5', '31', '1220', '176.902', '163.381', '-50.293', '1');
-INSERT INTO `spawnpool` VALUES ('108', '0', '0', '0', '845', '294.027', '385.156', '1220', '7', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('109', '0', '0', '0', '858.855', '294.21', '388', '1220', '13', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('110', '0', '0', '0', '789.593', '287.281', '581.644', '1220', '14', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('111', '0', '0', '0', '826.898', '301.39', '506.371', '1220', '15', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('112', '0', '0', '0', '306.136', '271.4', '438.07', '1220', '16', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('107', '0', '0', '0', '501.5', '238.8', '214', '1220', '17', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('113', '0', '0', '0', '680.64', '286.48', '474.38', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('10001', '0', '0', '0', '685.66', '289.75', '496.92', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('108', '0', '0', '80', '845', '294.027', '385.156', '1220', '7', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('109', '0', '0', '80', '858.855', '294.21', '388', '1220', '13', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('110', '0', '0', '80', '789.593', '287.281', '581.644', '1220', '14', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('111', '0', '0', '80', '826.898', '301.39', '506.371', '1220', '15', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('112', '0', '0', '80', '306.136', '271.4', '438.07', '1220', '16', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('107', '0', '0', '80', '501.5', '238.8', '214', '1220', '17', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('113', '0', '0', '80', '680.64', '286.48', '474.38', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+INSERT INTO `spawnpool` VALUES ('10001', '0', '0', '80', '685.66', '289.75', '496.92', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10009', '0', '0', '80', '728.199', '294.583', '440.43', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10010', '0', '0', '80', '700.992', '285.059', '440.254', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10011', '0', '0', '80', '702.129', '285.059', '455.516', '1220', '18', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
@@ -23342,7 +23345,6 @@ INSERT INTO `spawnpool` VALUES ('10035', '0', '0', '80', '815.879', '294.47', '3
 INSERT INTO `spawnpool` VALUES ('10036', '0', '0', '80', '812.945', '294.677', '383.363', '1220', '5', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10037', '0', '1', '25', '778.52', '280.544', '606.699', '1220', '8', '1', '4', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10038', '0', '1', '80', '607.492', '287.013', '430.625', '1220', '8', '1', '3', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-INSERT INTO `spawnpool` VALUES ('10039', '0', '0', '0', '0', '0', '0', '0', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `spawnpool` VALUES ('10040', '0', '0', '0', '754.359', '294.169', '396.984', '1220', '19', '1', '1', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 INSERT INTO `teleporter` VALUES ('41', '8', '', '807.316', '294.055', '391.301', '0', '0', '0', '0', '0', '57');
 INSERT INTO `teleporter` VALUES ('42', '8', '', '508.633', '238.461', '224.934', '0', '0', '0', '0', '0', '49');

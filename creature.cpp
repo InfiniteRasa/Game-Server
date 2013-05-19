@@ -139,7 +139,6 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addNoneStruct(&pms); // entityData (dunno)
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
-
 	// set attributes - Recv_AttributeInfo (29)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -244,7 +243,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addFloat(&pms, 1.0f);
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->mapChannel, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 243, pym_getData(&pms), pym_getLen(&pms));
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, creature->type->faction); // 'HOSTILE'

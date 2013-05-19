@@ -46,6 +46,10 @@ typedef struct _spawnPool_t
 	sint32 queuedCreatures; // number of creatures that are spawning right now (i.e. delivered via dropship)
 	sint32 aliveCreatures; // number of spawned creatures that are alive
 	sint32 deadCreatures; // number of spawned creatures that are dead (either killed or spawned dead)
+
+	// respawn lock
+	uint32 spawnLockTime;
+	uint32 respawnTime;
 	//baseBehavior_baseNode *pathnodes;
 	//sint32 attackspeed;
 	//sint32 attackanim;

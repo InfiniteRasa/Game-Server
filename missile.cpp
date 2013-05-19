@@ -38,7 +38,8 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		printf("Can't shoot that object\n");
 		return;
 	};
-
+	if( targetActor->state == ACTOR_STATE_DEAD )
+		return; // actor is dead, cannot be shot at
 	// calculate missile time
 	float dx = targetActor->posX - origin->posX;
 	float dy = targetActor->posY - origin->posY;
@@ -359,7 +360,10 @@ void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 	else if( missile->actionId == 397 )
 		missile_ActionRecoveryHandler_ThraxKick(mapChannel, missile);
 	else
-		printf("unsupported missile actionId (animation will freeze?)\n");
+	{
+		printf("unsupported missile actionId %d - using default: WeaponAttack\n", missile->actionId);
+		missile_ActionRecoveryHandler_WeaponAttack(mapChannel, missile);
+	}
 }
 
 void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
