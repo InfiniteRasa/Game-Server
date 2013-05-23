@@ -391,6 +391,14 @@
 						Name="manifestation"
 						>
 						<File
+							RelativePath=".\gm.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\gm.h"
+							>
+						</File>
+						<File
 							RelativePath=".\manifestation.cpp"
 							>
 						</File>
@@ -491,6 +499,18 @@
 							</File>
 							<File
 								RelativePath=".\controlpoint.h"
+								>
+							</File>
+						</Filter>
+						<Filter
+							Name="logos"
+							>
+							<File
+								RelativePath=".\logosObject.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\logosObject.h"
 								>
 							</File>
 						</Filter>
@@ -600,6 +620,10 @@
 						</File>
 						<File
 							RelativePath=".\behaviorController.h"
+							>
+						</File>
+						<File
+							RelativePath=".\behaviorControllerInit.cpp"
 							>
 						</File>
 					</Filter>

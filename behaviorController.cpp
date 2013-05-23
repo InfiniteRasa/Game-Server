@@ -22,7 +22,8 @@ float calcAngle(float a_x, float a_y)
 	return acos((a_x*b_x+a_y*b_y)/sqrt(dif));
 }
 
-void updateEntityMovementW2(float difX, float difY, float difZ, creature_t *creature,mapChannel_t *mapChannel, float speeddiv, bool isMoved)
+// returns the distance moved
+float updateEntityMovementW2(float difX, float difY, float difZ, creature_t *creature,mapChannel_t *mapChannel, float speeddiv, bool isMoved)
 {
 	float length = 1.0f / sqrt(difX*difX + difY*difY + difZ*difZ);
 	float velocity = 0.0f;
@@ -59,6 +60,7 @@ void updateEntityMovementW2(float difX, float difY, float difZ, creature_t *crea
 	movement.velocity = (uint16)(velocity * 4.0f * 1024.0f);
 	netMgr_cellDomain_sendEntityMovement(mapChannel, &creature->actor, &movement);
 
+	return velocity;
 }
 
 #define FACTION_BANE	0
@@ -84,6 +86,13 @@ void controller_setActionFighting(creature_t *creature, uint64 targetEntityId)
 	creature->lastagression = GetTickCount();
 }
 
+void controller_setActionPathFollowing(creature_t *creature)
+{
+	creature->controller.currentAction = BEHAVIOR_ACTION_FOLLOWINGPATH;
+	// random position bias added to every node (to make groups look like they do not run on the same path)
+	creature->controller.aiPathFollowing.randomPathNodeBiasXZ[0] = (float)((rand()%1001)-500) / 500.0f * creature->controller.aiPathFollowing.generalPath->nodeOffsetRandomization;
+	creature->controller.aiPathFollowing.randomPathNodeBiasXZ[1] = (float)((rand()%1001)-500) / 500.0f * creature->controller.aiPathFollowing.generalPath->nodeOffsetRandomization;
+}
 
 /*
  * Checks for enemy creatures and players within the given range
@@ -127,6 +136,8 @@ bool controller_checkForAttackableEntityInRange(mapChannel_t *mapChannel, creatu
 						float difX = (sint32)(player->player->actor->posX) - mPosX;
 						float difY = (sint32)(player->player->actor->posY) - mPosY;
 						float difZ = (sint32)(player->player->actor->posZ) - mPosZ;
+						if( difY >= 1.0f )
+							difY *= difY; // creatures do not see good uphill
 						float dist = difX*difX + difY*difY + difZ*difZ;
 						//	dist = difX*difX + difZ*difZ;
 						if( dist <= rangeSqr )
@@ -159,6 +170,8 @@ bool controller_checkForAttackableEntityInRange(mapChannel_t *mapChannel, creatu
 						float difX = (sint32)(dCreature->actor.posX) - mPosX;
 						float difY = (sint32)(dCreature->actor.posY) - mPosY;
 						float difZ = (sint32)(dCreature->actor.posZ) - mPosZ;
+						if( difY >= 1.0f )
+							difY *= difY; // creatures do not see good uphill
 						float dist = difX*difX + difY*difY + difZ*difZ;
 						//	dist = difX*difX + difZ*difZ;
 						if( dist <= rangeSqr )
@@ -201,21 +214,56 @@ float controller_math_getDistanceSqr(float p1[3], float p2[3])
  * Called every 250 milliseconds for every creature on the map
  * The tick parameter stores the amount of ms since the last call (should be 250 usually, but can go up on heavy load)
  */
-void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, sint32 tick, bool* updateIterator)
+void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, sint32 tick, bool* needDeletion, bool* needCellUpdate)
 {
-	*updateIterator = false; // hack to remove the creature from current map cell
-	if (creature->actor.stats.healthCurrent <= 0) 	
+	*needDeletion = false; // set to true if the creature should be removed (for whatever reason)
+	*needCellUpdate = false; // set to true in case the creature moved across cells (doesnt need to be instant)
+	if(creature->actor.stats.healthCurrent <= 0) 	
 	{
 		creature->controller.deadTime += tick;
 		if( creature->controller.deadTime >= 20000 )
 		{
 			// disappear after 20 seconds
-			
-			//cellMgr_removeCreatureFromWorld(mapChannel, creature);
-			//*updateIterator = true;
+			*needDeletion = true;
 		}
 		return; // creature dead
 	}
+	// creature keep apart (we use a stupid trick for this, but it works rather well)
+	// pick a random creature from the same cell
+	mapCell_t* tCell = cellMgr_getCell(mapChannel, creature->actor.cellLocation.x, creature->actor.cellLocation.z);
+	if( tCell && tCell->ht_creatureList.size() > 1 )
+	{
+		sint32 randomCreatureIndex = rand() % tCell->ht_creatureList.size();
+		// get the creature
+		creature_t* tCreature = tCell->ht_creatureList[randomCreatureIndex];
+		// is it a different alive creature?
+		if( creature != tCreature && tCreature->actor.stats.healthCurrent > 0 )
+		{
+			float difX = creature->actor.posX - tCreature->actor.posX;
+			float difY = creature->actor.posY - tCreature->actor.posY;
+			float difZ = creature->actor.posZ - tCreature->actor.posZ;
+			difY /= 4.0f; // y position has low importance
+			float tDist = difX*difX + difY*difY + difZ*difZ;
+			if( tDist < 1.0f )
+			{
+				// creatures are too close together
+				// push them apart! (But only along x/z axis)
+				// get direction vector
+				float tLength = sqrt(difX*difX+difZ*difZ);
+				difX /= tLength;
+				difZ /= tLength;
+				// decrease strength of push vector
+				difX *= 0.3f;
+				difZ *= 0.3f;
+				// push
+				creature->actor.posX += difX;
+				creature->actor.posZ += difZ;
+				tCreature->actor.posX -= difX;
+				tCreature->actor.posZ -= difZ;
+			}
+		}
+	}
+	// do we need to check for updated cell position?
 	creature->updatePositionCounter -= tick;
 	if( creature->updatePositionCounter <= 0 )
 	{
@@ -225,15 +273,14 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		// calculate initial cell
 		if( creature->actor.cellLocation.x != newLocX || creature->actor.cellLocation.z != newLocZ )
 		{
-			creature_cellUpdateLocation(mapChannel, creature, newLocX, newLocZ);
-			*updateIterator = true;
+			*needCellUpdate = true;
 		}
 		creature->updatePositionCounter = CREATURE_LOCATION_UPDATE_TIME;
 	}
 	if(creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
 	{
 		// scan for enemy
-		if( controller_checkForAttackableEntityInRange(mapChannel,creature,24.0f) )
+		if( controller_checkForAttackableEntityInRange(mapChannel,creature,creature->type->aggroRange) )
 		{
 			// enemy found!
 			return;
@@ -245,6 +292,15 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 			if( (resttime-creature->lastresttime) > 3500 )
 			{
 				creature->lastresttime = resttime;
+				// does creature have a path?
+				if( creature->controller.aiPathFollowing.generalPath )
+				{
+					// has path -> don't wander aimlessly, go path walking
+					controller_setActionPathFollowing(creature);
+					return;
+				}
+				if( creature->type->wander_dist < 0.01f )
+					return; // creature doesn't wander
 				// calc target
 				sint32 srndx = (float)(rand() % 1000) * 0.001f * creature->type->wander_dist;
 				sint32 srndz = (float)(rand() % 1000) * 0.001f * creature->type->wander_dist;
@@ -257,7 +313,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		}	
 		if(creature->controller.actionWander.state == WANDER_MOVING)
 		{   
-			// following path
+			// following path (short path)
 			if( creature->controller.pathLength == 0 )
 			{
 				// no path, generate new one
@@ -287,7 +343,13 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 			float dist = difX*difX + difZ*difZ;
 			// wander target location reached
 			if( dist > 0.01f ) // to avoid division by zero
-				updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,creature->type->walkspeed,true);
+			{
+				float distanceMoved = updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,creature->type->walkspeed,true);
+				// sometimes it is possible the creature walks past the pathnode a tiny bit,
+				// which will force him to move back a step, it does look ugly so here is a tiny workaround
+				if( distanceMoved > dist ) // distance moved greater than distance left?
+					dist = 0.0f; // mark pathnode reached
+			}
 			if(dist < 0.8f) 
 			{
 				creature->controller.pathIndex++; // goto next node
@@ -299,6 +361,67 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 				}
 			}
 
+		}
+	}
+	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FOLLOWINGPATH )
+	{
+		// following predefined path (long path)
+		// scan for enemy
+		if( controller_checkForAttackableEntityInRange(mapChannel,creature,creature->type->aggroRange) )
+		{
+			// enemy found!
+			return;
+		} 
+		// following path (to next node)
+		if( creature->controller.aiPathFollowing.generalPathCurrentNodeIndex >= creature->controller.aiPathFollowing.generalPath->numberOfPathNodes )
+			return; // no more nodes in the path
+		sint32 realCurrentNodeIndex = creature->controller.aiPathFollowing.generalPathCurrentNodeIndex;
+		if( realCurrentNodeIndex < 0 )
+			realCurrentNodeIndex = -realCurrentNodeIndex;
+		float currentTargetNodePos[3];
+		currentTargetNodePos[0] = creature->controller.aiPathFollowing.generalPath->pathNodeList[realCurrentNodeIndex].pos[0];
+		currentTargetNodePos[1] = creature->controller.aiPathFollowing.generalPath->pathNodeList[realCurrentNodeIndex].pos[1];
+		currentTargetNodePos[2] = creature->controller.aiPathFollowing.generalPath->pathNodeList[realCurrentNodeIndex].pos[2];
+		currentTargetNodePos[0] += creature->controller.aiPathFollowing.randomPathNodeBiasXZ[0];
+		currentTargetNodePos[2] += creature->controller.aiPathFollowing.randomPathNodeBiasXZ[1];
+		// get distance
+		float difX = currentTargetNodePos[0] - creature->actor.posX;
+		float difY = currentTargetNodePos[1] - creature->actor.posY;
+		float difZ = currentTargetNodePos[2] - creature->actor.posZ;
+		float dist = difX*difX + difZ*difZ;
+		// wander target location reached
+		if( dist > 0.01f ) // to avoid division by zero
+			updateEntityMovementW2(difX,difY,difZ,creature,mapChannel,creature->type->walkspeed,true);
+		if(dist < 0.8f) 
+		{
+			creature->controller.aiPathFollowing.generalPathCurrentNodeIndex++; // goto next node
+			if( creature->controller.aiPathFollowing.generalPathCurrentNodeIndex >= creature->controller.aiPathFollowing.generalPath->numberOfPathNodes )
+			{
+				// path end reached
+				if( creature->controller.aiPathFollowing.generalPath->mode == PATH_MODE_CYCLE )
+					creature->controller.aiPathFollowing.generalPathCurrentNodeIndex = 0;
+				else if( creature->controller.aiPathFollowing.generalPath->mode == PATH_MODE_RETURN )
+					creature->controller.aiPathFollowing.generalPathCurrentNodeIndex = -(creature->controller.aiPathFollowing.generalPath->numberOfPathNodes-1) + 1; // a negative number indicates reversed path walking
+				else if( creature->controller.aiPathFollowing.generalPath->mode == PATH_MODE_ONESHOT )
+				{
+					// no more path
+					// reset path and enter wander mode
+					creature->controller.aiPathFollowing.generalPath = 0;
+					creature->controller.aiPathFollowing.generalPathCurrentNodeIndex = 0;
+					controller_setActionWander(creature);
+				}
+				return;
+			}
+			else
+			{
+				// random position bias added to every node (to make groups look like they do not run on the same path)
+				creature->controller.aiPathFollowing.randomPathNodeBiasXZ[0] = (float)((rand()%1001)-500) / 500.0f * creature->controller.aiPathFollowing.generalPath->nodeOffsetRandomization;
+				creature->controller.aiPathFollowing.randomPathNodeBiasXZ[1] = (float)((rand()%1001)-500) / 500.0f * creature->controller.aiPathFollowing.generalPath->nodeOffsetRandomization;
+				// update home position to be at the (old) current node
+				creature->homePos.x = currentTargetNodePos[0];
+				creature->homePos.y = currentTargetNodePos[1];
+				creature->homePos.z = currentTargetNodePos[2];
+			}
 		}
 	}
 	else if(creature->controller.currentAction == BEHAVIOR_ACTION_FIGHTING )
@@ -355,7 +478,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		float targetDistZ = (targetZ - creature->actor.posZ);
 		float targetDistSqr = (targetDistX*targetDistX+targetDistY*targetDistY+targetDistZ*targetDistZ);
 		// stop tracking target after target exceeds a certain distance to home pos
-		// todo: Patrolling creatures might not have a homePos 
+		// Note: For patrolling creatures the homePos is the last arrived path node 
 		float homeLocDistX = (creature->homePos.x - targetX);
 		float homeLocDistZ = (creature->homePos.z - targetZ);
 		float homeLocDist = homeLocDistX*homeLocDistX + homeLocDistZ*homeLocDistZ;
@@ -494,13 +617,14 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 		}
 	}//---fighting
 }
-
-
 /*
  * Called every 250 milliseconds
  */
 void controller_mapChannelThink(mapChannel_t *mapChannel)
 {
+	// creature deletion and update queue
+	std::vector<creature_t*> queue_creatureDeletion;
+	std::vector<creature_t*> queue_creatureCellUpdate;
 	// todo: When on heavy load, the server should increase the time between calls to
 	//       this function. (check player updating as a reference)
 	for(sint32 i=0; i<mapChannel->mapCellInfo.loadedCellCount; i++)
@@ -515,23 +639,55 @@ void controller_mapChannelThink(mapChannel_t *mapChannel)
 			sint32 creatureCount = mapCell->ht_creatureList.size();
 			for(sint32 f=0; f<creatureCount; f++)
 			{
-				bool updateIterator = false;
-				controller_creatureThink(mapChannel, creatureList[f], 250, &updateIterator); // update time hardcoded, see todo
-				if( updateIterator )
-				{
+				bool needDeletion = false;
+				bool needCellUpdate = false;
+				controller_creatureThink(mapChannel, creatureList[f], 250, &needDeletion, &needCellUpdate); // update time hardcoded, see todo
+				if( needDeletion )
+					queue_creatureDeletion.push_back(creatureList[f]);
+				if( needCellUpdate ) // update cell (even when creature is also deleted)
+					queue_creatureCellUpdate.push_back(creatureList[f]);
+
+					// need to delete creature & we still have a free space in the deletion queue
 					// not so nice hack to remove creatures from the map cell when creature_cellUpdateLocation is called
-					std::swap(mapCell->ht_creatureList.at(f), mapCell->ht_creatureList.at(creatureCount-1));
+					/*std::swap(mapCell->ht_creatureList.at(f), mapCell->ht_creatureList.at(creatureCount-1));
 					mapCell->ht_creatureList.pop_back();
 					creatureCount = mapCell->ht_creatureList.size();
 					if( creatureCount == 0 )
 						break;
 					creatureList = &mapCell->ht_creatureList[0];
-					f--;
-					continue;
-				}
+					f--;*/
 			}
 		}
 	}
+	//update logic for creatures (same like for deletion below, moving creatures to different vectors is not good)
+	if( queue_creatureCellUpdate.empty() != true )
+	{
+		creature_t **creatureList = &queue_creatureCellUpdate[0];
+		sint32 creatureCount = queue_creatureCellUpdate.size();
+		for(sint32 f=0; f<creatureCount; f++)
+		{
+			// calculate new cell position
+			uint32 newLocX = (uint32)((creatureList[f]->actor.posX / CELL_SIZE) + CELL_BIAS);
+			uint32 newLocZ = (uint32)((creatureList[f]->actor.posZ / CELL_SIZE) + CELL_BIAS);
+			creature_cellUpdateLocation(mapChannel, creatureList[f], newLocX, newLocZ);
+		}
+	}
+	// deletion logic for creatures (we have to do it here, since deleting creatures while iterating them is not so nice...)
+	// do we need to delete some creatures?
+	if( queue_creatureDeletion.empty() != true )
+	{
+		creature_t **creatureList = &queue_creatureDeletion[0];
+		sint32 creatureCount = queue_creatureDeletion.size();
+		for(sint32 f=0; f<creatureCount; f++)
+		{
+			cellMgr_removeCreatureFromWorld(mapChannel, creatureList[f]);
+			// delete creature entity
+			creature_destroy(creatureList[f]);
+		}
+	}
+	//delete queue_creatureCellUpdate;
+	//delete queue_creatureDeletion;
+
 }
 
 void controller_initForMapChannel(mapChannel_t *mapChannel)

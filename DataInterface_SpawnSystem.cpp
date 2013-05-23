@@ -2,6 +2,8 @@
 #include<stdio.h>
 #include"DataInterface.h"
 
+sint32 _nextSpawnPoolId = 1;
+
 void cb_DataInterface_SpawnSystem_getSpawnPoolList(MYSQL *dbCon, diJob_spawnpool_t *job, void *cb, void *param)
 {
 	sint8 queryText[4096];
@@ -47,6 +49,8 @@ void cb_DataInterface_SpawnSystem_getSpawnPoolList(MYSQL *dbCon, diJob_spawnpool
 		sscanf(dbRow[idx], "%f", &job->posY); idx++;
 		sscanf(dbRow[idx], "%f", &job->posZ); idx++;
 		sscanf(dbRow[idx], "%d", &job->contextId); idx++;
+		// update spawnpool id
+		_nextSpawnPoolId = max(_nextSpawnPoolId, job->id+1);
 		// creature spawn slots
 		for(sint32 spawnSlot=0; spawnSlot<6; spawnSlot++)
 		{
@@ -83,7 +87,7 @@ void cb_DataInterface_SpawnSystem_addSpawnPoint(MYSQL *dbCon, diData_spawnEntry_
 	char queryText[4096];
 	char subText[128];
 	sprintf(queryText, "INSERT INTO spawnpool "
-		"(mode,animType,respawnTime,"
+		"(id,mode,animType,respawnTime,"
 		"posx,posy,posz,contextid,"
 		// creature slots
 		"creatureType1,creatureMinCount1,creatureMaxCount1,"
@@ -92,7 +96,8 @@ void cb_DataInterface_SpawnSystem_addSpawnPoint(MYSQL *dbCon, diData_spawnEntry_
 		"creatureType4,creatureMinCount4,creatureMaxCount4,"
 		"creatureType5,creatureMinCount5,creatureMaxCount5,"
 		"creatureType6,creatureMinCount6,creatureMaxCount6)"
-		" VALUES (%d,%d,%d,%f,%f,%f,%d", job->mode, job->animType, job->respawnTime, job->posX, job->posY, job->posZ, job->contextId);
+		" VALUES (%d,%d,%d,%d,%f,%f,%f,%d", _nextSpawnPoolId, job->mode, job->animType, job->respawnTime, job->posX, job->posY, job->posZ, job->contextId);
+	_nextSpawnPoolId++;
 	// add creature spawn types and amount
 	for(sint32 i=0; i<6; i++)
 	{
@@ -118,10 +123,13 @@ void cb_DataInterface_SpawnSystem_addSpawnPoint(MYSQL *dbCon, diData_spawnEntry_
 
 /*
  * Adds a new spawn entry to the database
+ * Returns the id of the spawnpool
  */
-void DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry)
+sint32 DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry)
 {	
+	sint32 usedSpawnpoolId = _nextSpawnPoolId; // todo: In rare cases the spawnpool id can be mixed up if there are several pools added at once by multiple people
 	diData_spawnEntry_t *job = (diData_spawnEntry_t*)DataInterface_allocJob(sizeof(diData_spawnEntry_t));
 	RtlCopyMemory(job, spawnEntry, sizeof(diData_spawnEntry_t));
 	DataInterface_queueJob(job, cb_DataInterface_SpawnSystem_addSpawnPoint, NULL, NULL);
+	return usedSpawnpoolId;
 }

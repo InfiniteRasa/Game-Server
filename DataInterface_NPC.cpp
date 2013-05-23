@@ -541,58 +541,57 @@ void DataInterface_Vendor_getVendorList(void (*cb)(void *param, diJob_vendorList
 //	DataInterface_queueJob(job, cb_DataInterface_Entity_updateEntityW, cb, param);
 //}
 
-
-//###################### test 4 ###################
-void cb_DataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNodeW2_t *job, void *cb, void *param)
-{
-
-	__debugbreak();
-	sint8 queryText[4 * 1024];
-	di_pathNodeDataW2_t *pNodeData = job->pnodedata;
-    sint32 tcontextid,tspawnid,tpnodeindex;
-	float tx,ty,tz;
-	tcontextid = pNodeData->currentContextId;
-	tspawnid = pNodeData ->spawntype;
-	tpnodeindex = pNodeData ->pathindex;
-	tx = pNodeData ->posX;
-	ty = pNodeData ->posY;
-	tz = pNodeData ->posZ;
-	sprintf(queryText, "SELECT * FROM pathnodes WHERE spawnid ='%d' AND pindex='%d'", 
-	pNodeData->spawntype,pNodeData->pathindex);
-	if( mysql_query(dbCon, queryText) )
-	{
-		//--- characterData->error = true;
-		printf("Error in query\n");
-		puts(queryText);
-		puts(mysql_error(dbCon));
-		if( cb )
-			((void (*)(void*,void*))cb)(param, job);
-		return;
-	}
-	MYSQL_RES *dbResult = mysql_store_result(dbCon);
-	MYSQL_ROW dbRow;
-	sint32 spawnCount = mysql_num_rows(dbResult);
-	
-	if(spawnCount)
-	{
-		printf("Pathnode already in use\n");
-		mysql_free_result(dbResult);
-		return;
-	}
-
-	//--- create new pathnode
-	sprintf(queryText, "INSERT INTO pathnodes (spawnid,contextid,posx,posy,posz,pindex)"
-		" VALUES (%d,%d,%f,%f,%f,%d)", 
-	tspawnid,tcontextid,tx,ty,tz,tpnodeindex);
-	//--- execute query
-	if( mysql_query(dbCon, queryText) )
-	{
-		//--- characterData->error = true;
-		printf("Error in query\n");
-		puts(queryText);
-		puts(mysql_error(dbCon));
-		if( cb )
-			((void (*)(void*,void*))cb)(param, job);
-		return;
-	}
-}
+//
+////###################### test 4 ###################
+//void cb_DataInterface_PathNode_updatePathNode(MYSQL *dbCon, diJob_updatePathNodeW2_t *job, void *cb, void *param)
+//{
+//
+//	__debugbreak();
+//	sint8 queryText[4 * 1024];
+//	di_pathNodeDataW2_t *pNodeData = job->pnodedata;
+//    sint32 tcontextid,tspawnid,tpnodeindex;
+//	float tx,ty,tz;
+//	tcontextid = pNodeData->currentContextId;
+//	tspawnid = pNodeData ->spawntype;
+//	tpnodeindex = pNodeData ->pathindex;
+//	tx = pNodeData ->posX;
+//	ty = pNodeData ->posY;
+//	tz = pNodeData ->posZ;
+//	sprintf(queryText, "SELECT * FROM pathnodes WHERE spawnid ='%d' AND pindex='%d'", 
+//	pNodeData->spawntype,pNodeData->pathindex);
+//	if( mysql_query(dbCon, queryText) )
+//	{
+//		printf("Error in query\n");
+//		puts(queryText);
+//		puts(mysql_error(dbCon));
+//		if( cb )
+//			((void (*)(void*,void*))cb)(param, job);
+//		return;
+//	}
+//	MYSQL_RES *dbResult = mysql_store_result(dbCon);
+//	MYSQL_ROW dbRow;
+//	sint32 spawnCount = mysql_num_rows(dbResult);
+//	
+//	if(spawnCount)
+//	{
+//		printf("Pathnode already in use\n");
+//		mysql_free_result(dbResult);
+//		return;
+//	}
+//
+//	//--- create new pathnode
+//	sprintf(queryText, "INSERT INTO pathnodes (spawnid,contextid,posx,posy,posz,pindex)"
+//		" VALUES (%d,%d,%f,%f,%f,%d)", 
+//	tspawnid,tcontextid,tx,ty,tz,tpnodeindex);
+//	//--- execute query
+//	if( mysql_query(dbCon, queryText) )
+//	{
+//		//--- characterData->error = true;
+//		printf("Error in query\n");
+//		puts(queryText);
+//		puts(mysql_error(dbCon));
+//		if( cb )
+//			((void (*)(void*,void*))cb)(param, job);
+//		return;
+//	}
+//}

@@ -245,3 +245,4 @@ sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asi
 	asiOut->UID2 = ID2;
 	return 1;
 }
+

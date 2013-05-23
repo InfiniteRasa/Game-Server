@@ -15,6 +15,23 @@ typedef struct
 // 179	-->	owned by Bane
 // 181	-->	off
 
+// states we know from the db:
+//augmentation	stateId		name
+//57			176			USE_CPOINT_STATE_FACTION_A_OWNED
+//57			179			USE_CPOINT_STATE_FACTION_B_OWNED
+//57			181			USE_CPOINT_STATE_UNCLAIMED
+
+
+// Known transitions from the specialFx table (there may be more)
+//state1	state2
+//176		97
+//176		176
+//179		97
+//179		179
+//181		181
+
+
+
 // todo1: Should also send Recv_ControlPointStatus to all mapChannel clients
 // todo2: Send Recv_SetUsable when in control of bane to disallow humans to convert it again (assuming this is the way they original server did it)
 // todo3: Use Recv_SetOwnerId?

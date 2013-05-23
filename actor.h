@@ -37,6 +37,12 @@ typedef struct
 	sint32 chiCurrent;
 	sint32 chiCurrentMax;
 	sint32 chiNormalMax;
+	// armor 
+	sint32 armorCurrent;
+	sint32 armorCurrentMax;
+	sint32 armorNormalMax;
+	// armor regen
+	sint32 armorRegenCurrent;
 	// todo: Regeneration rates
 }actorStats_t;
 

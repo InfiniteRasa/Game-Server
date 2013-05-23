@@ -76,6 +76,10 @@ void dynamicObject_cellDiscardObjectsToClient(mapChannel_t *mapChannel, mapChann
 void dynamicObject_check(mapChannel_t *mapChannel, sint32 timePassed);
 bool dynamicObject_process(mapChannel_t *mapChannel, dynObject_t *dynObject, sint32 timePassed);
 
+// useable states (for force state)
+#define USE_ID_STATE_ACTIVE		81	 // augmentation [34]
+#define USE_ID_STATE_INACTIVE	82	 // augmentation [34]
+
 
 // developer / testing
 
@@ -91,3 +95,4 @@ void dynamicObject_stopPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyn
 #include"banedropship.h"
 #include"waypoint.h"
 #include"controlpoint.h"
+#include"logosObject.h"

@@ -1,3 +1,4 @@
+#include"gm.h" // game master structs
 
 /*
  * Skill related stuff
@@ -188,7 +189,6 @@ static sint32 skillID2Idx[200] =
 #define SKILL_ID_T3_SAPPER_SHIELD_EXTENDER 174
 
 
-
 /*
  * Manifestation/player struct
  */
@@ -221,6 +221,8 @@ typedef struct _manifestation_t
 	sint32 activeMissionCount; // number of missions in the mission log
 	// mission state map (completed/not completed bitmask of ALL missions)
 	uint8* missionStateMap;
+	// gamemaster/admin data
+	gmData_t* gmData;
 }manifestation_t;
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData);
@@ -230,6 +232,8 @@ void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 i
 void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 itemClassId, uint32 hueAARRGGBB);
 void manifestation_updateAppearance(mapChannelClient_t *owner);
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client);
+
+void manifestation_updateStatsValues(mapChannelClient_t *client, bool fullreset);
 
 void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits);
 void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige);

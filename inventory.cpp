@@ -350,6 +350,10 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, si
 		manifestation_setAppearanceItem(client->player, itemToEquip->itemTemplate->item.classId, 0xFF808080);
 	}
 	manifestation_updateAppearance(client);
+	// update armor
+	manifestation_updateStatsValues(client, false);
+	manifestation_buildAttributeInfoPacket(client, &pms);
+	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)

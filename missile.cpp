@@ -10,7 +10,6 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	missile_t missile;
 	//missile.type = type;
 	missile.damageA = damage;
-	missile.targetEntityId = targetEntityId;
 	missile.source = origin;
 	// get distance between actors
 	actor_t *targetActor = NULL;
@@ -25,13 +24,17 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	switch( targetType )
 	{
 	case ENTITYTYPE_CREATURE:
-		{ creature_t *creature = (creature_t*)entity;
-		targetActor = &creature->actor; }
+		{ 
+			creature_t *creature = (creature_t*)entity;
+			targetActor = &creature->actor;
+			missile.targetEntityId = targetEntityId;
+		}
 		break;
 	case ENTITYTYPE_CLIENT:
 		{ 
 			mapChannelClient_t *player = (mapChannelClient_t*)entity;            
 			targetActor = player->player->actor; 
+			missile.targetEntityId = targetEntityId;
 		}
 		break;
 	default:
@@ -51,6 +54,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	//		return;	
 	//	}
 	//}
+	missile.targetActor = targetActor;
 	missile.triggerTime = (sint32)(distance*0.5f);
 	missile.actionId = actionId;
 	missile.argId = actionArgId;
@@ -73,8 +77,12 @@ void missile_doDamage(mapChannel_t *mapChannel, creature_t* creature, sint32 dam
 {
 	pyMarshalString_t pms;
 	if( creature->actor.state == ACTOR_STATE_DEAD )
-		return;	
-	creature->actor.stats.healthCurrent -= damage;
+		return;
+	// decrease armor first
+	sint32 armorDecrease = min(damage, creature->actor.stats.armorCurrent);
+	creature->actor.stats.armorCurrent -= armorDecrease;
+	// decrease health (if armor is depleted)
+	creature->actor.stats.healthCurrent -= (damage-armorDecrease);
 	if( creature->actor.stats.healthCurrent <= 0 )
 	{
 		// fix health
@@ -84,7 +92,7 @@ void missile_doDamage(mapChannel_t *mapChannel, creature_t* creature, sint32 dam
 	else
 	{
 		// shooting at wandering creatures makes them ANGRY
-		if( creature->controller.currentAction == BEHAVIOR_ACTION_WANDER )
+		if( creature->controller.currentAction == BEHAVIOR_ACTION_WANDER || creature->controller.currentAction == BEHAVIOR_ACTION_FOLLOWINGPATH )
 		{
 			if( damageBy->owner )
 				controller_setActionFighting(creature, damageBy->owner->clientEntityId); // player
@@ -93,14 +101,29 @@ void missile_doDamage(mapChannel_t *mapChannel, creature_t* creature, sint32 dam
 		}
 	}
 	// update health (Recv_UpdateHealth 380)
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->actor.stats.healthCurrent); // current
-	pym_addInt(&pms, creature->type->maxHealth); // currentMax
-	pym_addInt(&pms, 0); // refreshAmount
-	pym_addInt(&pms, 0); // whoId
-	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_UPDATEHEALTH, pym_getData(&pms), pym_getLen(&pms));
+	if( armorDecrease != damage )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, creature->actor.stats.healthCurrent); // current
+		pym_addInt(&pms, creature->type->maxHealth); // currentMax
+		pym_addInt(&pms, 0); // refreshAmount
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, UpdateHealth, pym_getData(&pms), pym_getLen(&pms));
+	}
+	// update armor (Recv_UpdateArmor 380)
+	if( armorDecrease > 0 )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, creature->actor.stats.armorCurrent); // current
+		pym_addInt(&pms, creature->actor.stats.armorCurrentMax); // currentMax
+		pym_addInt(&pms, 0); // refreshAmount
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, UpdateArmor, pym_getData(&pms), pym_getLen(&pms));
+	}
 }
 
 /*
@@ -115,7 +138,11 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	//gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);	// the blood splat animation, we should use creature_action and weapon data to store hit fx info?							
-	client->player->actor->stats.healthCurrent -= damage;
+	// decrease armor first
+	sint32 armorDecrease = min(damage, client->player->actor->stats.armorCurrent);
+	client->player->actor->stats.armorCurrent -= armorDecrease;
+	// decrease health (if armor is depleted)
+	client->player->actor->stats.healthCurrent -= (damage-armorDecrease);
 	// send death notification when health <= zero
 	if( client->player->actor->stats.healthCurrent <= 0 )
 	{
@@ -208,18 +235,37 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 			METHODID_PLAYERDEAD, 
 			pym_getData(&pms), pym_getLen(&pms));
 	}
-	// update health (even when dead)
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
-	pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
-	pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
-	pym_addInt(&pms, 0); // whoId
-	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
-		client->player->actor, 
-		client->player->actor->entityId, METHODID_UPDATEHEALTH, 
-		pym_getData(&pms), pym_getLen(&pms));
+	if( armorDecrease != damage )
+	{
+		// update health (even when dead)
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->stats.healthCurrent); // current
+		pym_addInt(&pms, client->player->actor->stats.healthCurrentMax); // currentMax
+		pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
+			client->player->actor, 
+			client->player->actor->entityId, UpdateHealth, 
+			pym_getData(&pms), pym_getLen(&pms));
+	}
+	if( armorDecrease > 0 )
+	{
+		// update armor
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, client->player->actor->stats.armorCurrent); // current
+		pym_addInt(&pms, client->player->actor->stats.armorCurrentMax); // currentMax
+		//pym_addFloat(&pms, client->player->actor->stats.regenHealthPerSecond); // refreshAmount
+		pym_addFloat(&pms, client->player->actor->stats.armorRegenCurrent);
+		pym_addInt(&pms, 0); // whoId
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel,
+			client->player->actor, 
+			client->player->actor->entityId, UpdateArmor, 
+			pym_getData(&pms), pym_getLen(&pms));
+	}
 }
 
 /*
@@ -240,7 +286,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
 	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
 	pym_list_begin(&pms); 							// Hits Start
-		pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
+		pym_addLong(&pms, missile->targetActor->entityId);//pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
 	pym_list_end(&pms); 							// Hits End
 	pym_list_begin(&pms); 							// Misses Start
 	pym_list_end(&pms); 							// Misses End
@@ -248,7 +294,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	pym_list_end(&pms); 							// Misses Data End
 	pym_list_begin(&pms); 							// Hits Data Start
 		pym_tuple_begin(&pms); 						// Each Hit tuple start
-			pym_addInt(&pms, missile->targetEntityId); // Creature entity ID
+			pym_addInt(&pms, missile->targetActor->entityId); // Creature entity ID
 			pym_tuple_begin(&pms); 						// rawInfo start
 					pym_addInt(&pms, 1); 				//self.damageType = normal
 					pym_addInt(&pms, 0); 					//self.reflected = 0
@@ -265,6 +311,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 					pym_list_end(&pms);
 					//sourceEffectIds
 					pym_list_begin(&pms);
+					
 					pym_list_end(&pms);
 			pym_tuple_end(&pms); 						// rawInfo end
 			pym_addNoneStruct(&pms);  					// OnHitData
@@ -273,6 +320,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	pym_tuple_end(&pms); 							// Packet End
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
 	
+
 	if( targetType == ENTITYTYPE_CREATURE )
 		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
 	else if( targetType == ENTITYTYPE_CLIENT )
@@ -307,7 +355,7 @@ void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t
 	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
 	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
 	pym_list_begin(&pms); 							// Hits Start
-		pym_addLong(&pms, missile->targetEntityId);// Each hit creature
+		pym_addLong(&pms, missile->targetActor->entityId);// Each hit creature
 	pym_list_end(&pms); 							// Hits End
 	pym_list_begin(&pms); 							// Misses Start
 	pym_list_end(&pms); 							// Misses End
@@ -391,3 +439,60 @@ void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
 		totalMissiles -= removedMissiles;
 	}
 }
+
+
+//
+//void _testCreatureBirthAction(mapChannelClient_t* cm)
+//{
+//	pyMarshalString_t pms;
+//	pym_init(&pms);
+//	pym_tuple_begin(&pms);
+//	pym_addInt(&pms, 155); // actionId
+//	pym_addInt(&pms, 3762); // actionArgId (subaction)
+//	pym_tuple_end(&pms);
+//	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
+//
+//	return;
+//	//printf("continue\n");
+//	//Sleep(12000);
+//	/* Execute action */
+//	pym_init(&pms);
+//	pym_tuple_begin(&pms);  						// Packet Start
+//	pym_addInt(&pms, 155);			// Action ID // 1 Weapon attack
+//	pym_addInt(&pms, 3762);				// Arg ID // 133 pistol physical not crouched
+//	//pym_list_begin(&pms); 							// Hits Start
+//	//pym_addNoneStruct(&pms);
+//	////pym_addLong(&pms, missile->targetActor->entityId);// Each hit creature
+//	//pym_list_end(&pms); 							// Hits End
+//	//pym_list_begin(&pms); 							// Misses Start
+//	//pym_list_end(&pms); 							// Misses End
+//	//pym_list_begin(&pms); 							// Misses Data Start
+//	//pym_list_end(&pms); 							// Misses Data End
+//	//pym_list_begin(&pms); 							// Hits Data Start
+//	//pym_tuple_begin(&pms); 						// Each Hit tuple start
+//	////pym_addInt(&pms, missile->targetEntityId); // thrax kick actions dont need this field for some reason?
+//	////pym_tuple_begin(&pms); 						// rawInfo start
+//	////pym_addInt(&pms, 1); 				//self.damageType = normal
+//	////pym_addInt(&pms, 0); 					//self.reflected = 0
+//	////pym_addInt(&pms, 0); 					//self.filtered = 0
+//	////pym_addInt(&pms, 0); 					//self.absorbed = 0
+//	////pym_addInt(&pms, 0); 					//self.resisted = 0
+//	////pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
+//	////pym_addInt(&pms, 0); 					//self.isCrit = 0
+//	////pym_addInt(&pms, 0); 					//self.deathBlow = 0
+//	////pym_addInt(&pms, 0); 					//self.coverModifier = 0
+//	////pym_addInt(&pms, 0); 					//self.wasImmune = 0
+//	//////targetEffectIds // 131
+//	////pym_list_begin(&pms);
+//	////pym_list_end(&pms);
+//	//////sourceEffectIds
+//	////pym_list_begin(&pms);
+//	////pym_list_end(&pms);
+//	////pym_tuple_end(&pms); 						// rawInfo end
+//	//pym_addNoneStruct(&pms);
+//	//pym_addNoneStruct(&pms);  					// OnHitData
+//	//pym_tuple_end(&pms); 						// Each Hit tuple start
+//	//pym_list_end(&pms); 							// Hits Data End
+//	pym_tuple_end(&pms); 							// Packet End
+//	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+//}

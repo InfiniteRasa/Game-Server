@@ -122,7 +122,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 
 void mapteleporter_checkForEntityInRange(mapChannel_t *mapChannel)
 {
-    
+    return; // disabled until someone fixes this and gets rid of all the memory leaks (when using 'new', also use 'delete')
 	pyMarshalString_t pms;
 
 	sint32 tCount =0;
@@ -942,6 +942,7 @@ sint32 mapChannel_worker(mapChannelList_t *channelList)
 		spawnPool_initForMapChannel(mapChannel); //---todo:db use -done
 		controller_initForMapChannel(mapChannel);
 		teleporter_initForMapChannel(mapChannel); //---load teleporters
+		logos_initForMapChannel(mapChannel); // logos world objects
 		printf("  Map: [%s]\n",mapChannel->mapInfo->name);
 	}
 

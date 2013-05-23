@@ -30,7 +30,6 @@ creatureType_t* creatureType_findType(sint32 typeId)
 	return creatureType;
 }
 
-
 /*
  * Registers the creature layout for use by the creature_createCreature() function
  */
@@ -95,7 +94,14 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	//creature->range = 26.40f;
 	////if(faction <= 0) creature->faction = 0;
 	//creature->faction = faction; //hostile
+
+	// set attributes (health)
+	creature->actor.stats.healthCurrentMax = creatureType->maxHealth;
+	creature->actor.stats.healthNormalMax = creatureType->maxHealth;
 	creature->actor.stats.healthCurrent = creatureType->maxHealth;
+	
+
+	// set AI state
 	creature->controller.currentAction = BEHAVIOR_ACTION_WANDER;
 	creature->controller.actionWander.state = 0; //wanderstate: calc new position
 	//set wander boundaries 
@@ -103,11 +109,22 @@ creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *cr
 	// update spawnpool
 	if( creature->spawnPool )
 	{
-		// TODO: check for dead-spawned creatures (if that makes any sense)
+		// TODO: check for dead-spawned creatures (We need this for the mission River Recon for example)
 		spawnPool_increaseAliveCreatureCount(mapChannel, creature->spawnPool);
 	}
 	return creature;
 }
+
+/*
+ * Deletes the creature and frees the entityId
+ * Before deletion, make sure the entity is removed from the cell manager
+ */
+void creature_destroy(creature_t *creature)
+{
+	entityMgr_unregisterEntity(creature->actor.entityId);
+	free(creature);
+}
+
 
 void creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY)
 {
@@ -146,16 +163,16 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// body
 	pym_addInt(&pms, 1);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 15); // current
-	pym_addInt(&pms, 15); // currentMax
-	pym_addInt(&pms, 15); // normalMax
+	pym_addInt(&pms, 0); // current
+	pym_addInt(&pms, 0); // currentMax
+	pym_addInt(&pms, 0); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
 	// mind
 	pym_addInt(&pms, 2);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
+	pym_addInt(&pms, 0); // current
 	pym_addInt(&pms, 0); // currentMax
 	pym_addInt(&pms, 0); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
@@ -164,7 +181,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// spirit
 	pym_addInt(&pms, 3);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
+	pym_addInt(&pms, 0); // current
 	pym_addInt(&pms, 0); // currentMax
 	pym_addInt(&pms, 0); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
@@ -173,36 +190,47 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	// health
 	pym_addInt(&pms, 4);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, creature->actor.stats.healthCurrent); // current (current Max, base)
-	pym_addInt(&pms, creature->type->maxHealth); // currentMax (modfierTarget?)
-	pym_addInt(&pms, creature->type->maxHealth); // normalMax (current Value)
+	pym_addInt(&pms, creature->actor.stats.healthCurrent); // current (current value)
+	pym_addInt(&pms, creature->actor.stats.healthCurrentMax); // currentMax (with bonus)
+	pym_addInt(&pms, creature->type->maxHealth); // normalMax (usual max)
 	pym_addInt(&pms, 0); // refreshIncrement
-	pym_addInt(&pms, 3); // refreshPeriod (seconds, float?)
+	pym_addInt(&pms, 1); // refreshPeriod (seconds)
 	pym_tuple_end(&pms);
+
+
+	//pym_addInt(pms, client->player->actor->stats.healthCurrent); // current (current value)
+	//pym_addInt(pms, client->player->actor->stats.healthCurrentMax); // currentMax (current max)
+	//pym_addInt(pms, client->player->actor->stats.healthNormalMax); // normalMax (max without bonus)
+	//pym_addFloat(pms, client->player->actor->stats.regenHealthPerSecond); // refreshIncrement
+	//pym_addInt(pms, 1); // refreshPeriod (seconds)
+	
 	// chi
 	pym_addInt(&pms, 5);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 10); // current
-	pym_addInt(&pms, 50); // currentMax
-	pym_addInt(&pms, 100); // normalMax
+	pym_addInt(&pms, 0); // current
+	pym_addInt(&pms, 0); // currentMax
+	pym_addInt(&pms, 0); // normalMax
 	pym_addInt(&pms, 0); // refreshIncrement
 	pym_addInt(&pms, 0); // refreshPeriod
 	pym_tuple_end(&pms);
-	// shit
-	for(sint32 i=6; i<=10; i++)
-	{
-		pym_addInt(&pms, i);
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 10); // current
-		pym_addInt(&pms, 50); // currentMax
-		pym_addInt(&pms, 100); // normalMax
-		pym_addInt(&pms, 0); // refreshIncrement
-		pym_addInt(&pms, 0); // refreshPeriod
-		pym_tuple_end(&pms);
-	}
+	//// shit
+	//for(sint32 i=6; i<=10; i++)
+	//{
+	//	if( i== 8 )
+	//		continue; // health (see above)
+	//	pym_addInt(&pms, i);
+	//	pym_tuple_begin(&pms);
+	//	pym_addInt(&pms, 10); // current
+	//	pym_addInt(&pms, 50); // currentMax
+	//	pym_addInt(&pms, 100); // normalMax
+	//	pym_addInt(&pms, 0); // refreshIncrement
+	//	pym_addInt(&pms, 0); // refreshPeriod
+	//	pym_tuple_end(&pms);
+	//}
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, 29, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, AttributeInfo, pym_getData(&pms), pym_getLen(&pms));
+	// BODY (1), MIND (2), SPIRIT (3), HEALTH (4), CHI (5), ARMOR (8)
 	// set level
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -369,6 +397,8 @@ void creature_updateAppearance(clientGamemain_t* cgm, uint32 entityId, sint32 we
  */
 void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature, actor_t* killedBy)
 {
+	if( creature->actor.state == ACTOR_STATE_DEAD )
+		return; // creature already dead
 	pyMarshalString_t pms;
 	creature->actor.state = ACTOR_STATE_DEAD;
 	// dead
@@ -510,18 +540,16 @@ void creature_cellUpdateLocation(mapChannel_t *mapChannel, creature_t* creature,
 	creature->actor.cellLocation.x = newLocX;
 	creature->actor.cellLocation.z = newLocZ;
 	// move creature entry
-	// we cannot delete the creature right now from the list because this might invalidate current iterators
-	// therefore we use a little hack, see updateIterator variable in behaviorController.cpp
-	//std::vector<creature_t*>::iterator itr = oldMapCell->ht_creatureList.begin();
-	//while (itr != oldMapCell->ht_creatureList.end())
-	//{
-	//	if ((*itr) == creature)
-	//	{
-	//		oldMapCell->ht_creatureList.erase(itr);
-	//		break;
-	//	}
-	//	itr++;
-	//}
+	std::vector<creature_t*>::iterator itr = oldMapCell->ht_creatureList.begin();
+	while (itr != oldMapCell->ht_creatureList.end())
+	{
+		if ((*itr) == creature)
+		{
+			oldMapCell->ht_creatureList.erase(itr);
+			break;
+		}
+		itr++;
+	}
 	newMapCell->ht_creatureList.push_back(creature);
 }
 
@@ -565,6 +593,7 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 	creatureType->wander_dist = jobData->wanderDistance;
 	// missile data (available attack actions for creature)
 	sint32 missileCount = 0;
+	float aggroRange = 24.0f;
 	for(sint32 i=0; i<8; i++)
 	{
 		if( jobData->missile[i] == 0 )
@@ -575,9 +604,11 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 			printf("Could not load missile/action %d for creature type %d\n", jobData->missile[i], jobData->id);
 			continue;
 		}
+		aggroRange = max(aggroRange, creatureMissile->rangeMax);
 		creatureType->actions[missileCount] = creatureMissile;
 		missileCount++;
 	}
+	creatureType->aggroRange = aggroRange;
 	creatureType->aggressionTime = 5000;
 	creatureType_registerCreatureType(creatureType, jobData->id);
 }

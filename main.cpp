@@ -266,6 +266,7 @@ sint32 main()
 	npc_init();
 	vendor_init();
 	mission_init();
+	controller_init(); // ai
 	// init mapChannel manager
 	mapChannel_init();
 	// start mapChannels (all in one for now)

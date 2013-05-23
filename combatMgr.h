@@ -5,12 +5,15 @@
 
 typedef struct _missile_t
 {
+	// important todo: Get rid of actor_t* source; and instead just store the extra entityId (since it is possible for the actor to become invalid while being stored and used in a missile)
 	//sint32 type;
 	sint32 damageA;
 	sint32 damageB;
 	sint32 actionId;
 	sint32 argId;
 	unsigned long long targetEntityId; // the entityId of the destination (it is possible that the object does no more exist on arrival)
+	actor_t* targetActor; // the target actor
+	// note: Dont use the targetEntityId for sending data to the client! Use targetActor->entityId
 	actor_t* source;
 	sint32 triggerTime; // amount of milliseconds left before the missile is triggered, is decreased on every tick
 	//_missile_t *previous;

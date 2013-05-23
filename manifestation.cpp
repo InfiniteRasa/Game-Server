@@ -1,9 +1,9 @@
 #include"global.h"
+#include"time.h"
 
 /*
 	manifestation is a player object (actor with more settings)
 */
-
 
 /*
  * Called for the owner of the manifestation when it enters the map (after character selection)
@@ -16,11 +16,14 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, m->actor->entityId); // actorId
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, METHODID_SETCONTROLLEDACTORID, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, SetControlledActorId, pym_getData(&pms), pym_getLen(&pms));
 	// set gameMap timeOfDay (Recv_SetSkyTime 198)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 6666666); // number of seconds the map has been up
+	time_t currentUnixTime;
+	time(&currentUnixTime);
+	pym_addInt(&pms, (sint32)currentUnixTime); // using sint32 for a time value is not really that great
+	//pym_addInt(&pms, 6666666); // number of seconds the map has been up
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, 7, 198, pym_getData(&pms), pym_getLen(&pms));
 	// setCurrentContextId (clientMethod.362)
@@ -28,7 +31,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, owner->mapChannel->mapInfo->contextId);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, 5, SetCurrentContextId, pym_getData(&pms), pym_getLen(&pms));
 	// Recv_UpdateRegions (568)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -37,7 +40,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	//pym_addInt(&pms, 1); - luna cavern
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 568, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, UpdateRegions, pym_getData(&pms), pym_getLen(&pms));
 	// credits
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -207,6 +210,34 @@ void manifestation_updateStatsValues(mapChannelClient_t *client, bool fullreset)
 	sint32 regenBonus = 0;
 	client->player->actor->stats.regenRateCurrentMax = client->player->actor->stats.regenRateNormalMax + regenBonus;
 	client->player->actor->stats.regenHealthPerSecond = (float)2.0f * ((float)client->player->actor->stats.regenRateCurrentMax / 100.0f); // 2.0 per second is the base regeneration for health
+	// calculate armor max
+	sint32 armorMax = 0;
+	//float armorBonus = 0; // todo! (From item modules)
+	sint32 armorRegenRate = 0;
+	for(sint32 i=0; i<17; i++)
+	{
+		if( client->inventory.equippedInventory[i] == 0 )
+			continue;
+		item_t* equipmentItem = (item_t*)entityMgr_get(client->inventory.equippedInventory[i]);
+		if( equipmentItem == NULL )
+		{
+			// this is very bad, how can the item disappear while it is still linked in the inventory?
+			printf("manifestation_updateStatsValues: Equipment item has no physical copy\n");
+			continue;
+		}
+		if( equipmentItem->itemTemplate->item.type != ITEMTYPE_ARMOR )
+			continue; // how can the player equip non-armor?
+		armorMax += equipmentItem->itemTemplate->armor.armorValue;
+		armorRegenRate += equipmentItem->itemTemplate->armor.regenRate;
+		// what about damage absorbed? Was it used at all?
+	}
+	client->player->actor->stats.armorRegenCurrent = armorRegenRate;
+	client->player->actor->stats.armorNormalMax = armorMax;
+	client->player->actor->stats.armorCurrentMax = armorMax;
+	if( fullreset )
+		client->player->actor->stats.armorCurrent = client->player->actor->stats.armorCurrentMax;
+	else
+		client->player->actor->stats.armorCurrent = min(client->player->actor->stats.armorCurrent, armorMax);
 }
 
 void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner, di_characterData_t *characterData)
@@ -278,13 +309,17 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	// If you want to add missions during runtime you have to reallocate the mission state map
 	// for every single player that is currently logged in (and also do all the mission script prepare stuff in mission.cpp)
 	sint32 missionCount = mission_getNumberOfMissions();
-	sint32 missionStateMapSize = (missionCount+7)/8; // calculate how many bytes do we need
+	sint32 missionStateMapSize = (missionCount+7)/8; // calculate how many bytes do we need for the yes/no has-mission-completed-bitmap
 	owner->player->missionStateMap = (uint8*)malloc(missionStateMapSize);
 	memset(owner->player->missionStateMap, 0x00, missionStateMapSize);
 	// todo: Load completed missions from db and set the appropriate bits in the missionStateMap
 	communicator_loginOk(mapChannel, owner);
 	cellMgr_addToWorld(owner); // will introduce the player to all clients, including the current owner
 	manifestation_assignPlayer(mapChannel, owner, manifestation);
+	// init gm data
+	// later we should do this only if the player is a gm
+	manifestation->gmData = (gmData_t*)malloc(sizeof(gmData_t));
+	memset(manifestation->gmData, 0x00, sizeof(gmData_t));
 }
 
 void manifestation_removePlayerCharacter(mapChannel_t *mapChannel, mapChannelClient_t *owner)
@@ -449,8 +484,6 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_addInt(&pms, 0); // weaponId
 	pym_addInt(&pms, 0); // abilities
 	pym_tuple_end(&pms);
-
-
 	for(sint32 i=0; i<playerCount; i++)
 	{
 		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, client->player->actor->entityId, 622, pym_getData(&pms), pym_getLen(&pms));
@@ -895,14 +928,14 @@ void manifestation_buildAttributeInfoPacket(mapChannelClient_t *client, pyMarsha
 	pym_addInt(pms, 0); // refreshIncrement
 	pym_addInt(pms, 0); // refreshPeriod
 	pym_tuple_end(pms);
-	// armor (test)
+	// armor
 	pym_addInt(pms, 8);
 	pym_tuple_begin(pms);
-	pym_addInt(pms, 100); // current (current value)
-	pym_addInt(pms, 120); // currentMax (current max)
-	pym_addInt(pms, 110); // normalMax (max without bonus)
-	pym_addInt(pms, 0); // refreshIncrement
-	pym_addInt(pms, 0); // refreshPeriod
+	pym_addInt(pms, 0); // unused (should be armor currentMax)
+	pym_addInt(pms, client->player->actor->stats.armorCurrentMax); // current (current value)
+	pym_addInt(pms, client->player->actor->stats.armorCurrent); // current (current value)
+	pym_addFloat(pms, client->player->actor->stats.armorRegenCurrent); // refreshIncrement
+	pym_addInt(pms, 1); // refreshPeriod
 	pym_tuple_end(pms);
 	// speed (test)
 	pym_addInt(pms, 9);
@@ -1425,7 +1458,14 @@ void manifestation_updatePlayer(mapChannelClient_t* mapChannelClient, sint32 tic
 	if( mapChannelClient->player == NULL )
 		return;
 	// todo: Check for in-combat and decrease health regeneration
-	// todo: Since we use a float and convert it to int we have a loss of accuracy, find a way to solve this
+	//mapChannelClient->player->actor->stats.regenCooldown--; // todo
+	if( mapChannelClient->player->actor->stats.armorCurrent < mapChannelClient->player->actor->stats.armorCurrentMax )
+	{
+		// armor not full?
+		mapChannelClient->player->actor->stats.armorCurrent += mapChannelClient->player->actor->stats.armorRegenCurrent;
+		mapChannelClient->player->actor->stats.armorCurrent = min(mapChannelClient->player->actor->stats.armorCurrent, mapChannelClient->player->actor->stats.armorCurrentMax);
+	}	
+	// health regen is always active, even when armor is depleted
 	float healthRegenerated = mapChannelClient->player->actor->stats.regenHealthPerSecond * (float)tick / 1000.0f;
 	sint32 oldHealth = mapChannelClient->player->actor->stats.healthCurrent;
 	mapChannelClient->player->actor->stats.healthCurrent = min(mapChannelClient->player->actor->stats.healthCurrent+(sint32)healthRegenerated, mapChannelClient->player->actor->stats.healthCurrentMax);

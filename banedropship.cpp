@@ -121,8 +121,13 @@ bool banedropship_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 				baneDropshipData->spawnPool);
 			if( creature == NULL )
 				continue;
+			// set random spawn location
 			sint32 srnd = rand() % 5;
 			creature_setLocation(creature, dynObject->x+(float)srnd, dynObject->y, dynObject->z+(float)srnd, 0.0f, 0.0f);
+			// set ai path if spawnpool has any
+			if( baneDropshipData->spawnPool->pathCount > 0 )
+				creature->controller.aiPathFollowing.generalPath = baneDropshipData->spawnPool->pathList[rand()%baneDropshipData->spawnPool->pathCount]; // select random path
+			// add to world
 			cellMgr_addToWorld(mapChannel, creature);
 		}
 		if( baneDropshipData->spawnPool )

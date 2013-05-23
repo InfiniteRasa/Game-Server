@@ -302,7 +302,9 @@ sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len)
 		__debugbreak();
 	if( len < 4 )
 		return 0;
-	//printf("Packet - Size: %d\n", len);
+	//printf("DECODE PACKET Packet - Size: %d\n", len);
+	if( len > 3000 )
+		printf("GameMain_DecodePacket: Huge packet received (%d) - This is a very bug that is caused by having custom graphic options? It will make login impossible due to wrong packet parsing.\n", len);
 	//HexOut(data, len);
 	//printf("\n\n");
 
@@ -442,8 +444,6 @@ sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len)
 			GameMain_processPythonRPC(cgm, methodID, data+pIdx, dataLen);
 		pIdx += dataLen;
 		// xor check...
-
-		
 	}
 	else
 		return 1;
@@ -452,6 +452,7 @@ sint32 GameMain_DecodePacket(clientGamemain_t *cgm, uint8 *data, uint32 len)
 
 sint32 GameMain_processPythonRPC(clientGamemain_t *cgm, uint32 methodID, uint8 *pyString, sint32 pyStringLen)
 {
+	//printf("GameMain method: %d\n", methodID);
 	// check if 'O'
 	if( *pyString != 'O' )
 		__debugbreak(); // unsupported python marshaling mode, this is a huge problem...

@@ -136,6 +136,9 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 			creature_t *creature = creature_createCreature(mapChannel, spawnTypeList[i], spawnPool);
 			if( creature == NULL )
 				continue;
+			// set ai path if spawnpool has any
+			if( spawnPool->pathCount > 0 )
+				creature->controller.aiPathFollowing.generalPath = spawnPool->pathList[rand()%spawnPool->pathCount]; // select random path
 			// no random location if we spawn only one creature
 			if( spawnTypeCount == 1 )
 				creature_setLocation(creature, location->x, location->y, location->z, 0.0f, 0.0f);
@@ -228,7 +231,7 @@ void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnpool_t *jobData)
 	spawnPool->locationList[0].x = jobData->posX;
 	spawnPool->locationList[0].y = jobData->posY;
 	spawnPool->locationList[0].z = jobData->posZ;
-
+	spawnPool->id = jobData->id;
 	spawnPool->animType = jobData->animType;
 	spawnPool->mode = jobData->mode;
 
@@ -241,7 +244,9 @@ void _cb_spawnPool_initForMapChannel(void *param, diJob_spawnpool_t *jobData)
 		spawnPool->spawnSlot[spawnSlot].countMax = jobData->spawnSlot[spawnSlot].countMax;
 	}
 
-
+	// attach paths (if there are any)
+	controller_attachPathsToSpawnpool(spawnPool);
+	// enable spawnpool
 	spawnPool_activate(mapChannel, spawnPool);
 
 	//for(sint32 i=0; i<jobData->scount; i++)

@@ -365,8 +365,8 @@ typedef struct
 	uint32	currentAmmo;
 	float	aimRate;
 	uint32	reloadTime;
-	sint8	altActionId;
-	sint8	altActionArg;
+	sint32	altActionId;
+	sint32	altActionArg;
 	sint8	aeType;
 	uint32	aeRadius;
 	uint32	recoilAmount;
@@ -485,6 +485,32 @@ typedef struct
 	di_missionData_t *outMissionList;
 }diJob_missionListData_t;
 
+typedef struct  
+{
+	float pos[3];
+	//sint32 nodeIndex;
+}diData_pathNodes_t;
+
+typedef struct  
+{
+	sint32 pathId;
+	sint32 contextId;
+	sint32 mode;
+	sint32 numberOfNodes;
+	sint32 spawnpool; // the spawnpool that will use this path, 0 if not used
+	float nodeOffsetRandomization; // how far away can creatures pass a path node
+	diData_pathNodes_t* pathnodes;
+	bool _isFinished; // only used by the data interface methods
+}diData_path_t;
+
+typedef struct  
+{
+	// when writing a single path
+	diData_path_t* pathData;
+	// when reading all paths from the db
+	diData_path_t* pathList;
+	sint32 pathCount;
+}diJob_path_t;
 
 /* general */
 void DataInterface_init();
@@ -512,9 +538,13 @@ void DataInterface_Vendor_getVendorList(void (*cb)(void *param, diJob_vendorList
 /* creatureType */
 void DataInterface_Creature_getCreatureTypeList(void (*cb)(void *param, diJob_creatureType_t *jobData), void *param);
 
+/* path nodes */
+void DataInterface_Creature_getPathList(void (*cb)(void *param, diJob_path_t *jobData), void *param);
+void DataInterface_Creature_savePath(diData_path_t* pathData);
+
 /* spawn system */
 void DataInterface_SpawnSystem_getSpawnPoolList(void (*cb)(void *param, diJob_spawnpool_t *jobData), void *param);
-void DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry);
+sint32 DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry);
 
 /* missile */
 void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_creatureAction_t *jobData), void *param);

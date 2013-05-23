@@ -34,6 +34,8 @@ typedef struct _creatureType_t
 	// todo fields
 	sint32 aggressionTime;
 	float wander_dist; // -- wander boundaries 
+	// aggro info
+	float aggroRange; // how far away the creature can detect enemies, usually 24.0f but can be increased by having high-range attacks
 	// npc data (only if creature is a NPC)
 	npcData_t* npcData; 
 	// vendor data (only if creature is a vendor, creatures do not need to be a NPC to be a vendor serverside)
@@ -81,6 +83,8 @@ typedef struct _creature_t
 creature_t* creature_createCreature(mapChannel_t *mapChannel, creatureType_t *creatureType, spawnPool_t *spawnPool);
 creatureType_t*		creatureType_findType(sint32 typeId);
 void				creature_setLocation(creature_t *creature, float x, float y, float z, float rX, float rY);
+
+void creature_destroy(creature_t *creature);
 
 void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature, actor_t* killedBy);
 

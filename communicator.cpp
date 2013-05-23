@@ -355,27 +355,34 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 {
 	pyMarshalString_t pms;
 	
-	if( memcmp(textMsg,".pathnode ",10) == 0)
+
+	if( textMsg[0] == '.' )
 	{
-         
-		//__debugbreak();
-		//---saves pathnode(s) for a  certain spawntype
-		/*sint8 cmd[11];
-		sint32 spawnid,pathindex;
-		sscanf(textMsg,"%s %d %d",cmd,&spawnid,&pathindex);
-			
-		di_pathNodeDataW2_t pNode = {0};
-		pNode.currentContextId = cm->mapChannel->mapInfo->contextId;
-		pNode.spawntype = spawnid;
-		pNode.pathindex = pathindex;
-		pNode.posX = cm->player->actor->posX;
-		pNode.posY = (cm->player->actor->posY)+0.1f;
-		pNode.posZ = cm->player->actor->posZ;
-		DataInterface_PathNode_setPathnode(&pNode,NULL,NULL);
-		*/
-		communicator_systemMessage(cm, "pathnodes deactivated");
-		return true;
+		if( gm_parseGmCommands(cm, textMsg) == true )
+			return true;
 	}
+
+	//if( memcmp(textMsg,".pathnode ",10) == 0)
+	//{
+ //        
+	//	//__debugbreak();
+	//	//---saves pathnode(s) for a  certain spawntype
+	//	/*sint8 cmd[11];
+	//	sint32 spawnid,pathindex;
+	//	sscanf(textMsg,"%s %d %d",cmd,&spawnid,&pathindex);
+	//		
+	//	di_pathNodeDataW2_t pNode = {0};
+	//	pNode.currentContextId = cm->mapChannel->mapInfo->contextId;
+	//	pNode.spawntype = spawnid;
+	//	pNode.pathindex = pathindex;
+	//	pNode.posX = cm->player->actor->posX;
+	//	pNode.posY = (cm->player->actor->posY)+0.1f;
+	//	pNode.posZ = cm->player->actor->posZ;
+	//	DataInterface_PathNode_setPathnode(&pNode,NULL,NULL);
+	//	*/
+	//	communicator_systemMessage(cm, "pathnodes deactivated");
+	//	return true;
+	//}
 	if( memcmp(textMsg,".hurtme",7) == 0)
 	{
        cm->player->actor->stats.healthCurrent /= 2;
@@ -494,8 +501,12 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			spawnPool->spawnSlot[spawnSlot].countMax = spawnEntry.spawnSlot[spawnSlot].countMax;
 		}
 		spawnPool_activate(cm->mapChannel, spawnPool);
-		DataInterface_SpawnSystem_addSpawnPoint(&spawnEntry);
-		communicator_systemMessage(cm, "Added spawn");
+		sint32 spawnpoolId = DataInterface_SpawnSystem_addSpawnPoint(&spawnEntry);
+		char textMsg[128];
+		wsprintf(textMsg, "Added spawnpool with id %d", spawnpoolId);
+		communicator_systemMessage(cm, textMsg);
+		if( cm->player->gmData )
+			cm->player->gmData->lastCreatedSpawnpool = spawnpoolId;
 		return true;
 	}
 	if( memcmp(textMsg,".alwaysfriendly",15) == 0 )

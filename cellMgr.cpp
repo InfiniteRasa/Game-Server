@@ -5,9 +5,9 @@
 
 bool cellMgr_initForMapChannel(mapChannel_t *mapChannel)
 {
-	hashTable_init(&mapChannel->mapCellInfo.ht_cells, 128);
+	hashTable_init(&mapChannel->mapCellInfo.ht_cells, 2048);
 	mapChannel->mapCellInfo.loadedCellCount = 0;
-	mapChannel->mapCellInfo.loadedCellLimit = 128;
+	mapChannel->mapCellInfo.loadedCellLimit = 2048;
 	mapChannel->mapCellInfo.loadedCellList = (mapCell_t**)malloc(sizeof(mapCell_t*)*mapChannel->mapCellInfo.loadedCellLimit);
 	mapChannel->mapCellInfo.time_updateVisibility = GetTickCount()+1000;
 	return true;
@@ -236,12 +236,9 @@ void cellMgr_removeCreatureFromWorld( mapChannel_t *mapChannel, creature_t *crea
 {
 	if( !creature )
 		return;
-
-	uint32 x = (uint32)((creature->actor.posX / CELL_SIZE) + CELL_BIAS);
-	uint32 z = (uint32)((creature->actor.posZ / CELL_SIZE) + CELL_BIAS);
-	// calculate initial cell
-	creature->actor.cellLocation.x = x;
-	creature->actor.cellLocation.z = z;
+	// get current cell
+	uint32 x = creature->actor.cellLocation.x;
+	uint32 z = creature->actor.cellLocation.z;
 	// get cell
 	mapCell_t *mapCell = cellMgr_getCell(mapChannel, x, z);
 	if( mapCell )

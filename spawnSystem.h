@@ -30,6 +30,7 @@ typedef struct
 
 typedef struct _spawnPool_t
 {
+	sint32 id; // id of the spawnpool
 	spawnPool_spawnSlot_t spawnSlot[SPAWNPOOL_SPAWNSLOTS];
 	// different spawn points
 	sint32 locationCount;
@@ -50,6 +51,12 @@ typedef struct _spawnPool_t
 	// respawn lock
 	uint32 spawnLockTime;
 	uint32 respawnTime;
+	// paths
+	sint32 pathCount;
+	aiPath_t** pathList;
+
+
+
 	//baseBehavior_baseNode *pathnodes;
 	//sint32 attackspeed;
 	//sint32 attackanim;

@@ -100,8 +100,8 @@ typedef struct
 		uint32	currentAmmo;
 		float	aimRate;
 		uint32	reloadTime;
-		sint8	altActionId;
-		sint8	altActionArg;
+		sint32	altActionId;
+		sint32	altActionArg;
 		sint8	aeType;
 		uint32	aeRadius;
 		uint32	recoilAmount;
