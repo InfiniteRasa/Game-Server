@@ -250,16 +250,19 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 				// push them apart! (But only along x/z axis)
 				// get direction vector
 				float tLength = sqrt(difX*difX+difZ*difZ);
-				difX /= tLength;
-				difZ /= tLength;
-				// decrease strength of push vector
-				difX *= 0.3f;
-				difZ *= 0.3f;
-				// push
-				creature->actor.posX += difX;
-				creature->actor.posZ += difZ;
-				tCreature->actor.posX -= difX;
-				tCreature->actor.posZ -= difZ;
+				if( tLength >= 0.05f )
+				{
+					difX /= tLength;
+					difZ /= tLength;
+					// decrease strength of push vector
+					difX *= 0.3f;
+					difZ *= 0.3f;
+					// push
+					creature->actor.posX += difX;
+					creature->actor.posZ += difZ;
+					tCreature->actor.posX -= difX;
+					tCreature->actor.posZ -= difZ;
+				}
 			}
 		}
 	}
