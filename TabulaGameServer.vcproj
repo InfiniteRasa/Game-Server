@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\3rdparty\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\3rdparty\&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -60,7 +60,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libmysql.lib ws2_32.lib"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\3rdparty\mysql\&quot;;&quot;$(SolutionDir)\3rdparty\pthreads\&quot;"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)\3rdparty\mysql\&quot;;&quot;$(ProjectDir)\3rdparty\pthreads\&quot;"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -113,7 +113,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\3rdparty\&quot;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\3rdparty\&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -132,7 +132,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libmysql.lib ws2_32.lib"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\3rdparty\mysql\&quot;;&quot;$(SolutionDir)\3rdparty\pthreads\&quot;"
+				AdditionalLibraryDirectories="&quot;$(ProjectDir)\3rdparty\mysql\&quot;;&quot;$(ProjectDir)\3rdparty\pthreads\&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
