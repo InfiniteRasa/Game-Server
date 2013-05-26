@@ -779,45 +779,45 @@ void npc_recv_RequestVendorPurchase(mapChannelClient_t *client, uint8 *pyString,
 	if( itemQuantity <= 0 )
 		return; // a quantity of less than 1 is not allowed
 	// get the instance of the bought item
-	item_t* boughtItem = (item_t*)entityMgr_get(itemEntityId);
-	if( boughtItem == NULL )
+	item_t* selectedVendorItem = (item_t*)entityMgr_get(itemEntityId);
+	if( selectedVendorItem == NULL )
 	{
 		printf("npc_recv_RequestVendorPurchase: The item instance does not exist\n");
 		return;
 	}
-	// find free slot in inventory category
-	sint32 baseSlotIndex = (boughtItem->itemTemplate->item.inventoryCategory-1);
-	if( baseSlotIndex < 0 || baseSlotIndex >= 5 )
-	{
-		printf("npc_recv_RequestVendorPurchase: The item inventory category(%d) is not valid\n", baseSlotIndex);
-		return;
-	}
-	baseSlotIndex *= 50;
-	sint32 slotIndex = -1;
-	for(sint32 i=0; i<50; i++)
-	{
-		if( (sint64)client->inventory.personalInventory[baseSlotIndex+i] == 0 )
-		{
-			slotIndex = i+baseSlotIndex;
-			break;
-		}
-	}
-	if( slotIndex == -1 )
-	{
-		printf("npc_recv_RequestVendorPurchase: Inventory is full\n");
-		return;
-	}
-	// get buy price
-	sint32 buyPrice = boughtItem->itemTemplate->item.buyPrice * itemQuantity;
 	// has the player enough credits?
+	sint32 buyPrice = selectedVendorItem->itemTemplate->item.buyPrice * itemQuantity;
 	if( client->player->credits < buyPrice )
 		return; // not enough credits
 	// duplicate item
-	item_t* newItem = item_duplicate(boughtItem, itemQuantity);
-	if( newItem == NULL )
+	item_t* boughtItem = item_duplicate(selectedVendorItem, itemQuantity);
+	if( boughtItem == NULL )
 		return; // could not duplicate item
-	item_sendItemCreation(client, newItem);
-	inventory_addItemBySlot(client, INVENTORY_PERSONAL, newItem->entityId, slotIndex); // also makes item appear on the client
+	// tell client about item
+	item_sendItemCreation(client, boughtItem);
+	// add item to inventory
+	item_t* tempItemPtr = boughtItem;
+	sint32 desiredStacksize = tempItemPtr->stacksize;
+	boughtItem = inventory_addItemToInventory(client, boughtItem);
+	if( boughtItem == NULL )
+	{
+		// item could not be added to inventory
+		sint32 appliedRestStackSize = tempItemPtr->stacksize;
+		if( appliedRestStackSize == desiredStacksize )
+		{
+			// not even 1x item could be added to the inventory
+			item_sendItemDestruction(client, tempItemPtr);
+			item_free(tempItemPtr);
+			return;
+		}
+		// we were able to at least get a part of the stack into the inventory
+		// destroy the rest and update the stacksize for the price
+		item_sendItemDestruction(client, tempItemPtr);
+		item_free(tempItemPtr);
+		itemQuantity = (desiredStacksize - appliedRestStackSize);
+	}
+	// get correct buy price
+	buyPrice = boughtItem->itemTemplate->item.buyPrice * itemQuantity;
 	// remove credits
 	manifestation_GainCredits(client, -buyPrice); // todo: maybe we should have a separate method for removing credits
 }

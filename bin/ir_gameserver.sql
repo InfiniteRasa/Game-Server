@@ -4,7 +4,7 @@ Source Host: localhost
 Source Database: ir_gameserver
 Target Host: localhost
 Target Database: ir_gameserver
-Date: 24.05.2013 00:06:00
+Date: 26.05.2013 21:36:56
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -140,6 +140,20 @@ CREATE TABLE `creature_type` (
   `wanderDistance` float NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=22 DEFAULT CHARSET=latin1;
+
+-- ----------------------------
+-- Table structure for creature_type_loot
+-- ----------------------------
+DROP TABLE IF EXISTS `creature_type_loot`;
+CREATE TABLE `creature_type_loot` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `creatureTypeId` int(11) NOT NULL,
+  `itemTemplateId` int(11) NOT NULL,
+  `chance` float NOT NULL,
+  `stacksizeMin` int(11) NOT NULL,
+  `stacksizeMax` int(11) NOT NULL,
+  PRIMARY KEY (`id`,`creatureTypeId`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- ----------------------------
 -- Table structure for creature_type_npc
@@ -420,7 +434,7 @@ INSERT INTO `creature_action` VALUES ('5', 'forean spearman melee', '174', '11',
 INSERT INTO `creature_action` VALUES ('6', 'forean spearman lighting', '203', '1', '5', '20', '2800', '500', '0', '5', '30');
 INSERT INTO `creature_action` VALUES ('7', 'Supply Sergeant Maddrey Weapon Range Attack', '1', '133', '1', '5', '2000', '500', '0', '8', '35');
 INSERT INTO `creature_action` VALUES ('8', 'Weapon - Emplacement_AFS_Turret_Mini', '1', '242', '0', '50', '400', '400', '400', '10', '20');
-INSERT INTO `creature_action` VALUES ('9', 'bane_hunter_invasion range', '1', '244', '5', '20', '1500', '500', '766', '10', '35');
+INSERT INTO `creature_action` VALUES ('9', 'bane_hunter_invasion range', '1', '244', '5', '20', '1500', '500', '0', '10', '35');
 INSERT INTO `creature_action` VALUES ('10', 'bane_hunter_invasion melee', '174', '33', '1', '5', '1400', '500', '333', '20', '45');
 INSERT INTO `creature_action` VALUES ('11', 'bane_amoeboid_invasion melee', '431', '1', '1', '3', '2500', '500', '0', '30', '60');
 INSERT INTO `creature_action` VALUES ('12', 'bane_amoeboid_invasion range', '211', '1', '3', '14', '2800', '500', '1800', '20', '50');
@@ -731,6 +745,13 @@ INSERT INTO `creature_type` VALUES ('18', 'young_forest_boargar', '7803', '6031'
 INSERT INTO `creature_type` VALUES ('19', 'Supply Sergeant Maddrey', '8508', '20975', '1', '3', '9', '1050', '7', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('20', '(Raiding) Trainee Thrax Footsoldier', '0', '25580', '0', '4', '9', '225', '1', '3', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type` VALUES ('21', 'Emplacement_AFS_Turret_Mini', '0', '11302', '1', '0', '0', '1500', '8', '0', '0', '0', '0', '0', '0', '0', '0');
+INSERT INTO `creature_type_loot` VALUES ('1', '20', '28', '12', '1', '35');
+INSERT INTO `creature_type_loot` VALUES ('2', '20', '13066', '0.5', '1', '1');
+INSERT INTO `creature_type_loot` VALUES ('3', '20', '13096', '0.5', '1', '1');
+INSERT INTO `creature_type_loot` VALUES ('4', '20', '13126', '0.5', '1', '1');
+INSERT INTO `creature_type_loot` VALUES ('5', '20', '13156', '0.5', '1', '1');
+INSERT INTO `creature_type_loot` VALUES ('6', '20', '13186', '0.5', '1', '1');
+INSERT INTO `creature_type_loot` VALUES ('7', '20', '44917', '5', '1', '3');
 INSERT INTO `creature_type_npc` VALUES ('1', '13', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('2', '14', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
 INSERT INTO `creature_type_npc` VALUES ('3', '15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');
@@ -37496,9 +37517,9 @@ INSERT INTO `itemtemplate_equipment` VALUES ('20000494', '13', '82', '1');
 INSERT INTO `itemtemplate_equipment` VALUES ('20000495', '13', '1', '1');
 INSERT INTO `itemtemplate_equipment` VALUES ('20000496', '13', '24', '1');
 INSERT INTO `itemtemplate_equipment` VALUES ('20000497', '13', '31', '1');
-INSERT INTO `itemtemplate_weapon` VALUES ('17131', '20', '200', '1.00', '5000', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '59', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
-INSERT INTO `itemtemplate_weapon` VALUES ('17384', '20', '200', '1.00', '5000', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '59', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
-INSERT INTO `itemtemplate_weapon` VALUES ('122874', '20', '200', '1.00', '5000', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '37', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
+INSERT INTO `itemtemplate_weapon` VALUES ('17131', '20', '200', '1.00', '1500', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '59', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
+INSERT INTO `itemtemplate_weapon` VALUES ('17384', '20', '200', '1.00', '1500', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '59', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
+INSERT INTO `itemtemplate_weapon` VALUES ('122874', '20', '200', '1.00', '1500', '1', '133', '0', '1', '1', null, '1', '2', '15', '1', '37', '68', '3147', '1', '800', '1', '800', '80', '25', '1', '15', '1', '1', '2');
 INSERT INTO `mission_script` VALUES ('1', '429', '1', '0', '7', '13', '0', '0', '');
 INSERT INTO `mission_script` VALUES ('2', '429', '2', '1', '7', '16', '5', '1', '');
 INSERT INTO `mission_script` VALUES ('3', '429', '3', '2', '7', '17', '0', '5', '');

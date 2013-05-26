@@ -92,6 +92,7 @@ void dynamicObject_destroy(mapChannel_t *mapChannel, dynObject_t *dynObject)
 {
 	// TODO, check timers
 	// remove from world
+	entityMgr_unregisterEntity(dynObject->entityId);
 	cellMgr_removeFromWorld(mapChannel, dynObject);
 	// destroy callback
 	if( dynObject->type->destroy )

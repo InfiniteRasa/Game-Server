@@ -50,8 +50,9 @@ typedef struct
 {
 	sint32 delay;
 	sint32 timeLeft;
-	manifestation_t* origin;
-	item_t* weapon;
+	//manifestation_t* origin;
+	//item_t* weapon;
+	mapChannelClient_t* client;
 }mapChannelAutoFireTimer_t;
 
 /*
@@ -111,5 +112,5 @@ bool mapChannel_pass(mapChannel_t *mapChannel, clientGamemain_t *cgm);
 // timer
 //void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, sint32 timePassed));
 void mapChannel_registerTimer(mapChannel_t *mapChannel, sint32 period, void *param, bool (*cb)(mapChannel_t *mapChannel, void *param, sint32 timePassed));
-void mapChannel_registerAutoFireTimer(mapChannel_t *mapChannel, sint32 delay, manifestation_t* origin, item_t* weapon);
-void mapChannel_removeAutoFireTimer(mapChannel_t* mapChannel, manifestation_t* origin);
+void mapChannel_registerAutoFireTimer(mapChannelClient_t* cm);
+void mapChannel_removeAutoFireTimer(mapChannelClient_t* cm);

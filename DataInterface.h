@@ -152,6 +152,17 @@ typedef struct
 	di_vendorItemData_t* itemList;
 }di_vendorData_t;
 
+
+/* creature loot table */
+
+typedef struct  
+{
+	sint32 itemTemplateId;
+	float chance;
+	sint32 stacksizeMin;
+	sint32 stacksizeMax;
+}diData_lootTable_t;
+
 /* creature type */
 
 typedef struct  
@@ -166,6 +177,9 @@ typedef struct
 	sint32 hitpoints;
 	sint32 missile[8]; // up to 8 different abilities/attacks
 	float wanderDistance;
+	// loot table
+	sint32 numLootEntries;
+	diData_lootTable_t* lootTable;
 }diJob_creatureType_t;
 
 /* missile */

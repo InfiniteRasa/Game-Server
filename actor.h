@@ -59,6 +59,21 @@ typedef struct
 	REGEN = 10
 */
 
+
+
+typedef struct  
+{
+	sint32 actionId;
+	sint32 actionArgId;
+	sint64 targetEntityId;
+	void(*actorActionUpdateCallback)(mapChannel_t* mapChannel, actor_t* actor, sint32 newActionState);
+	// todo: For now, objects use a separate action handling code - eventually it should be merged into this one
+}actorCurrentAction_t;
+
+#define ACTOR_ACTION_STATE_COMPLETE			(1)
+#define ACTOR_ACTION_STATE_INTERRUPTED		(2)
+
+
 typedef struct _actor_t
 {
 	sint32 entityId;
@@ -78,6 +93,8 @@ typedef struct _actor_t
 	mapCellLocation_t cellLocation;
 	gameEffect_t *activeEffects;
 	sint8 state;
+	// action data
+	actorCurrentAction_t currentAction;
 	// sometimes we only have access to the actor, the owner variable allows us to access the client anyway (only if actor is a player manifestation)
 	mapChannelClient_t* owner;
 }actor_t;
@@ -86,3 +103,9 @@ typedef struct _actor_t
 #define ACTOR_STATE_DEAD	1
 
 
+// actor action handling
+bool actor_hasActiveAction(actor_t* actor);
+void actor_completeCurrentAction(mapChannel_t* mapChannel, actor_t* actor); // should not be called manually
+void actor_startActionOnEntity(mapChannel_t* mapChannel, actor_t* actor, sint64 targetEntityId, sint32 actionId, sint32 actionArgId, sint32 windupTime, sint32 recoverTime, void(*actorActionUpdateCallback)(mapChannel_t* mapChannel, actor_t* actor, sint32 newActionState));
+
+#define WINDUP_MANUAL_ACTION	(-1) // pass to actor_startActionOnEntity to disable the automatic action completion

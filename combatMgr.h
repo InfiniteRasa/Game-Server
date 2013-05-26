@@ -11,6 +11,7 @@ typedef struct _missile_t
 	sint32 damageB;
 	sint32 actionId;
 	sint32 argId;
+	bool isAbility; // set to true to use PerformAbility instead of Windup/Recovery
 	unsigned long long targetEntityId; // the entityId of the destination (it is possible that the object does no more exist on arrival)
 	actor_t* targetActor; // the target actor
 	// note: Dont use the targetEntityId for sending data to the client! Use targetActor->entityId
@@ -33,6 +34,8 @@ void missile_initForMapchannel(mapChannel_t *mapChannel);
 void missile_check(mapChannel_t *mapChannel, sint32 passedTime);
 
 void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long long targetEntityId, sint32 damage, sint32 actionId, sint32 actionArgId);
+
+void missile_playerTryFireWeapon(mapChannelClient_t* cm);
 
 //#define MISSILE_PISTOL      1
 //#define MISSILE_RIFLE      2

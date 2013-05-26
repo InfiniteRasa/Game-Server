@@ -333,6 +333,10 @@ bool pym_unpackBool(pyUnmarshalString_t *pms)
 	{ ret = true; }
 	else if (p == 0x10)
 	{ ret = false; }
+	else if (p == 0x00) // int 0 ?
+	{ ret = false; }
+	else if (p == 0x01) // int 1 ?
+	{ ret = true; }
 	else 
 	{ printf("Error unpacking bool\n"); }
 

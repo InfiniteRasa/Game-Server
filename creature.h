@@ -1,5 +1,6 @@
 
 /* creature missile */
+
 typedef struct  
 {
 	sint32 id;
@@ -14,7 +15,18 @@ typedef struct
 	sint32 maxDamage; // max damage, not all missile actions use this
 }creatureMissile_t; // someday we should rename this to creatureAction, creatureAbility or creatureAttack
 
+/* creature loot */
+
+typedef struct  
+{
+	sint32	itemTemplateId;
+	float	chance;
+	sint32	stacksizeMin;
+	sint32	stacksizeMax;
+}creatureTypeLoot_t;
+
 /* creature type */
+
 typedef struct _creatureType_t 
 {
 	sint32 typeId; // db id (used by mission system)
@@ -31,8 +43,12 @@ typedef struct _creatureType_t
 	//sint32 RangeMissile;
 	//sint32 MeleeMissile;
 	creatureMissile_t* actions[8]; // creature available
-	// todo fields
-	sint32 aggressionTime;
+	// loot table
+	sint32 lootTableSize;
+	creatureTypeLoot_t* lootTable;
+	// todo fields:
+	// level range, armor, resistances, max item drop count, dodge chance, AI control stuff, and more?
+	sint32 aggressionTime; // todo?
 	float wander_dist; // -- wander boundaries 
 	// aggro info
 	float aggroRange; // how far away the creature can detect enemies, usually 24.0f but can be increased by having high-range attacks
@@ -76,6 +92,8 @@ typedef struct _creature_t
 	spawnPool_t *spawnPool; // the spawnpool that initiated the creation of this creature
 	// behavior controller
 	behaviorState_t controller;
+	// loot dispenser
+	sint64 lootDispenserObjectEntityId;
 }creature_t;
 
 //creature_t*			creature_createCreature(mapChannel_t *mapChannel, sint32 classId, sint8 *name);

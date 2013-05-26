@@ -213,6 +213,8 @@ void manifestation_updateStatsValues(mapChannelClient_t *client, bool fullreset)
 	// calculate armor max
 	sint32 armorMax = 0;
 	//float armorBonus = 0; // todo! (From item modules)
+	float armorBonusPct = (float)client->player->spentAttributePoints_body * 0.0066666f;
+	
 	sint32 armorRegenRate = 0;
 	for(sint32 i=0; i<17; i++)
 	{
@@ -231,6 +233,7 @@ void manifestation_updateStatsValues(mapChannelClient_t *client, bool fullreset)
 		armorRegenRate += equipmentItem->itemTemplate->armor.regenRate;
 		// what about damage absorbed? Was it used at all?
 	}
+	armorMax = (sint32)((float)armorMax * (1.0f + armorBonusPct));
 	client->player->actor->stats.armorRegenCurrent = armorRegenRate;
 	client->player->actor->stats.armorNormalMax = armorMax;
 	client->player->actor->stats.armorCurrentMax = armorMax;
@@ -704,6 +707,9 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, uint8 *pyString, s
 	cm->player->targetEntityId = 0;
 }
 
+/*
+ * Use this method to give (or take) the client some credits (currency)
+ */
 void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 {
 	cm->player->credits += credits;
@@ -716,6 +722,20 @@ void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 	pym_addInt(&pms, credits); // delta
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_UPDATECREDITS, pym_getData(&pms), pym_getLen(&pms));
+	// send player message
+	if( credits > 0 )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, 262); // msg262: You received %(amount)s credits.
+		pym_dict_begin(&pms);
+		pym_dict_addKey(&pms, "amount");
+		pym_addInt(&pms, credits);
+		pym_dict_end(&pms);
+		pym_addInt(&pms, 10000027); // filter LOOT_OBTAINED (10000027)
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, 8, DisplayClientMessage, pym_getData(&pms), pym_getLen(&pms));
+	}
 }
 
 void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
@@ -1202,6 +1222,20 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 		return;
 	float yaw = pym_unpackFloat(&pums);
 	
+
+	// do we need to reload?
+	item_t* itemWeapon = inventory_CurrentWeapon(client);
+	if( itemWeapon == NULL )
+		return; // no weapon armed
+	if( itemWeapon->weaponData.ammoCount < itemWeapon->itemTemplate->weapon.ammoPerShot )
+	{
+		item_recv_RequestWeaponReload(client, NULL, NULL, true);
+		return;
+	}
+		// item_recv_RequestWeaponReload
+
+
+
 	pyMarshalString_t pms;
 	client->player->actor->inCombatMode = true;
 	pym_init(&pms);
@@ -1210,6 +1244,7 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
 
+	
 
  
 
@@ -1251,11 +1286,11 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 	}
 	//##################### End: if target is Mapchannel Client #################
 
-	if( client->player->targetEntityId )
-	{
-		mapChannel_registerAutoFireTimer(client->mapChannel, inventory_CurrentWeapon(client)->itemTemplate->weapon.refireTime, client->player, inventory_CurrentWeapon(client));
+	//if( client->player->targetEntityId )
+	//{
+		mapChannel_registerAutoFireTimer(client);
 	
-	}//--if: targed id	
+	//}//--if: targed id	
 }
 
 void manifestation_recv_StopAutoFire(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
@@ -1264,7 +1299,6 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, uint8 *pyString
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-	
 	pyMarshalString_t pms;
 	client->player->actor->inCombatMode = false;
 	pym_init(&pms);
@@ -1272,9 +1306,7 @@ void manifestation_recv_StopAutoFire(mapChannelClient_t *client, uint8 *pyString
   	pym_addBool(&pms, false);
 	pym_tuple_end(&pms);
   	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 753, pym_getData(&pms), pym_getLen(&pms));
-
-  	mapChannel_removeAutoFireTimer(client->mapChannel, client->player);
-	printf("TODO: "); puts(__FUNCTION__);
+  	mapChannel_removeAutoFireTimer(client);
 	
 }
 
@@ -1284,13 +1316,9 @@ void manifestation_recv_AutoFireKeepAlive(mapChannelClient_t *client, uint8 *pyS
 	pym_init(&pums, pyString, pyStringLen);
 	if( !pym_unpackTuple_begin(&pums) )
 		return;
-
-	sint32 keepAliveDelay = pym_unpackInt(&pums);
-
-	printf("TODO: "); puts(__FUNCTION__);
-	printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
+	//sint32 keepAliveDelay = pym_unpackInt(&pums);
+	//printf("KeepAliveDelay: %i\r\n", keepAliveDelay);
 	//if( client->player->targetEntityId )
-	//missile_launch(client->mapChannel, client->player->actor, client->player->targetEntityId, MISSILE_PISTOL, 10);
 }
 
 void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
@@ -1303,6 +1331,7 @@ void manifestation_updateWeaponReadyState(mapChannelClient_t *client)
 	pym_addBool(&pms, true);
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
+	printf("Called manifestation_updateWeaponReadyState()\n");
 
 	// test enter combat state
 	/*pym_init(&pms);

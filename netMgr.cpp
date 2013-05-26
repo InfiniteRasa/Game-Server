@@ -547,7 +547,7 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		//data block 2 (header 2)
 		PacketOut_AddByte(&SPB, 0); // unknown
 
-		PacketOut_AddByte(&SPB, 2); // formatB(2)
+		PacketOut_AddByte(&SPB, 2); // formatB(2) --> The message code deciding @00529A54 -> 1 ukn, 2 mob move, 3 self move? (decides about entityId?)
 		unsigned long long entityId = movement->entityId;
 		while( entityId )
 		{
@@ -590,6 +590,13 @@ void netMgr_cellDomain_sendEntityMovement(mapChannel_t *mapChannel, actor_t *agg
 		}
 		//PacketOut_AddByte(&SPB, 10);
 		// next (flags?)
+		// flags -> 3:1:1 (moveFlags, turnSpeed, ukn)
+		// moveFlags aka moveDirection? -> Best set to zero? Changes animation
+		//		see UpdateCurrentMovementDirection()
+		// turnSpeed:
+		//		if set, fast turn speed is activated
+		// ukn:
+		//		I have no clue whats the purpose of this value
 		PacketOut_AddByte(&SPB, movement->flag);
 		// next-viewX (encoded-sint16)
 		if( movement->viewX <= 0x7F )
@@ -673,8 +680,9 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 		entityId >>= 7;
 	}
 
+	// parsing for code below can be found at @0094C210
 	// formatA
-	PacketOut_AddByte(&SPB, 0x00); // unknown
+	PacketOut_AddByte(&SPB, 0x00); // unknown (if not zero -> Position data, velocity and flag disabled?)
 	// posX
 	PacketOut_AddByte(&SPB, (movement->posX24b>>16)&0xFF);
 	PacketOut_AddByte(&SPB, (movement->posX24b>>8)&0xFF);
@@ -704,8 +712,18 @@ void netMgr_sendEntityMovement(clientGamemain_t *cgm, netCompressedMovement_t *m
 		PacketOut_AddByte(&SPB, movement->velocity>>14);
 	}
 	//PacketOut_AddByte(&SPB, 10);
+	//MOVEFLAG_STOPPED = 0
+	//MOVEFLAG_FORWARD = 1
+	//MOVEFLAG_BACKWARD = 2
+	//MOVEFLAG_RIGHT = 4
+	//MOVEFLAG_LEFT = 8
+
+	// moveflag mapping:
+	// set 0x8 -> Will make the game use PI*2 (if not set -> PI/2)
+	// 
 	// next (flags?)
-	PacketOut_AddByte(&SPB, movement->flag);
+	//movement->flag = 0; // test
+	PacketOut_AddByte(&SPB, movement->flag); // multiple values -> 3:1:1
 	// next-viewX (encoded-sint16)
 	if( movement->viewX <= 0x7F )
 	{

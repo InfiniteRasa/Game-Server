@@ -335,6 +335,7 @@ void controller_creatureThink(mapChannel_t *mapChannel, creature_t *creature, si
 					// path could not be generated or too short
 					// leave state and go idle mode
 					creature->controller.actionWander.state = WANDER_IDLE;
+					creature->lastresttime = GetTickCount() + (rand()%15)*100;
 					return;
 				}
 			}
@@ -683,14 +684,20 @@ void controller_mapChannelThink(mapChannel_t *mapChannel)
 		sint32 creatureCount = queue_creatureDeletion.size();
 		for(sint32 f=0; f<creatureCount; f++)
 		{
+			// did the creature have an active loot dispenser?
+			if( creatureList[f]->lootDispenserObjectEntityId != 0 )
+			{
+				dynObject_t* lootDispenserObject = (dynObject_t*)entityMgr_get(creatureList[f]->lootDispenserObjectEntityId);
+				if( lootDispenserObject )
+					dynamicObject_destroy(mapChannel, lootDispenserObject);
+				creatureList[f]->lootDispenserObjectEntityId = 0;
+			}
+			// remove creature from world
 			cellMgr_removeCreatureFromWorld(mapChannel, creatureList[f]);
 			// delete creature entity
 			creature_destroy(creatureList[f]);
 		}
 	}
-	//delete queue_creatureCellUpdate;
-	//delete queue_creatureDeletion;
-
 }
 
 void controller_initForMapChannel(mapChannel_t *mapChannel)

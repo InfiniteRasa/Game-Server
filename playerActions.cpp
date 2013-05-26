@@ -7,6 +7,10 @@
   2F 00 10 00 00 00 00 00 00 00 66
 */ 
 
+void _test_PerformAbility(mapChannelClient_t *cm, sint64 targetEntityId, sint32 actionId, sint32 actionArgId)
+{
+	// Recv_PerformObjectAbility(actionId, argId, hits, misses, *args)
+}
 
 void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
@@ -32,7 +36,9 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyS
 	case 194: // Lightning
 		printf("Lightning: Target %u\n", (uint32)targetEntityId);
 		//missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, MISSILE_LIGHTNING, 40);
-		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, 10, 194, 1);
+		missile_launch(cm->mapChannel, cm->player->actor, targetEntityId, 180 + (rand()%61), 194, 1);
+		//_test_PerformAbility();
+		
 		//gameEffect_attach(cm->mapChannel, targetEntityId, 86, 1); // stun
 		return;
 	case 401: // Sprint

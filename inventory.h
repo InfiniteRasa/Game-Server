@@ -27,6 +27,15 @@ typedef struct
 	itemTemplate_t *itemTemplate;
 	// item instance specific
 	sint32 stacksize;
+	// item type specific
+	union
+	{
+		// we use a union to save some space
+		struct  
+		{
+			sint32 ammoCount; // amount of remaining ammo
+		}weaponData;
+	};
 }item_t;
 
 void inventory_initForClient(mapChannelClient_t *client);
@@ -36,6 +45,7 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
 
 void inventory_removeItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint32 slotIndex);
 void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint64 entityId, sint32 slotIndex);
+item_t* inventory_addItemToInventory(mapChannelClient_t *client, item_t* item);
 
 item_t* item_createFromTemplateId(uint32 itemTemplateId, sint32 stacksize);
 item_t* item_duplicate(item_t* item, sint32 newStacksize);
@@ -50,7 +60,7 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, s
 void item_recv_RequestArmWeapon(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void item_recv_RequestWeaponStow(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
-void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
+void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen, bool tellSelf);
 
 #define INVENTORY_SLOTOFFSET_PLAYER			0
 #define INVENTORY_SLOTOFFSET_EQUIPPED		250
@@ -78,6 +88,8 @@ void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, 
 #define INVENTORY_CATEGORY_CRAFTING		3
 #define INVENTORY_CATEGORY_MISSION		4
 #define INVENTORY_CATEGORY_MISC			5
+
+#define INVENTORY_SLOTOFFSET_CATEGORY_CONSUMABLE	(50)
 
 // equipment data slot type (not to be confused with real inventory slot index)
 #define EQUIPMENT_HELMET				1

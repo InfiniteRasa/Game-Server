@@ -1,5 +1,7 @@
 #include"Global.h"
 
+void missile_trigger(mapChannel_t *mapChannel, missile_t *missile);
+
 void missile_initForMapchannel(mapChannel_t *mapChannel)
 {
 	
@@ -13,41 +15,59 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	missile.source = origin;
 	// get distance between actors
 	actor_t *targetActor = NULL;
-	sint32 targetType = entityMgr_getEntityType(targetEntityId);
-	void *entity = entityMgr_get(targetEntityId);
-	if( entity == NULL )
+	float triggerTime = 0; // time between windup and recovery
+	if( targetEntityId )
 	{
-		printf("the missile target doesnt exist: %u\n", targetEntityId);
-		// entity does not exist
-		return;
+		// target on entity
+		sint32 targetType = entityMgr_getEntityType(targetEntityId);
+		void *entity = entityMgr_get(targetEntityId);
+		if( entity == NULL )
+		{
+			printf("the missile target doesnt exist: %u\n", targetEntityId);
+			// entity does not exist
+			return;
+		}
+		switch( targetType )
+		{
+		case ENTITYTYPE_CREATURE:
+			{ 
+				creature_t *creature = (creature_t*)entity;
+				targetActor = &creature->actor;
+				missile.targetEntityId = targetEntityId;
+			}
+			break;
+		case ENTITYTYPE_CLIENT:
+			{ 
+				mapChannelClient_t *player = (mapChannelClient_t*)entity;            
+				targetActor = player->player->actor; 
+				missile.targetEntityId = targetEntityId;
+			}
+			break;
+		default:
+			printf("Can't shoot that object\n");
+			return;
+		};
+		if( targetActor->state == ACTOR_STATE_DEAD )
+			return; // actor is dead, cannot be shot at
+		float dx = targetActor->posX - origin->posX;
+		float dy = targetActor->posY - origin->posY;
+		float dz = targetActor->posZ - origin->posZ;
+		float distance = sqrt(dx*dx+dy*dy+dz*dz);
+		triggerTime = (sint32)(distance * 0.5f);
+		// calculate missile time
+		// todo (is this actually needed, since we have windup + recovery time anyway?)
 	}
-	switch( targetType )
+	else
 	{
-	case ENTITYTYPE_CREATURE:
-		{ 
-			creature_t *creature = (creature_t*)entity;
-			targetActor = &creature->actor;
-			missile.targetEntityId = targetEntityId;
-		}
-		break;
-	case ENTITYTYPE_CLIENT:
-		{ 
-			mapChannelClient_t *player = (mapChannelClient_t*)entity;            
-			targetActor = player->player->actor; 
-			missile.targetEntityId = targetEntityId;
-		}
-		break;
-	default:
-		printf("Can't shoot that object\n");
-		return;
-	};
-	if( targetActor->state == ACTOR_STATE_DEAD )
-		return; // actor is dead, cannot be shot at
-	// calculate missile time
-	float dx = targetActor->posX - origin->posX;
-	float dy = targetActor->posY - origin->posY;
-	float dz = targetActor->posZ - origin->posZ;
-	float distance = sqrt(dx*dx+dy*dy+dz*dz);
+		// has no target -> Shoot towards looking angle
+		targetActor = 0;
+		triggerTime = 0;
+	}
+
+	// is the missile/action an ability that need needs to use Recv_PerformAbility?
+	bool isAbility = false;
+	if( actionId == 194 ) // recruit lighting ability
+		isAbility = true;
 	//check range Disastorm @88450b338c
 	//if(maxRange >= 0){
 	//	if(distance > maxRange){
@@ -55,19 +75,32 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 	//	}
 	//}
 	missile.targetActor = targetActor;
-	missile.triggerTime = (sint32)(distance*0.5f);
+	missile.triggerTime = (sint32)triggerTime;
 	missile.actionId = actionId;
 	missile.argId = actionArgId;
-	// send windup
-	pyMarshalString_t pms;
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, missile.actionId); // actionId
-	pym_addInt(&pms, missile.argId); // actionArgId (subaction)
-	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, origin, origin->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
-	// append to list
-	mapChannel->missileInfo.list.push_back(missile);
+	missile.isAbility = isAbility;
+	// send windup and append to queue (only for non-abilities)
+	if( isAbility == false )
+	{
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, missile.actionId); // actionId
+		pym_addInt(&pms, missile.argId); // actionArgId (subaction)
+		if( missile.targetActor && missile.targetActor->entityId )
+			pym_addInt(&pms, missile.targetActor->entityId); // all weapon attacks have a target?
+		else
+			pym_addNoneStruct(&pms); // no target
+		pym_tuple_end(&pms);
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, origin, origin->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
+		// append to list
+		mapChannel->missileInfo.list.push_back(missile);
+	}
+	else
+	{
+		// abilities get applied directly without delay
+		missile_trigger(mapChannel, &missile);
+	}
 }
 
 /*
@@ -275,10 +308,13 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 {
 	// todo: Some weapons can hit multiple targets
 	pyMarshalString_t pms;
-	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
-	void *entity = entityMgr_get(missile->targetEntityId);
-	if( entity == NULL ) // check if entity still exists
-		return;
+	sint32 targetType = 0;
+	void *entity = NULL;
+	if( missile->targetActor )
+	{
+		targetType = entityMgr_getEntityType(missile->targetEntityId);
+		entity = entityMgr_get(missile->targetEntityId);
+	}
 	sint32 damage = missile->damageA;
 	/* Execute action */
 	pym_init(&pms);
@@ -286,13 +322,16 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
 	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
 	pym_list_begin(&pms); 							// Hits Start
-		pym_addLong(&pms, missile->targetActor->entityId);//pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
+		if( entity )
+			pym_addLong(&pms, missile->targetActor->entityId);//pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
 	pym_list_end(&pms); 							// Hits End
 	pym_list_begin(&pms); 							// Misses Start
 	pym_list_end(&pms); 							// Misses End
 	pym_list_begin(&pms); 							// Misses Data Start
 	pym_list_end(&pms); 							// Misses Data End
 	pym_list_begin(&pms); 							// Hits Data Start
+	if( entity )
+	{
 		pym_tuple_begin(&pms); 						// Each Hit tuple start
 			pym_addInt(&pms, missile->targetActor->entityId); // Creature entity ID
 			pym_tuple_begin(&pms); 						// rawInfo start
@@ -315,13 +354,17 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 					pym_list_end(&pms);
 			pym_tuple_end(&pms); 						// rawInfo end
 			pym_addNoneStruct(&pms);  					// OnHitData
-		pym_tuple_end(&pms); 						// Each Hit tuple start
+		pym_tuple_end(&pms); 						// Each Hit tuple end
+	}
 	pym_list_end(&pms); 							// Hits Data End
 	pym_tuple_end(&pms); 							// Packet End
 	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
 	
-
-	if( targetType == ENTITYTYPE_CREATURE )
+	if( targetType == 0 )
+	{
+		// todo
+	}
+	else if( targetType == ENTITYTYPE_CREATURE )
 		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
 	else if( targetType == ENTITYTYPE_CLIENT )
 		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
@@ -399,12 +442,92 @@ void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t
 		printf("Unsupported entity type for missile_doDamage()\n");
 }
 
-void _missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
+
+/*
+ * Handles use of the recruit lighting ability
+ */
+void missile_ActionHandler_Lighting(mapChannel_t *mapChannel, missile_t *missile)
+{
+	// Despite being an ability, most abilities dont use Recv_PerformObjectAbility
+	pyMarshalString_t pms;
+	sint32 targetType = 0;
+	void *entity = NULL;
+	if( missile->targetActor )
+	{
+		targetType = entityMgr_getEntityType(missile->targetEntityId);
+		entity = entityMgr_get(missile->targetEntityId);
+	}
+	sint32 damage = missile->damageA;
+	/* Execute action */
+	pym_init(&pms);
+	pym_tuple_begin(&pms);  						// Packet Start
+	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
+	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
+	pym_list_begin(&pms); 							// Hits Start
+	//pym_tuple_begin(&pms);
+	//pym_addInt(&pms, 0); // hit index
+	pym_addInt(&pms, missile->targetActor->entityId);
+	//pym_tuple_end(&pms);
+		//if( entity )
+		//	pym_addLong(&pms, missile->targetActor->entityId);//pym_addLong(&pms, missile->targetEntityId);// Each hit creature	(ktb: Must be a long for some reason?)
+	pym_list_end(&pms); 							// Hits End
+	pym_list_begin(&pms); 							// Misses Start
+	pym_list_end(&pms); 							// Misses End
+	pym_list_begin(&pms); 							// Misses Data Start
+	pym_list_end(&pms); 							// Misses Data End
+	pym_list_begin(&pms); 							// Hits Data Start
+	if( entity )
+	{
+		pym_tuple_begin(&pms); 						// Each Hit tuple start
+			//pym_addInt(&pms, missile->targetActor->entityId); // Creature entity ID
+			pym_tuple_begin(&pms); 						// rawInfo start
+					pym_addInt(&pms, 1); 				//self.damageType = normal
+					pym_addInt(&pms, 0); 					//self.reflected = 0
+					pym_addInt(&pms, 0); 					//self.filtered = 0
+					pym_addInt(&pms, 0); 					//self.absorbed = 0
+					pym_addInt(&pms, 0); 					//self.resisted = 0
+					pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
+					pym_addInt(&pms, 0); 					//self.isCrit = 0
+					pym_addInt(&pms, 0); 					//self.deathBlow = 0
+					pym_addInt(&pms, 0); 					//self.coverModifier = 0
+					pym_addInt(&pms, 0); 					//self.wasImmune = 0
+					//targetEffectIds // 131
+					pym_list_begin(&pms);
+					pym_list_end(&pms);
+					//sourceEffectIds
+					pym_list_begin(&pms);
+					
+					pym_list_end(&pms);
+			pym_tuple_end(&pms); 						// rawInfo end
+			pym_tuple_begin(&pms);  					// OnHitData
+			pym_tuple_begin(&pms);						// OnHitData - arcData
+			pym_tuple_end(&pms);
+			pym_tuple_end(&pms);
+		pym_tuple_end(&pms); 						// Each Hit tuple end
+	}
+	pym_list_end(&pms); 							// Hits Data End
+	pym_tuple_end(&pms); 							// Packet End
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	if( targetType == 0 )
+	{
+		// todo
+	}
+	else if( targetType == ENTITYTYPE_CREATURE )
+		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
+	else if( targetType == ENTITYTYPE_CLIENT )
+		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
+	else
+		printf("Unsupported entity type for missile_doDamage()\n");
+}
+
+void missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 {
 	if( missile->actionId == 1 )
 		missile_ActionRecoveryHandler_WeaponAttack(mapChannel, missile);
 	else if( missile->actionId == 174 )
 		missile_ActionRecoveryHandler_WeaponMelee(mapChannel, missile);
+	else if( missile->actionId == 194 )
+		missile_ActionHandler_Lighting(mapChannel, missile);
 	else if( missile->actionId == 397 )
 		missile_ActionRecoveryHandler_ThraxKick(mapChannel, missile);
 	else
@@ -429,7 +552,7 @@ void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
 		if( missile->triggerTime <= 0 )
 		{
 			// do missile action
-			_missile_trigger(mapChannel, missile);
+			missile_trigger(mapChannel, missile);
 			// remove missile
 			missileList->erase(missileList->begin() + i);
 			++removedMissiles;
@@ -496,3 +619,57 @@ void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
 //	pym_tuple_end(&pms); 							// Packet End
 //	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
 //}
+
+/*
+ * Called when a player tries to fire a shoot from the currently armed weapon
+ */
+void missile_playerTryFireWeapon(mapChannelClient_t* cm)
+{
+	pyMarshalString_t pms;
+	// get used weapon
+	item_t* item = inventory_CurrentWeapon(cm);
+	if( item == NULL )
+		return; // no weapon armed but player tries to shoot?
+	if( item->itemTemplate->item.type != ITEMTYPE_WEAPON )
+		return; // item is not a weapon (it shouldn't be possible to get non-weapons on the weapondrawer, but we check anyway)
+	// has ammo?
+	if( item->weaponData.ammoCount < item->itemTemplate->weapon.ammoPerShot )
+		return; // not enough ammo for a single shot
+	// decrease ammo
+	item->weaponData.ammoCount -= item->itemTemplate->weapon.ammoPerShot;
+	// weapon ammo info
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, item->weaponData.ammoCount);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, item->entityId, WeaponAmmoInfo, pym_getData(&pms), pym_getLen(&pms));
+	// calculate damage
+	sint32 damageRange = item->itemTemplate->weapon.maxDamage-item->itemTemplate->weapon.minDamage;
+	damageRange = max(damageRange, 1); // to avoid division by zero in the next line
+	sint32 damage = item->itemTemplate->weapon.minDamage+(rand()%damageRange);
+	// for now we just ignore no-target attacks
+	//if( cm->player->targetEntityId == 0 )
+	//	return;
+	// launch correct missile type depending on weapon type
+	if( item->itemTemplate->weapon.altActionId == 1 )
+	{
+		// weapon range attacks
+		if( item->itemTemplate->weapon.altActionArg == 133 ) // physical pistol
+			missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, damage, item->itemTemplate->weapon.altActionId, item->itemTemplate->weapon.altActionArg); // pistol
+		else
+			printf("missile_playerTryFireWeapon: Unsupported weapon altActionArg (action %d/%d)\n", item->itemTemplate->weapon.altActionId, item->itemTemplate->weapon.altActionArg);
+	}
+	else
+		printf("missile_playerTryFireWeapon: Unsupported weapon altActionId (action %d/%d)\n", item->itemTemplate->weapon.altActionId, item->itemTemplate->weapon.altActionArg);
+
+
+	// melee stuff :O
+	//if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 27220)
+	//	missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 5); // rifle
+	//else if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 27320)
+	//	missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 6); // shotgun
+	//else if(inventory_CurrentWeapon(cm)->itemTemplate->item.classId == 28066)
+	//	missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 3); // machinegun
+	//else
+	//	missile_launch(cm->mapChannel, cm->player->actor, cm->player->targetEntityId, 20, 174, 4); // pistol
+}

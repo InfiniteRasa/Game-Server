@@ -182,24 +182,32 @@ void inventory_removeItemBySlot(mapChannelClient_t *client, sint32 inventoryType
  */
 void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, sint64 entityId, sint32 slotIndex)
 {
+	item_t* itemEntity = (item_t*)entityMgr_get(entityId);
+	if( itemEntity == NULL )
+		return;
 	// set entityId in slot
 	if( inventoryType == INVENTORY_PERSONAL )
 	{
 		client->inventory.personalInventory[slotIndex] = entityId; // update slot
+		itemEntity->locationSlotIndex = slotIndex + 0;
 	}
 	else if( inventoryType == INVENTORY_EQUIPPEDINVENTORY )
 	{
 		client->inventory.equippedInventory[slotIndex] = entityId; // update slot
+		itemEntity->locationSlotIndex = slotIndex + 50*5;
 	}
 	else if( inventoryType == INVENTORY_WEAPONDRAWERINVENTORY )
 	{
 		client->inventory.weaponDrawer[slotIndex] = entityId; // update slot
+		itemEntity->locationSlotIndex = slotIndex + 50*5 + 17;
 	}
 	else
 	{
 		printf("inventory_addItemBySlot: Invalid inventoryType(%d)\n", inventoryType);
 		return;
 	}
+	// update item location
+	itemEntity->locationEntityId = client->player->actor->entityId;
 	// send inventoryAddItem
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -219,6 +227,7 @@ item_t *item_create(itemTemplate_t *itemTemplate, sint32 stacksize)
 	if( itemTemplate == NULL )
 		return NULL; // "no-template items" must not exist
 	item_t *item = (item_t*)malloc(sizeof(item_t));
+	RtlZeroMemory(item, sizeof(item_t));
 	item->entityId = entityMgr_getFreeEntityIdForItem();
 	item->itemTemplate = itemTemplate;
 	item->locationEntityId = 0;
@@ -264,6 +273,83 @@ sint32 item_findFreePlayerinventorySpace(mapChannelClient_t *owner, sint32 itemT
 		}		
 	}
 	return -1;
+}
+
+/*
+ * Tries to add/merge the item into the players inventory and send the packets
+ * Note previously to this call, the player should already know about the item (use item_sendItemCreation())
+ * If it fails, the return value is NULL (inventory full)
+ * If it succeeds, it returns the item or the item it was merged with
+ */
+item_t* inventory_addItemToInventory(mapChannelClient_t *client, item_t* item)
+{
+	pyMarshalString_t pms;
+	// get item category offset
+	sint32 itemCategoryOffset = (item->itemTemplate->item.inventoryCategory-1);
+	if( itemCategoryOffset < 0 || itemCategoryOffset >= 5 )
+	{
+		printf("inventory_addItemToInventory: The item inventory category(%d) is invalid\n", itemCategoryOffset);
+		return NULL;
+	}
+	itemCategoryOffset *= 50;
+	bool stackSizeChanged = false;
+	// see if we can merge the item into an already existing item
+	for(sint32 i=0; i<50; i++)
+	{
+		if( client->inventory.personalInventory[itemCategoryOffset+i] != 0 )
+		{
+			// get item
+			item_t* slotItem = (item_t*)entityMgr_get(client->inventory.personalInventory[itemCategoryOffset+i]);
+			// same item template?
+			if( slotItem->itemTemplate->item.templateId != item->itemTemplate->item.templateId )
+				continue;
+			// calculate how many items we can add to the stack
+			sint32 stackAdd = slotItem->itemTemplate->item.stacksize - slotItem->stacksize;
+			if( stackAdd == 0 )
+				continue;
+			// add item to empty slot
+			sint32 stackMove = min(stackAdd, item->stacksize);
+			slotItem->stacksize += stackMove;
+			item->stacksize -= stackMove;
+			// notify client of changed stack count
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms,slotItem->stacksize);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(client->cgm, slotItem->entityId, SetStackCount, pym_getData(&pms), pym_getLen(&pms));
+			// also remember that the source item changed stack count too
+			stackSizeChanged = true;
+			// do we still need to continue?
+			if( item->stacksize == 0 )
+			{
+				// destroy the item
+				item_sendItemDestruction(client, item);
+				item_free(item);
+				// return the 'new' item instead
+				return slotItem;
+			}
+		}
+	}
+	// does the item has a different stack countsize?
+	if( stackSizeChanged )
+	{
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms,item->stacksize);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, SetStackCount, pym_getData(&pms), pym_getLen(&pms));
+	}
+	// find a free slot
+	for(sint32 i=0; i<50; i++)
+	{
+		if( client->inventory.personalInventory[itemCategoryOffset+i] == 0 )
+		{
+			// add item to empty slot
+			inventory_addItemBySlot(client, INVENTORY_PERSONAL, item->entityId, itemCategoryOffset+i);
+			return item;
+		}
+	}
+	return NULL;
 }
 
 
@@ -448,6 +534,12 @@ void item_recv_RequestArmWeapon(mapChannelClient_t *cm, uint8 *pyString, sint32 
   		return;
 	manifestation_setAppearanceItem(cm->player, item->itemTemplate->item.classId, 0xFF808080);
 	manifestation_updateAppearance(cm);
+	// update ammo info
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_addInt(&pms, item->weaponData.ammoCount);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, item->entityId, WeaponAmmoInfo, pym_getData(&pms), pym_getLen(&pms));
 }
  
 void item_recv_RequestWeaponDraw(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
@@ -486,25 +578,143 @@ void item_recv_RequestWeaponStow(mapChannelClient_t *client, uint8 *pyString, si
 	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, client->player->actor, client->player->actor->entityId, 575, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
+/*
+ * Will reduce the stack count of the passed item by the given count
+ * If the stack count reaches zero, the item is deleted and removed from the inventory
+ */
+void inventory_reduceStackCount(mapChannelClient_t *client, item_t* item, sint32 stackDecreaseCount)
 {
-	pyUnmarshalString_t pums;
-	pym_init(&pums, pyString, pyStringLen);
-	if( !pym_unpackTuple_begin(&pums) )
-		return;
-	// TODO!
-	printf("TODO: "); puts(__FUNCTION__);
 	pyMarshalString_t pms;
+	if( item->locationEntityId != client->player->actor->entityId )
+		return; // item is not on this client's inventory
+	sint32 newStackCount = (sint32)item->stacksize - stackDecreaseCount;
+	if( newStackCount <= 0 )
+	{
+		// destroy item
+		inventory_removeItemBySlot(client, INVENTORY_PERSONAL, item->locationSlotIndex); // todo: locationSlotIndex is the slot in the inventory union that spans ALL inventory types? 
+		item_sendItemDestruction(client, item); // make sure the client forgets about the item entity
+		item_free(item);
+	}
+	else
+	{
+		// update stack count
+		// item->locationSlotIndex
+		item->stacksize = newStackCount;
+		// set stackcount
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms,item->stacksize ); // stacksize
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, SetStackCount, pym_getData(&pms), pym_getLen(&pms));
+	}
+}
+
+/*
+ * Called when the reload action finishes
+ */
+void _cb_item_recv_RequestWeaponReload_actionUpdate(mapChannel_t* mapChannel, actor_t* actor, sint32 newActionState)
+{
+	pyMarshalString_t pms;
+	if( newActionState == ACTOR_ACTION_STATE_COMPLETE )
+	{
+		mapChannelClient_t* client = actor->owner;
+		// get the weapon item
+		item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+		if( !item )
+			return;
+		// find and eat a piece of ammunition
+		sint32 ammoClassId = item->itemTemplate->weapon.ammoClassId;
+		bool foundAmmo = false;
+		sint32 foundAmmoAmount = 0;
+		for(sint32 i=0; i<50; i++)
+		{
+			if( client->inventory.personalInventory[INVENTORY_SLOTOFFSET_CATEGORY_CONSUMABLE+i] == 0 )
+				continue;
+			item_t *itemAmmo = (item_t*)entityMgr_get(client->inventory.personalInventory[INVENTORY_SLOTOFFSET_CATEGORY_CONSUMABLE+i]);
+			if( !itemAmmo )
+				return;
+			if( itemAmmo->itemTemplate->item.classId == ammoClassId )
+			{
+				// consume ammo
+				sint32 ammoToGrab = min(item->itemTemplate->weapon.clipSize-foundAmmoAmount, itemAmmo->stacksize);
+				foundAmmoAmount += ammoToGrab;
+				inventory_reduceStackCount(client, itemAmmo, ammoToGrab);
+				foundAmmo = true;
+				if( foundAmmoAmount == item->itemTemplate->weapon.clipSize )
+					break;
+			}
+		}
+		if( foundAmmo == false )
+			return; // no ammo found -> Todo: Tell the client?
+		// update the ammo count
+		item->weaponData.ammoCount = foundAmmoAmount;
+		// send new ammo count -> Not needed, it is done as part of the PerformRecovery packet
+		// send action complete packet
+		pym_init(&pms);
+		pym_tuple_begin(&pms);  							// Packet Start
+		pym_addInt(&pms, actor->currentAction.actionId);	// Action ID
+		pym_addInt(&pms, actor->currentAction.actionArgId);	// Arg ID
+		pym_addInt(&pms, item->weaponData.ammoCount);		// new ammo count
+		pym_tuple_end(&pms); 								// Packet End
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+		/*pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, item->weaponData.ammoCount);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, WeaponAmmoInfo, pym_getData(&pms), pym_getLen(&pms));*/
+	}
+	else
+		__debugbreak(); // reload interruption is still todo
+}
+
+void item_recv_RequestWeaponReload(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen, bool tellSelf)
+{
+	pyMarshalString_t pms;
+	// get the weapon item
+	item_t *item = (item_t*)entityMgr_get(client->inventory.weaponDrawer[client->inventory.activeWeaponDrawer]);
+	if( !item )
+		return;
+	// find and eat a piece of ammunition
+	sint32 ammoClassId = item->itemTemplate->weapon.ammoClassId;
+	bool foundAmmo = false;
+	for(sint32 i=0; i<50; i++)
+	{
+		if( client->inventory.personalInventory[INVENTORY_SLOTOFFSET_CATEGORY_CONSUMABLE+i] == 0 )
+			continue;
+		item_t *itemAmmo = (item_t*)entityMgr_get(client->inventory.personalInventory[INVENTORY_SLOTOFFSET_CATEGORY_CONSUMABLE+i]);
+		if( !itemAmmo )
+			return;
+		if( itemAmmo->itemTemplate->item.classId == ammoClassId )
+		{
+			// consume one piece of ammo
+			foundAmmo = true;
+			break;
+		}
+	}
+	if( foundAmmo == false )
+		return; // no ammo found -> Todo: Tell the client?
+	// send action start
+	sint32 reloadActionId = 134;
+	sint32 reloadActionArgId = 1;// todo: Use correct argId depending on weapon type
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
-	pym_addBool(&pms, false);
+	pym_addInt(&pms, reloadActionId); // actionId -> WEAPON_RELOAD
+	pym_addInt(&pms, reloadActionArgId); // actionArgId
 	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, 
-											 client->player->actor, 
-											 client->player->actor->entityId,
-											 METHODID_REQUESTWEAPONRELOAD, 
-											 pym_getData(&pms), 
-											 pym_getLen(&pms));
+	if( tellSelf )
+	{
+		// if item_recv_RequestWeaponReload() is not called by client, then the server issued the weapon reload request
+		// tell all clients about the action start
+		netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
+	}
+	else
+	{
+		// if the client sent the request, tell everyone but the client to start the reload action
+		// In this case, the action is created on the client without actually having to trigger it via Recv_PerformWindup
+		netMgr_cellDomain_pythonAddMethodCallRawIgnoreSelf(client, client->player->actor->entityId, PerformWindup, pym_getData(&pms), pym_getLen(&pms));
+	}
+	// start reload action
+	actor_startActionOnEntity(client->mapChannel, client->player->actor, 0, reloadActionId, reloadActionArgId, 1500, 0, _cb_item_recv_RequestWeaponReload_actionUpdate);
 }
 
 /*
@@ -600,6 +810,13 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		pym_tuple_end(&pms);
 		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 237, pym_getData(&pms), pym_getLen(&pms)); //WeaponInfo
 
+		// weapon ammo info
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, item->weaponData.ammoCount);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, WeaponAmmoInfo, pym_getData(&pms), pym_getLen(&pms));
+
 		// send jammed state
 		//pym_init(&pms);
 		//pym_tuple_begin(&pms);	
@@ -618,7 +835,7 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 		//pym_tuple_end(&pms);
 		//netMgr_pythonAddMethodCallRaw(client->cgm, item->entityId, 406, pym_getData(&pms), pym_getLen(&pms)); //ArmorInfo
 	}
-	// test set stackcount
+	// set stackcount
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, item->stacksize); // stacksize
@@ -763,22 +980,22 @@ void inventory_initForClient(mapChannelClient_t *client)
 
 	// item 2
 	testItem = item_createFromTemplateId(127982, 1);
-	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[4] = testItem->entityId;
 	// item 3
 	testItem = item_createFromTemplateId(45857, 1);
-	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[0] = testItem->entityId;
 	// item 4
 	testItem = item_createFromTemplateId(17131, 1);
-	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[1] = testItem->entityId;
 	// item 5
 	testItem = item_createFromTemplateId(17384, 1);
-	testItem->locationEntityId = client->clientEntityId;
 	client->inventory.personalInventory[15] = testItem->entityId;
-
-	
+	// item 6 (cartridges)
+	testItem = item_createFromTemplateId(45031, 40);
+	client->inventory.personalInventory[50+0] = testItem->entityId;
+	// weapon drawer
+	testItem = item_createFromTemplateId(17131, 1);
+	client->inventory.weaponDrawer[0] = testItem->entityId;
 
 
 	// send inventory data - personal inventory
@@ -793,6 +1010,22 @@ void inventory_initForClient(mapChannelClient_t *client)
 		// make the item appear on the client
 		inventory_addItemBySlot(client, INVENTORY_PERSONAL, client->inventory.slot[i], i);
 	}
+	// send inventory data - weapon drawer
+	for(sint32 i=0; i<5; i++)
+	{
+		if( client->inventory.weaponDrawer[i] == 0 )
+			continue;
+		// item in slot present
+		// get item handle
+		item_t* slotItem = (item_t*)entityMgr_get(client->inventory.weaponDrawer[i]);
+		item_sendItemCreation(client, slotItem);
+		// make the item appear on the client
+		inventory_addItemBySlot(client, INVENTORY_WEAPONDRAWERINVENTORY, client->inventory.weaponDrawer[i], i);
+		// update appearance
+		manifestation_setAppearanceItem(client->player, slotItem->itemTemplate->item.classId, 0xFF808080);
+	}
+	manifestation_updateAppearance(client);
+	inventory_notifyEquipmentUpdate(client);
 	// send inventory data - equipment
 	
 	

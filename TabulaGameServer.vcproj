@@ -514,6 +514,18 @@
 								>
 							</File>
 						</Filter>
+						<Filter
+							Name="lootdispenser"
+							>
+							<File
+								RelativePath=".\lootdispenser.cpp"
+								>
+							</File>
+							<File
+								RelativePath=".\lootdispenser.h"
+								>
+							</File>
+						</Filter>
 					</Filter>
 					<Filter
 						Name="cellMgr"
@@ -552,6 +564,10 @@
 						>
 						<File
 							RelativePath=".\actor.h"
+							>
+						</File>
+						<File
+							RelativePath=".\actorAction.cpp"
 							>
 						</File>
 						<File

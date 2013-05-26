@@ -51,6 +51,55 @@ void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_
 	DataInterface_queueJob(job, cb_DataInterface_Creature_getCreatureActionList, cb, param);
 }
 
+void cb_DataInterface_Creature_getCreatureTypeList_LootTable(MYSQL *dbCon, diJob_creatureType_t *job)
+{
+	sint8 queryText[1024];
+	sprintf(queryText, "SELECT "
+		"itemTemplateId,chance,stacksizeMin,stacksizeMax"
+		" FROM creature_type_loot WHERE creatureTypeId = %d", job->id);
+	// execute query
+	if( mysql_query(dbCon, queryText) )
+	{
+		printf("Error in query\n");
+		while(1) Sleep(1000);	
+	}
+	MYSQL_RES *dbResult = mysql_store_result(dbCon);
+	MYSQL_ROW dbRow;
+	// parse rows
+	sint32 rowCount = mysql_num_rows(dbResult);
+	// allocate table
+	if( rowCount > 0 )
+	{
+		job->numLootEntries = rowCount;
+		job->lootTable = (diData_lootTable_t*)malloc(sizeof(diData_lootTable_t) * rowCount);
+		memset(job->lootTable, 0x00, sizeof(diData_lootTable_t) * rowCount);
+	}
+	else
+	{
+		job->numLootEntries = 0;
+		job->lootTable = NULL;
+	}
+	sint32 lootIndex = 0;
+	while((dbRow = mysql_fetch_row(dbResult)))
+	{
+		//"itemTemplateId,chance,stacksizeMin,stacksizeMax"
+		sint32 loot_itemTemplateId = 0;
+		float loot_chance = 0;
+		sint32 loot_stacksizeMin = 0;
+		sint32 loot_stacksizeMax = 0;
+		sscanf(dbRow[0], "%d", &loot_itemTemplateId);
+		sscanf(dbRow[1], "%f", &loot_chance);
+		sscanf(dbRow[2], "%d", &loot_stacksizeMin);
+		sscanf(dbRow[3], "%d", &loot_stacksizeMax);
+		job->lootTable[lootIndex].itemTemplateId = loot_itemTemplateId;
+		job->lootTable[lootIndex].chance = loot_chance;
+		job->lootTable[lootIndex].stacksizeMin = loot_stacksizeMin;
+		job->lootTable[lootIndex].stacksizeMax = max(loot_stacksizeMin, loot_stacksizeMax);
+		// next
+		lootIndex++;
+	}
+	mysql_free_result(dbResult);
+}
 
 void cb_DataInterface_Creature_getCreatureTypeList(MYSQL *dbCon, diJob_creatureType_t *job, void *cb, void *param)
 {
@@ -99,8 +148,13 @@ void cb_DataInterface_Creature_getCreatureTypeList(MYSQL *dbCon, diJob_creatureT
 			}
 		}
 		sscanf(dbRow[idx], "%f", &job->wanderDistance); idx++;
+		// load the loot table for this creature
+		cb_DataInterface_Creature_getCreatureTypeList_LootTable(dbCon, job);
 		// do callback param1: mapchannel param2: list of creature type data
 		((void (*)(void*,void*))cb)(param, job);
+		// free temp data
+		if( job->lootTable )
+			free(job->lootTable);
 	}
 	mysql_free_result(dbResult);
 	DataInterface_freeJob(job);

@@ -419,17 +419,18 @@ void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature,
 	mapChannelClient_t* cm = killedBy->owner;
 	if( cm )
 	{
-		// give credits
-		sint32 creditsToAdd = creature->actor.stats.level * 5;
-		sint32 creditAddRange = creature->actor.stats.level * 2;
-		creditsToAdd += ((rand()%(creditAddRange*2+1))-creditAddRange);
-		manifestation_GainCredits(cm, creditsToAdd);
 		// give experience
 		sint32 experience = creature->actor.stats.level * 100; // base experience
 		sint32 experienceRange = creature->actor.stats.level * 10;
 		experience += ((rand()%(experienceRange*2+1))-experienceRange);
 		// todo: Depending on level difference reduce experience
 		manifestation_GainExperience(cm, experience);
+	}
+	// spawn loot
+	if( killedBy && killedBy->owner )
+	{
+		dynObject_t* lootDispenserObject = lootdispenser_create(mapChannel, creature, killedBy->owner);
+		creature->lootDispenserObjectEntityId = lootDispenserObject->entityId;
 	}
 }
 
@@ -593,7 +594,7 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 	creatureType->wander_dist = jobData->wanderDistance;
 	// missile data (available attack actions for creature)
 	sint32 missileCount = 0;
-	float aggroRange = 24.0f;
+	float aggroRange = 18.0f;
 	for(sint32 i=0; i<8; i++)
 	{
 		if( jobData->missile[i] == 0 )
@@ -610,6 +611,23 @@ void _creature_dbCreatureType_cb(void *param, diJob_creatureType_t *jobData)
 	}
 	creatureType->aggroRange = aggroRange;
 	creatureType->aggressionTime = 5000;
+	// loot table
+	creatureType->lootTableSize = jobData->numLootEntries;
+	if( creatureType->lootTableSize > 0 )
+	{
+		creatureType->lootTable = (creatureTypeLoot_t*)malloc(sizeof(creatureTypeLoot_t) * creatureType->lootTableSize);
+		memset(creatureType->lootTable, 0x00, sizeof(creatureTypeLoot_t) * creatureType->lootTableSize);
+		for(sint32 f=0; f<creatureType->lootTableSize; f++)
+		{
+			creatureType->lootTable[f].itemTemplateId = jobData->lootTable[f].itemTemplateId;
+			creatureType->lootTable[f].chance = jobData->lootTable[f].chance * 0.01f; // get chance into 0.0 to 1.0 range
+			creatureType->lootTable[f].stacksizeMin = jobData->lootTable[f].stacksizeMin;
+			creatureType->lootTable[f].stacksizeMax = jobData->lootTable[f].stacksizeMax;
+		}
+	}
+	else
+		creatureType->lootTable = NULL;
+	// register creature type
 	creatureType_registerCreatureType(creatureType, jobData->id);
 }
 

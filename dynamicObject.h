@@ -96,3 +96,4 @@ void dynamicObject_stopPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyn
 #include"waypoint.h"
 #include"controlpoint.h"
 #include"logosObject.h"
+#include"lootdispenser.h"
