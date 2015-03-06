@@ -159,8 +159,10 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 			"ad18_classId,ad18_hue,"
 			"ad19_classId,ad19_hue,"
 			"ad20_classId,ad20_hue,"
-			"ad21_classId,ad21_hue"
-			" FROM characters WHERE userId=%I64u AND slotId=%d LIMIT 1", job->userId, job->slotIndex);
+			"ad21_classId,ad21_hue,"
+			"level,credits,prestige,experience,rotation"
+			" FROM characters"
+			" WHERE userId=%I64u AND slotId=%d LIMIT 1", job->userId, job->slotIndex);
 
 	// execute query
 	if( mysql_query(dbCon, queryText) )
@@ -183,7 +185,11 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		double char_posX;
 		double char_posY;
 		double char_posZ;
-
+		double char_rotation;
+		sint32 char_level;
+		uint32 char_credits;
+		uint32 char_prestige;
+		uint32 char_experience;
 		sscanf(dbRow[0], "%I64u", &char_id);
 		sscanf(dbRow[3], "%d", &char_slotIndex);
 		sscanf(dbRow[4], "%d", &char_gender);
@@ -193,7 +199,7 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		sscanf(dbRow[8], "%lf", &char_posX);
 		sscanf(dbRow[9], "%lf", &char_posY);
 		sscanf(dbRow[10], "%lf", &char_posZ);
-		char_rawSlotIndex = char_slotIndex-1;
+		char_rawSlotIndex = char_slotIndex - 1;
 		job->outCharacterData = (di_characterData_t*)malloc(sizeof(di_characterData_t));
 		sint32 rIdx = 11;
 		for(sint32 i=0; i<21; i++)
@@ -214,6 +220,16 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		job->outCharacterData->posX = (float)char_posX;
 		job->outCharacterData->posY = (float)char_posY;
 		job->outCharacterData->posZ = (float)char_posZ;
+		sscanf(dbRow[53], "%d", &char_level);
+		sscanf(dbRow[54], "%d", &char_credits);
+		sscanf(dbRow[55], "%d", &char_prestige);
+		sscanf(dbRow[56], "%d", &char_experience);
+		sscanf(dbRow[57], "%lf", &char_rotation);
+		job->outCharacterData->level = char_level;
+		job->outCharacterData->credits = char_credits;
+		job->outCharacterData->prestige = char_prestige;
+		job->outCharacterData->experience = char_experience;
+		job->outCharacterData->rotation = (float)char_rotation;
 	}
 	mysql_free_result(dbResult);
 	// get mission data (TODO)
@@ -373,5 +389,64 @@ void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 s
 	DataInterface_queueJob(job, cb_DataInterface_Character_deleteCharacter, cb, param);
 }
 
+void cb_DataInterface_Character_updateCharacter(MYSQL *dbCon, diJob_updateCharacter_t *job)
+{
+	sint8 queryText[512];
+	switch (job->stat)
+	{
+	case 1:
+		sprintf(queryText, "UPDATE characters SET level=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
+		break;
+	case 2:
+		sprintf(queryText, "UPDATE characters SET credits=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
+		break;
+	case 3:
+		sprintf(queryText, "UPDATE characters SET prestige=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
+		break;
+	case 4:
+		sprintf(queryText, "UPDATE characters SET experience=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
+		break;
+	case 5:
+		sprintf(queryText, "UPDATE characters SET posX=%f, posY=%f, posZ=%f, rotation=%f WHERE userId=%I64u AND slotId=%d", job->posX, job->posY, job->posZ, job->rotation, job->userId, job->slotId);
+		break;
+	}
+	// execute query
+	job->error = false;
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		job->error = true;
+	}
+	else
+	{
+		if (mysql_affected_rows(dbCon) == 0) // nothing updated, set error
+			job->error = true;
+	}
+	// free data
+	DataInterface_freeJob(job);
+}
+
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 value)
+{
+	diJob_updateCharacter_t *job = (diJob_updateCharacter_t*)DataInterface_allocJob(sizeof(diJob_updateCharacter_t));
+	job->userId = userID;
+	job->slotId = slotId;
+	job->stat = stat;
+	job->value = value;
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
+}
+
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation)
+{
+	diJob_updateCharacter_t *job = (diJob_updateCharacter_t*)DataInterface_allocJob(sizeof(diJob_updateCharacter_t));
+	job->userId = userID;
+	job->slotId = slotId;
+	job->stat = stat;
+	job->posX = posX;
+	job->posY = posY;
+	job->posZ = posZ;
+	job->rotation = rotation;
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
+}
 
 // 
