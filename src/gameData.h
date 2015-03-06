@@ -18,6 +18,12 @@ extern gameData_mapInfo_t *mapInfoArray;
 #define ITEMTYPE_WEAPON	1
 #define ITEMTYPE_ARMOR	2
 
+#define LEVEL 1
+#define CREDITS 2
+#define PRESTIGE 3
+#define EXPERIENCE 4
+#define POSITION 5
+
 //kItemIdx_Tradable = 0
 //kItemIdx_MaxHPs = 1
 //kItemIdx_BuybackPrice = 2
