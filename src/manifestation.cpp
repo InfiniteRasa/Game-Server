@@ -263,7 +263,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->posX = characterData->posX;
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
-	manifestation->actor->rotation = 0.0f;
+	manifestation->actor->rotation = characterData->rotation;
 	manifestation->actor->entityClassId = characterData->genderIsMale?692:691;
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
@@ -301,10 +301,10 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);
 
 	// set stats (should read them from the db)
-	owner->player->actor->stats.level = 1;
-	owner->player->credits = 0;
-	owner->player->prestige = 0;
-	owner->player->experience = 0;
+	owner->player->actor->stats.level = characterData->level;
+	owner->player->credits = characterData->credits;
+	owner->player->prestige = characterData->prestige;
+	owner->player->experience = characterData->experience;
 	manifestation_updateStatsValues(owner, true);
 	// initialize mission state map
 	// note that the number of missions must not change during runtime,
@@ -713,6 +713,7 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, uint8 *pyString, s
 void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 {
 	cm->player->credits += credits;
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, CREDITS, cm->player->credits);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -741,6 +742,7 @@ void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
 {
 	cm->player->prestige += prestige;
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, PRESTIGE, cm->player->prestige);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -758,6 +760,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 	if( cm->player->actor->stats.level >= 50 )
 		return; // cannot gain xp over level 50
 	cm->player->experience += experience;
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, EXPERIENCE, cm->player->experience);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -786,6 +789,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 			// level up
 			cm->player->actor->stats.level++;
 			// update stats
+			DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, LEVEL, cm->player->actor->stats.level);
 			// inform client of level up
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
