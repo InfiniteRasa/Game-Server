@@ -104,15 +104,21 @@ typedef struct
 	float posX;
 	float posY;
 	float posZ;
+	float rotation;
 	sint32 currentContextId;
 	struct  
 	{
 		sint32 classId;		// entityClassId
 		uint32 hue;	// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
-	// stats shit
 
-	// inventory shit
+	// stats
+	sint32 level;
+	uint32 credits;
+	uint32 prestige;
+	uint32 experience;
+
+	// inventory
 
 	// mission data
 	uint32 missionStateCount;
@@ -466,7 +472,21 @@ typedef struct
 	bool error;
 }diJob_deleteCharacter_t;
 
-typedef struct  
+typedef struct
+{
+	unsigned long long userId;
+	uint32 slotId;
+	uint32 stat;
+	uint32 value;
+	float posX;
+	float posY;
+	float posZ;
+	float rotation;
+	// output
+	bool error;
+}diJob_updateCharacter_t;
+
+typedef struct
 {
 	// output
 	sint32 outNpcCount;
@@ -539,6 +559,8 @@ void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, 
 void DataInterface_Character_getCharacterData(unsigned long long userID, uint32 slotIndex, void (*cb)(void *param, diJob_characterData_t *jobData), void *param);
 void DataInterface_Character_createCharacter(di_characterLayout_t *characterData, void (*cb)(void *param, di_characterLayout_t *jobData), void *param);
 void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void (*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 value);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation);
 
 /* npc */
 void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
