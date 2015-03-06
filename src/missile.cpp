@@ -637,6 +637,8 @@ void missile_playerTryFireWeapon(mapChannelClient_t* cm)
 		return; // not enough ammo for a single shot
 	// decrease ammo
 	item->weaponData.ammoCount -= item->itemTemplate->weapon.ammoPerShot;
+	// update ammo in database
+	DataInterface_Character_updateCharacterAmmo(cm->tempCharacterData->characterID, item->locationSlotIndex, item->weaponData.ammoCount);
 	// weapon ammo info
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
