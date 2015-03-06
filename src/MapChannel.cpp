@@ -560,6 +560,9 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case 407: //AssignNPCMission
 		npc_recv_AssignNPCMission(cm, pyString, pyStringLen);
 		return;
+	case METHODID_PERSONALINVENTORY_DESTROYITEM: // PersonalInventory_DestroyItem
+		item_recv_PersonalInventoryDestroyItem(cm, pyString, pyStringLen);
+		return;
 	case METHODID_PERSONALINVENTORY_MOVEITEM: // PersonalInventory_MoveItem
 		item_recv_PersonalInventoryMoveItem(cm, pyString, pyStringLen);
 		return;
