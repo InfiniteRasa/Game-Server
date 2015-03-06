@@ -331,7 +331,7 @@ void communicator_loginOk(mapChannel_t *mapChannel, mapChannelClient_t *client)
 	pym_tuple_begin(&pms);
 	//pym_dict_begin(&pms);
 	//pym_addInt(&pms, 1);
-	char* greeting = "Welcome to the Salsa Crew server.\nBuild date: ";
+	char* greeting = "Welcome to the Infinite Rasa server.\nBuild date: ";
 	char buffer[100];
 	sprintf(buffer, "%s %s", greeting, __DATE__);
 	pym_addUnicode(&pms, buffer); 
