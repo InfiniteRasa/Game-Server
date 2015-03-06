@@ -147,6 +147,8 @@ void communicator_playerChangeMap(mapChannelClient_t *client)
 // called on disconnect or logout/quit (socket most likely already closed)
 void communicator_playerExitMap(mapChannelClient_t *client)
 {
+	// save player position
+	DataInterface_Character_updateCharacter(client->tempCharacterData->userID, client->tempCharacterData->slotIndex, POSITION, client->player->actor->posX, client->player->actor->posY, client->player->actor->posZ, client->player->actor->rotation);
 	// remove client from all channels
 	Thread::LockMutex(&communicator.cs);
 	for(sint32 i=0; i<client->joinedChannels; i++)
@@ -601,14 +603,27 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			manifestation_GainExperience(cm, xp);
 		return true;
 	}
-	if (memcmp(textMsg, ".givecredit ", 12) == 0)
+
+	// chat command to give credits to player
+	if (memcmp(textMsg, ".givecredits ", 13) == 0)
 	{
-		sint8 *pch = textMsg + 12;
+		sint8 *pch = textMsg + 13;
 		sint32 credit = atoi(pch);
 		if (credit > 0)
 			manifestation_GainCredits(cm, credit);
 		return true;
 	}
+
+	// chat command to give prestige to player
+	if (memcmp(textMsg, ".giveprestige ", 14) == 0)
+	{
+		sint8 *pch = textMsg + 14;
+		sint32 prestige = atoi(pch);
+		if (prestige > 0)
+			manifestation_GainPrestige(cm, prestige);
+		return true;
+	}
+
 	if (memcmp(textMsg, ".animtest ", 10) == 0)
 	{
 		    //__debugbreak();
