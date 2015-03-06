@@ -192,21 +192,6 @@
     <ClCompile Include="src\waypoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PyMarshalString.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hashTable_uint32Iterable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hashTable_uint32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hashTable_StringSynced.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hashTable_string.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\mysql\libmysql.def">
@@ -602,12 +587,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\pyMarshalString.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\crypt_test_arrays.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

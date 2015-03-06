@@ -129,10 +129,6 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\gm.cpp" />
     <ClCompile Include="src\hashTable.cpp" />
     <ClCompile Include="src\hashTableSynced.cpp" />
-    <ClCompile Include="src\hashTable_string.cpp" />
-    <ClCompile Include="src\hashTable_StringSynced.cpp" />
-    <ClCompile Include="src\hashTable_uint32.cpp" />
-    <ClCompile Include="src\hashTable_uint32Iterable.cpp" />
     <ClCompile Include="src\INIParser.cpp" />
     <ClCompile Include="src\inventory.cpp" />
     <ClCompile Include="src\logosObject.cpp" />
@@ -148,7 +144,6 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\npc.cpp" />
     <ClCompile Include="src\playerActions.cpp" />
     <ClCompile Include="src\PyMarshal.cpp" />
-    <ClCompile Include="src\PyMarshalString.cpp" />
     <ClCompile Include="src\sData.cpp" />
     <ClCompile Include="src\spawnSystem.cpp" />
     <ClCompile Include="src\TabulaCrypt2.cpp" />
@@ -257,7 +252,6 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClInclude Include="src\communicator.h" />
     <ClInclude Include="src\controlpoint.h" />
     <ClInclude Include="src\creature.h" />
-    <ClInclude Include="src\crypt_test_arrays.h" />
     <ClInclude Include="src\DataInterface.h" />
     <ClInclude Include="src\defaultObject.h" />
     <ClInclude Include="src\DetourAlloc.h" />
@@ -294,7 +288,6 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClInclude Include="src\npc.h" />
     <ClInclude Include="src\Packet.h" />
     <ClInclude Include="src\Packing.h" />
-    <ClInclude Include="src\pyMarshalString.h" />
     <ClInclude Include="src\sData.h" />
     <ClInclude Include="src\spawnSystem.h" />
     <ClInclude Include="src\TabulaCrypt.h" />
