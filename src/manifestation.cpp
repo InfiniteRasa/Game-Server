@@ -118,6 +118,8 @@ void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 i
 	if( equipmentSlotId == 0 )
 	return;
 	manifestation->appearanceData[equipmentSlotId-1].classId = 0;
+	// update appearance data in database
+	DataInterface_Character_updateCharacterAppearance(manifestation->actor->owner->tempCharacterData->characterID, equipmentSlotId, 0, 0);
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 itemClassId, uint32 hueAARRGGBB)
@@ -127,11 +129,13 @@ void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 item
 		return;
 	manifestation->appearanceData[equipmentSlotId-1].classId = itemClassId;
 	manifestation->appearanceData[equipmentSlotId-1].hue = hueAARRGGBB;
+	// update appearance data in database
+	DataInterface_Character_updateCharacterAppearance(manifestation->actor->owner->tempCharacterData->characterID, equipmentSlotId, itemClassId, hueAARRGGBB);
 }
 
 void manifestation_updateAppearance(mapChannelClient_t *owner)
 {
-	if( owner->player == NULL )
+	if (owner->player == NULL)
 		return;
 	pyMarshalString_t pms;
 	pym_init(&pms);
