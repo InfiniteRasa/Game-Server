@@ -620,5 +620,9 @@
     <Text Include="gameData\mapInfo.txt" />
     <Text Include="gameData\starterItemTemplateClassIds.txt" />
     <Text Include="gameData\TabulaRasaPacketFormat.txt" />
+    <Text Include="C:\Users\Steven\Desktop\class.txt" />
+    <Text Include="C:\Users\Steven\Desktop\logos.txt" />
+    <Text Include="gameData\class.txt" />
+    <Text Include="gameData\logos.txt" />
   </ItemGroup>
 </Project>
