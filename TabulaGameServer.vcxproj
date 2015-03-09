@@ -315,8 +315,6 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <Library Include="libs\pthreads\pthreadVC2.lib" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="C:\Users\Steven\Desktop\class.txt" />
-    <Text Include="C:\Users\Steven\Desktop\logos.txt" />
     <Text Include="gameData\class.txt" />
     <Text Include="gameData\ClassDescriptions.txt" />
     <Text Include="gameData\equipableClassEquipmentSlot.txt" />
