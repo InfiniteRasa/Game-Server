@@ -1,4 +1,5 @@
 #include"global.h"
+#include<time.h>
 
 extern mapChannelList_t *global_channelList; //20110827 @dennton
 
@@ -149,7 +150,9 @@ void communicator_playerChangeMap(mapChannelClient_t *client)
 void communicator_playerExitMap(mapChannelClient_t *client)
 {
 	// save player position
-	DataInterface_Character_updateCharacter(client->tempCharacterData->userID, client->tempCharacterData->slotIndex, POSITION, client->player->actor->posX, client->player->actor->posY, client->player->actor->posZ, client->player->actor->rotation);
+	DataInterface_Character_updateCharacter(client->tempCharacterData->userID, client->tempCharacterData->slotIndex, UPDATE_POSITION, client->player->actor->posX, client->player->actor->posY, client->player->actor->posZ, client->player->actor->rotation);
+	// save player time
+	DataInterface_Character_updateCharacter(client->tempCharacterData->userID, client->tempCharacterData->slotIndex, UPDATE_LOGIN, (uint32)(difftime(time(NULL), client->tempCharacterData->loginTime) / 60.0));
 	// remove client from all channels
 	Thread::LockMutex(&communicator.cs);
 	for (sint32 i = 0; i<client->joinedChannels; i++)
@@ -633,30 +636,10 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		uint32 qty;
 		if (sscanf(textMsg, "%s %d %d", cmd, &item, &qty) == 3)
 		{
-			// create item
+			// create item and add to inventory
 			item_t* tempItem;
 			tempItem = item_createFromTemplateId(item, qty);
-			// find free slow
-			if (tempItem != NULL)
-			{
-				sint32 slotIndex;
-				for (sint32 i = 0; i<50; i++)
-				{
-					if (cm->inventory.slot[i] == 0)
-					{
-						slotIndex = i;
-						break;
-					}
-				}
-				tempItem->locationEntityId = cm->clientEntityId;
-				cm->inventory.personalInventory[slotIndex] = tempItem->entityId;
-				// item in slot present
-				// get item handle
-				item_t* slotItem = (item_t*)entityMgr_get(cm->inventory.personalInventory[slotIndex]);
-				item_sendItemCreation(cm, slotItem);
-				// make the item appear on the client
-				inventory_addItemBySlot(cm, INVENTORY_PERSONAL, cm->inventory.personalInventory[slotIndex], slotIndex);
-			}
+			inventory_addItemToInventory(cm, tempItem);
 		}
 		return true;
 	}
@@ -868,17 +851,23 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		communicator_systemMessage(cm, "Power Logos spawned!");
 		return true;
 	}
-	/*if( strcmp(textMsg, ".logos") == 0 )
+	if (memcmp(textMsg, ".givelogos ", 11) == 0)
 	{
-	// LogosStoneAdded = 475
-	pym_init(&pms);
-	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 23); // power
-	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 475, pym_getData(&pms), pym_getLen(&pms));
-	communicator_systemMessage(cm, "Power Logos added");
-	return true;
-	}*/
+		sint8 *pch = textMsg + 11;
+		sint32 logos = atoi(pch);
+		if (logos > 0 && logos < 409)
+		{
+			cm->tempCharacterData->logos.set(logos - 1, true);
+			DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_LOGOS, cm->tempCharacterData->logos.to_string().c_str());
+			pym_init(&pms);
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, logos);
+			pym_tuple_end(&pms);
+			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 475, pym_getData(&pms), pym_getLen(&pms));
+			communicator_systemMessage(cm, "Logos added");
+			return true;
+		}
+	}
 	if (strcmp(textMsg, ".gm") == 0)
 	{
 		pym_init(&pms);
@@ -1009,14 +998,31 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		}
 		return true;
 	}
-	if (memcmp(textMsg, ".speed", 6) == 0)
+	if (memcmp(textMsg, ".speed ", 7) == 0)
 	{
+		sint8 *pch = textMsg + 7;
+		float speed = atof(pch);
 		pyMarshalString_t pms;
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
-		pym_addFloat(&pms, 7.0f); // 7x run speed!
+		pym_addFloat(&pms, speed);
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, cm->player->actor, cm->player->actor->entityId, 580, pym_getData(&pms), pym_getLen(&pms));
+		return true;
+	}
+	if (memcmp(textMsg, ".setclass ", 10) == 0)
+	{
+		sint8 *pch = textMsg + 10;
+		uint32 classId = atoi(pch);
+		cm->player->classId = classId;
+		DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_CLASS, cm->player->classId);
+		pyMarshalString_t pms;
+		pym_init(&pms);
+		pym_tuple_begin(&pms);
+		pym_addInt(&pms, cm->player->classId);
+		pym_tuple_end(&pms);
+		netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 40, pym_getData(&pms), pym_getLen(&pms));
+		return true;
 	}
 	if (memcmp(textMsg, ".goto ", 6) == 0)
 	{
