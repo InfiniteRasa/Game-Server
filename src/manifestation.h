@@ -5,6 +5,7 @@
  */
 
 #define SKILL_COUNT		73
+#define LOGOS_COUNT		409
 
 // table for skillIndex to skillID mapping
 static sint32 skillIdx2ID[SKILL_COUNT] =
@@ -33,6 +34,17 @@ static sint32 skillID2Idx[200] =
 	-1,-1,-1,-1,-1,-1,-1,50,51,52,53,54,55,56,57,58,59,60,61,62,
 	63,64,65,66,67,68,69,-1,-1,-1,-1,-1,70,71,72,-1,-1,-1,-1,-1,
 	-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+};
+
+// table for skillIndex to ability mapping
+static sint32 skillIdx2AbilityID[SKILL_COUNT] = 
+{
+	-1, -1, -1, -1, 137, -1, -1, -1, -1, 178, 177, 158, -1, -1, 
+	197, 186, 188, 162, 187, -1, -1, 233, 234, -1, 194, -1, -1, 
+	-1, -1, -1, 301, -1, -1, 185, 251, 240, 302, 232, 229, -1, 
+	231, 305, 392, 252, 282, 381, 267, 298, 246, 253, 307, 393, 
+	281, 390, 295, 304, 386, 193, 385, 176, 260, 384, 383, 303, 
+	388, 389, 387, 380, 401, 430, 262, 421, 446
 };
 
 #define manifestation_getSkillIndexById(skid) ((skid)<0?-1:((skid)>=200?-1:(skillID2Idx[(skid)])))
@@ -329,4 +341,5 @@ static sint32 experienceTable[50+1] =
 
 sint32 manifestation_getLevelByExperience(sint32 xp);
 sint32 manifestation_getLevelNeededExperience(sint32 level);
+void manifestation_SendAbilityDrawerFull(mapChannelClient_t *cm);
 
