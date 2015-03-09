@@ -407,7 +407,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		"`ad18_classId`,`ad18_hue`,"
 		"`ad19_classId`,`ad19_hue`,"
 		"`ad20_classId`,`ad20_hue`,"
-		"`ad21_classId`,`ad21_hue`"
+		"`ad21_classId`,`ad21_hue`,`logos`"
 		") VALUES"
 		"('%s','%s',%d,%d,%d,%d,%I64u,"
 		"%d,%f,%f,%f,0,"
@@ -416,7 +416,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		"%d,%u,%d,%u,%d,%u,%d,%u," // 9
 		"%d,%u,%d,%u,%d,%u,%d,%u," // 13
 		"%d,%u,%d,%u,%d,%u,%d,%u," // 17
-		"%d,%u"					   // 21
+		"%d,%u,'%s'"					   // 21
 		")",
 		characterData->unicodeName, characterData->unicodeFamily, characterData->slotIndex, characterData->genderIsMale ? 0 : 1, characterData->raceID, characterData->classId, characterData->userID,
 		characterData->currentContextId, (float)characterData->posX, (float)characterData->posY, (float)characterData->posZ,
@@ -440,7 +440,8 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		characterData->appearanceData[17].classId, characterData->appearanceData[17].hue,
 		characterData->appearanceData[18].classId, characterData->appearanceData[18].hue,
 		characterData->appearanceData[19].classId, characterData->appearanceData[19].hue,
-		characterData->appearanceData[20].classId, characterData->appearanceData[20].hue
+		characterData->appearanceData[20].classId, characterData->appearanceData[20].hue,
+		std::bitset<409>().reset().to_string().c_str()
 		);
 	// execute query
 	if (mysql_query(dbCon, queryText))
