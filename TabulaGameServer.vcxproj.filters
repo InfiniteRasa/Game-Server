@@ -209,6 +209,9 @@
     <None Include="libs\mysql\regex.pdb" />
     <None Include="libs\mysql\strings.pdb" />
     <None Include="libs\mysql\zlib.pdb" />
+    <None Include="sql\abilities.sql" />
+    <None Include="sql\skills.sql" />
+    <None Include="sql\characters.sql" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\minini\minGlue.h">
