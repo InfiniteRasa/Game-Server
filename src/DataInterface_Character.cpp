@@ -1,6 +1,7 @@
 #include<winsock2.h>
 #include<stdio.h>
 #include"DataInterface.h"
+#include<time.h>
 
 void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getCharacterPreviewInfo_t *job, void *cb, void *param)
 {
@@ -29,7 +30,8 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		"ad18_classId,ad18_hue,"
 		"ad19_classId,ad19_hue,"
 		"ad20_classId,ad20_hue,"
-		"ad21_classId,ad21_hue"
+		"ad21_classId,ad21_hue,"
+		"level,numLogins,totalTimePlayed,TIMESTAMPDIFF(MINUTE,timeSinceLastPlayed,NOW()) AS timeSinceLastPlayed,clonecredits,body,mind,spirit,experience"
 		" FROM characters WHERE userId=%I64u", job->userId);
 	else
 	{
@@ -56,7 +58,8 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 			"ad18_classId,ad18_hue,"
 			"ad19_classId,ad19_hue,"
 			"ad20_classId,ad20_hue,"
-			"ad21_classId,ad21_hue"
+			"ad21_classId,ad21_hue,"
+			"level,numLogins,totalTimePlayed,TIMESTAMPDIFF(MINUTE,timeSinceLastPlayed,NOW()) AS timeSinceLastPlayed,clonecredits,body,mind,spirit,experience"
 			" FROM characters WHERE userId=%I64u AND slotId=%d", job->userId, job->slotIndex);
 	}
 
@@ -80,7 +83,15 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		double char_posX;
 		double char_posY;
 		double char_posZ;
-
+		sint32 char_level;
+		uint32 char_numLogins;
+		uint32 char_totalTimePlayed;
+		uint32 char_timeSinceLastPlayed;
+		uint32 char_clonecredits;
+		uint32 char_body;
+		uint32 char_mind;
+		uint32 char_spirit;
+		uint32 char_experience;
 		sscanf(dbRow[0], "%I64u", &char_id);
 		sscanf(dbRow[3], "%d", &char_slotIndex);
 		sscanf(dbRow[4], "%d", &char_gender);
@@ -93,7 +104,7 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		char_rawSlotIndex = char_slotIndex - 1;
 		job->outPreviewData[char_rawSlotIndex] = (di_characterPreview_t *)malloc(sizeof(di_characterPreview_t));
 		sint32 rIdx = 11;
-		for (sint32 i = 0; i<21; i++)
+		for (sint32 i = 0; i < 21; i++)
 		{
 			sscanf(dbRow[rIdx + 0], "%d", &job->outPreviewData[char_rawSlotIndex]->appearanceData[i].classId);
 			sscanf(dbRow[rIdx + 1], "%u", &job->outPreviewData[char_rawSlotIndex]->appearanceData[i].hue);
@@ -111,12 +122,30 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 		job->outPreviewData[char_rawSlotIndex]->posX = (float)char_posX;
 		job->outPreviewData[char_rawSlotIndex]->posY = (float)char_posY;
 		job->outPreviewData[char_rawSlotIndex]->posZ = (float)char_posZ;
+		sscanf(dbRow[53], "%d", &char_level);
+		sscanf(dbRow[54], "%d", &char_numLogins);
+		sscanf(dbRow[55], "%d", &char_totalTimePlayed);
+		sscanf(dbRow[56], "%d", &char_timeSinceLastPlayed);
+		sscanf(dbRow[57], "%d", &char_clonecredits);
+		sscanf(dbRow[58], "%d", &char_body);
+		sscanf(dbRow[59], "%d", &char_mind);
+		sscanf(dbRow[60], "%d", &char_spirit);
+		sscanf(dbRow[61], "%d", &char_experience);
+		job->outPreviewData[char_rawSlotIndex]->level = char_level;
+		job->outPreviewData[char_rawSlotIndex]->numLogins = char_numLogins;
+		job->outPreviewData[char_rawSlotIndex]->totalTimePlayed = char_totalTimePlayed;
+		job->outPreviewData[char_rawSlotIndex]->timeSinceLastPlayed = char_timeSinceLastPlayed;
+		job->outPreviewData[char_rawSlotIndex]->clonecredits = char_clonecredits;
+		job->outPreviewData[char_rawSlotIndex]->body = char_body;
+		job->outPreviewData[char_rawSlotIndex]->mind = char_mind;
+		job->outPreviewData[char_rawSlotIndex]->spirit = char_spirit;
+		job->outPreviewData[char_rawSlotIndex]->experience = char_experience;
 	}
 	mysql_free_result(dbResult);
 	// do callback
 	((void(*)(void*, void*))cb)(param, job);
 	// free data
-	for (sint32 i = 0; i<16; i++)
+	for (sint32 i = 0; i < 16; i++)
 	{
 		free(job->outPreviewData[i]);
 	}
@@ -128,7 +157,7 @@ void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, 
 	diJob_getCharacterPreviewInfo_t *job = (diJob_getCharacterPreviewInfo_t*)DataInterface_allocJob(sizeof(diJob_getCharacterPreviewInfo_t));
 	job->userId = userID;
 	job->slotIndex = slotIndex;
-	for (sint32 i = 0; i<16; i++)
+	for (sint32 i = 0; i < 16; i++)
 		job->outPreviewData[i] = NULL;
 	DataInterface_queueJob(job, cb_DataInterface_Character_getCharacterPreviewInfo, cb, param);
 }
@@ -136,6 +165,8 @@ void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, 
 void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterData_t *job, void *cb, void *param)
 {
 	sint8 queryText[1024];
+
+	// get character data and stats
 	wsprintf(queryText, "SELECT "
 		"id,name,lastname,slotId,gender,raceId,classId,"
 		"currentContextId,posX,posY,posZ,"
@@ -160,7 +191,7 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 		"ad19_classId,ad19_hue,"
 		"ad20_classId,ad20_hue,"
 		"ad21_classId,ad21_hue,"
-		"level,credits,prestige,experience,rotation"
+		"level,credits,prestige,experience,rotation,body,mind,spirit,logos,clonecredits"
 		" FROM characters"
 		" WHERE userId=%I64u AND slotId=%d LIMIT 1", job->userId, job->slotIndex);
 
@@ -168,70 +199,142 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	if (mysql_query(dbCon, queryText))
 	{
 		printf("Error in query\n");
-		while (1) Sleep(1000);
+		puts(queryText);
+		puts(mysql_error(dbCon));
 	}
-	MYSQL_RES *dbResult = mysql_store_result(dbCon);
-	MYSQL_ROW dbRow;
-	job->outCharacterData = NULL;
-	while ((dbRow = mysql_fetch_row(dbResult)))
+	else
 	{
-		unsigned long long char_id;
-		sint32 char_gender;
-		sint32 char_slotIndex;
-		sint32 char_rawSlotIndex;
-		sint32 char_race;
-		sint32 char_classId;
-		sint32 char_currentContextId;
-		double char_posX;
-		double char_posY;
-		double char_posZ;
-		double char_rotation;
-		sint32 char_level;
-		uint32 char_credits;
-		uint32 char_prestige;
-		uint32 char_experience;
-		sscanf(dbRow[0], "%I64u", &char_id);
-		sscanf(dbRow[3], "%d", &char_slotIndex);
-		sscanf(dbRow[4], "%d", &char_gender);
-		sscanf(dbRow[5], "%d", &char_race);
-		sscanf(dbRow[6], "%d", &char_classId);
-		sscanf(dbRow[7], "%d", &char_currentContextId);
-		sscanf(dbRow[8], "%lf", &char_posX);
-		sscanf(dbRow[9], "%lf", &char_posY);
-		sscanf(dbRow[10], "%lf", &char_posZ);
-		char_rawSlotIndex = char_slotIndex - 1;
-		job->outCharacterData = (di_characterData_t*)malloc(sizeof(di_characterData_t));
-		sint32 rIdx = 11;
-		for (sint32 i = 0; i<21; i++)
+		MYSQL_RES *dbResult = mysql_store_result(dbCon);
+		MYSQL_ROW dbRow;
+		job->outCharacterData = NULL;
+		while ((dbRow = mysql_fetch_row(dbResult)))
 		{
-			sscanf(dbRow[rIdx + 0], "%d", &job->outCharacterData->appearanceData[i].classId);
-			sscanf(dbRow[rIdx + 1], "%u", &job->outCharacterData->appearanceData[i].hue);
-			rIdx += 2;
+			unsigned long long char_id;
+			sint32 char_gender;
+			sint32 char_slotIndex;
+			sint32 char_rawSlotIndex;
+			sint32 char_race;
+			sint32 char_classId;
+			sint32 char_currentContextId;
+			double char_posX;
+			double char_posY;
+			double char_posZ;
+			double char_rotation;
+			sint32 char_level;
+			uint32 char_credits;
+			uint32 char_prestige;
+			uint32 char_experience;
+			uint32 char_body;
+			uint32 char_mind;
+			uint32 char_spirit;
+			uint32 char_clonecredits;
+			char char_logos[410];
+			sscanf(dbRow[0], "%I64u", &char_id);
+			sscanf(dbRow[3], "%d", &char_slotIndex);
+			sscanf(dbRow[4], "%d", &char_gender);
+			sscanf(dbRow[5], "%d", &char_race);
+			sscanf(dbRow[6], "%d", &char_classId);
+			sscanf(dbRow[7], "%d", &char_currentContextId);
+			sscanf(dbRow[8], "%lf", &char_posX);
+			sscanf(dbRow[9], "%lf", &char_posY);
+			sscanf(dbRow[10], "%lf", &char_posZ);
+			char_rawSlotIndex = char_slotIndex - 1;
+			job->outCharacterData = (di_characterData_t*)malloc(sizeof(di_characterData_t));
+			sint32 rIdx = 11;
+			for (sint32 i = 0; i < 21; i++)
+			{
+				sscanf(dbRow[rIdx + 0], "%d", &job->outCharacterData->appearanceData[i].classId);
+				sscanf(dbRow[rIdx + 1], "%u", &job->outCharacterData->appearanceData[i].hue);
+				rIdx += 2;
+			}
+			job->outCharacterData->characterID = char_id;
+			strcpy(job->outCharacterData->unicodeName, dbRow[1]);
+			strcpy(job->outCharacterData->unicodeFamily, dbRow[2]);
+			job->outCharacterData->genderIsMale = char_gender == 0;
+			job->outCharacterData->raceID = char_race;
+			job->outCharacterData->classID = char_classId;
+			job->outCharacterData->slotIndex = char_slotIndex;
+			job->outCharacterData->userID = job->userId;
+			job->outCharacterData->currentContextId = char_currentContextId;
+			job->outCharacterData->posX = (float)char_posX;
+			job->outCharacterData->posY = (float)char_posY;
+			job->outCharacterData->posZ = (float)char_posZ;
+			sscanf(dbRow[53], "%d", &char_level);
+			sscanf(dbRow[54], "%d", &char_credits);
+			sscanf(dbRow[55], "%d", &char_prestige);
+			sscanf(dbRow[56], "%d", &char_experience);
+			sscanf(dbRow[57], "%lf", &char_rotation);
+			sscanf(dbRow[58], "%d", &char_body);
+			sscanf(dbRow[59], "%d", &char_mind);
+			sscanf(dbRow[60], "%d", &char_spirit);
+			sscanf(dbRow[61], "%s", &char_logos);
+			sscanf(dbRow[62], "%d", &char_clonecredits);
+			job->outCharacterData->level = char_level;
+			job->outCharacterData->credits = char_credits;
+			job->outCharacterData->prestige = char_prestige;
+			job->outCharacterData->experience = char_experience;
+			job->outCharacterData->rotation = (float)char_rotation;
+			job->outCharacterData->body = char_body;
+			job->outCharacterData->mind = char_mind;
+			job->outCharacterData->spirit = char_spirit;
+			job->outCharacterData->loginTime = time(NULL);
+			job->outCharacterData->logos = (std::bitset<409>(char_logos));
+			job->outCharacterData->clonecredits = char_clonecredits;
 		}
-		job->outCharacterData->characterID = char_id;
-		strcpy(job->outCharacterData->unicodeName, dbRow[1]);
-		strcpy(job->outCharacterData->unicodeFamily, dbRow[2]);
-		job->outCharacterData->genderIsMale = char_gender == 0;
-		job->outCharacterData->raceID = char_race;
-		job->outCharacterData->classID = char_classId;
-		job->outCharacterData->slotIndex = char_slotIndex;
-		job->outCharacterData->userID = job->userId;
-		job->outCharacterData->currentContextId = char_currentContextId;
-		job->outCharacterData->posX = (float)char_posX;
-		job->outCharacterData->posY = (float)char_posY;
-		job->outCharacterData->posZ = (float)char_posZ;
-		sscanf(dbRow[53], "%d", &char_level);
-		sscanf(dbRow[54], "%d", &char_credits);
-		sscanf(dbRow[55], "%d", &char_prestige);
-		sscanf(dbRow[56], "%d", &char_experience);
-		sscanf(dbRow[57], "%lf", &char_rotation);
-		job->outCharacterData->level = char_level;
-		job->outCharacterData->credits = char_credits;
-		job->outCharacterData->prestige = char_prestige;
-		job->outCharacterData->experience = char_experience;
-		job->outCharacterData->rotation = (float)char_rotation;
+		mysql_free_result(dbResult);
 	}
-	mysql_free_result(dbResult);
+
+	// get skills
+	sprintf(queryText, "SELECT * FROM skills WHERE characterID=%d LIMIT 1", job->outCharacterData->characterID);
+
+	// execute query
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+	}
+	else
+	{
+		MYSQL_RES *dbResult = mysql_store_result(dbCon);
+		MYSQL_ROW dbRow;
+		while ((dbRow = mysql_fetch_row(dbResult)))
+		{
+			// get skill level
+			for (sint32 i = 0; i < 73; i++)
+				job->outCharacterData->skill[i] = atoi(dbRow[i]);
+		}
+		mysql_free_result(dbResult);
+	}
+
+	// get abilities
+	sprintf(queryText, "SELECT * FROM abilities WHERE characterID=%d LIMIT 1", job->outCharacterData->characterID);
+
+	// execute query
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+	}
+	else
+	{
+		MYSQL_RES *dbResult = mysql_store_result(dbCon);
+		MYSQL_ROW dbRow;
+		while ((dbRow = mysql_fetch_row(dbResult)))
+		{
+			// get skill level
+			for (sint32 i = 0; i < 50; i++)
+			{
+				job->outCharacterData->abilityDrawer[i / 2] = atoi(dbRow[i]);
+				job->outCharacterData->abilityLvDrawer[i / 2] = atoi(dbRow[i + 1]);
+				i++;
+			}
+			job->outCharacterData->currentAbilityDrawer = atoi(dbRow[50]);
+		}
+		mysql_free_result(dbResult);
+	}
+
 	// get mission data (TODO)
 	job->outCharacterData->missionStateCount = 0;
 	job->outCharacterData->missionStateData = NULL;
@@ -363,6 +466,28 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		((void(*)(void*, void*))cb)(param, characterData);
 		return;
 	}
+	// create default entry in skills table
+	sprintf(queryText, "INSERT INTO skills (characterID) VALUES(%d)", characterID);
+	// execute query
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+		((void(*)(void*, void*))cb)(param, characterData);
+		return;
+	}
+	// create default entry in abilities table
+	sprintf(queryText, "INSERT INTO abilities (characterID) VALUES(%d)", characterID);
+	// execute query
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+		((void(*)(void*, void*))cb)(param, characterData);
+		return;
+	}
 	// do callback
 	((void(*)(void*, void*))cb)(param, characterData);
 	// dont free data as we do not allocate it here
@@ -376,7 +501,7 @@ void DataInterface_Character_createCharacter(di_characterLayout_t *characterData
 void cb_DataInterface_Character_deleteCharacter(MYSQL *dbCon, diJob_deleteCharacter_t *job, void *cb, void *param)
 {
 	sint8 queryText[512];
-	wsprintf(queryText, "DELETE characters, inventory FROM characters INNER JOIN inventory ON characters.id = inventory.characterID WHERE userId=%I64u AND slotId=%d", job->userId, job->slotId);
+	wsprintf(queryText, "DELETE characters, inventory, skills, abilities FROM characters INNER JOIN inventory ON characters.id = inventory.characterID INNER JOIN skills ON characters.id = skills.characterID INNER JOIN abilities ON characters.id = abilities.characterID WHERE userId=%I64u AND slotId=%d", job->userId, job->slotId);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -405,7 +530,7 @@ void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 s
 
 void cb_DataInterface_Character_updateCharacter(MYSQL *dbCon, diJob_updateCharacter_t *job)
 {
-	sint8 queryText[512];
+	sint8 queryText[1024];
 	switch (job->stat)
 	{
 	case 1:
@@ -422,6 +547,18 @@ void cb_DataInterface_Character_updateCharacter(MYSQL *dbCon, diJob_updateCharac
 		break;
 	case 5:
 		sprintf(queryText, "UPDATE characters SET posX=%f, posY=%f, posZ=%f, rotation=%f WHERE userId=%I64u AND slotId=%d", job->posX, job->posY, job->posZ, job->rotation, job->userId, job->slotId);
+		break;
+	case 6:
+		sprintf(queryText, "UPDATE characters SET body=%d, mind=%d, spirit=%d WHERE userId=%I64u AND slotId=%d", job->body, job->mind, job->spirit, job->userId, job->slotId);
+		break;
+	case 7:
+		sprintf(queryText, "UPDATE characters SET numLogins=numLogins+1, totalTimePlayed=totalTimePlayed+%d, timeSinceLastPlayed=NOW() WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
+		break;
+	case 8:
+		sprintf(queryText, "UPDATE characters SET logos='%s' WHERE userId=%I64u AND slotId=%d", job->logos, job->userId, job->slotId);
+		break;
+	case 9:
+		sprintf(queryText, "UPDATE characters SET classID=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
 		break;
 	}
 	// execute query
@@ -463,6 +600,28 @@ void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 s
 	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
 }
 
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 body, uint32 mind, uint32 spirit)
+{
+	diJob_updateCharacter_t *job = (diJob_updateCharacter_t*)DataInterface_allocJob(sizeof(diJob_updateCharacter_t));
+	job->userId = userID;
+	job->slotId = slotId;
+	job->stat = stat;
+	job->body = body;
+	job->mind = mind;
+	job->spirit = spirit;
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
+}
+
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, const char* logos)
+{
+	diJob_updateCharacter_t *job = (diJob_updateCharacter_t*)DataInterface_allocJob(sizeof(diJob_updateCharacter_t));
+	job->userId = userID;
+	job->slotId = slotId;
+	job->stat = stat;
+	strcpy(job->logos, logos);
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
+}
+
 void cb_DataInterface_Character_getCharacterInventory(MYSQL *dbCon, diJob_getCharacterInventory_t *job, void(*cb)(void *param, diJob_getCharacterInventory_t *jobData), void *param)
 {
 	sint8 queryText[128];
@@ -483,14 +642,14 @@ void cb_DataInterface_Character_getCharacterInventory(MYSQL *dbCon, diJob_getCha
 		while ((dbRow = mysql_fetch_row(dbResult)))
 		{
 			// get item templateID and quantity
-			for (sint32 i = 0; i<544; i++)
+			for (sint32 i = 0; i < 544; i++)
 			{
 				*(job->item + (i / 2)) = atoi(dbRow[i]);
 				*(job->qty + (i / 2)) = atoi(dbRow[i + 1]);
 				i++;
 			}
 			// get ammo counts for weapon drawer
-			for (sint32 i = 544; i<549; i++)
+			for (sint32 i = 544; i < 549; i++)
 			{
 				*(job->qty + (i - 272)) = atoi(dbRow[i]);
 				i++;
@@ -606,5 +765,77 @@ void DataInterface_Character_updateCharacterAmmo(unsigned long long characterID,
 	job->slotIndex = slotIndex;
 	job->ammo = ammo;
 	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacterAmmo, NULL, NULL);
+}
+
+void cb_DataInterface_Character_updateCharacterSkills(MYSQL *dbCon, diJob_updateCharacterSkills_t *job)
+{
+	sint8 queryText[2048];
+	sprintf(queryText, "UPDATE skills SET ");
+	for (sint32 i = 0; i < 73; i++)
+	{
+		sprintf(queryText, "%s skill%d=%d, ", queryText, i, *(job->level+i), job->characterID);
+	}
+	queryText[strlen(queryText) - 2] = '\0';
+	sprintf(queryText, "%s WHERE characterID=%d", queryText, job->characterID);
+	// execute query
+	job->error = false;
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+		job->error = true;
+	}
+	else
+	{
+		if (mysql_affected_rows(dbCon) == 0) // nothing updated, set error
+			job->error = true;
+	}
+	// free data
+	DataInterface_freeJob(job);
+}
+
+void DataInterface_Character_updateCharacterSkills(unsigned long long characterID, uint8 * level)
+{
+	diJob_updateCharacterSkills_t *job = (diJob_updateCharacterSkills_t*)DataInterface_allocJob(sizeof(diJob_updateCharacterSkills_t));
+	job->characterID = characterID;
+	job->level = level;
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacterSkills, NULL, NULL);
+}
+
+void cb_DataInterface_Character_updateCharacterAbility(MYSQL *dbCon, diJob_updateCharacterAbility_t *job)
+{
+	sint8 queryText[128];
+	if (job->drawer != NULL)
+		sprintf(queryText, "UPDATE abilities SET currentDrawer=%d WHERE characterID=%d", job->drawer, job->characterID);
+	else
+		sprintf(queryText, "UPDATE abilities SET ability%ditem=%d, ability%dlevel=%d WHERE characterID=%d", job->index, job->item, job->index, job->level, job->characterID);
+	// execute query
+	job->error = false;
+	if (mysql_query(dbCon, queryText))
+	{
+		printf("Error in query\n");
+		puts(queryText);
+		puts(mysql_error(dbCon));
+		job->error = true;
+	}
+	else
+	{
+		if (mysql_affected_rows(dbCon) == 0) // nothing updated, set error
+			job->error = true;
+	}
+	// free data
+	DataInterface_freeJob(job);
+}
+
+void DataInterface_Character_updateCharacterAbility(unsigned long long characterID, sint32 index, sint32 item, sint32 level, sint32 drawer)
+{
+	diJob_updateCharacterAbility_t *job = (diJob_updateCharacterAbility_t*)DataInterface_allocJob(sizeof(diJob_updateCharacterAbility_t));
+	job->characterID = characterID;
+	job->index = index;
+	job->item = item;
+	job->level = level;
+	job->drawer = drawer;
+	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacterAbility, NULL, NULL);
 }
 
