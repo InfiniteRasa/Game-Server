@@ -310,6 +310,7 @@ void lootdispenser_recv_RequestLootAllFromCorpse(mapChannelClient_t *client, uin
 	if( objData->lootCredits > 0 )
 	{
 		client->player->credits += objData->lootCredits;
+		DataInterface_Character_updateCharacter(client->tempCharacterData->userID, client->tempCharacterData->slotIndex, UPDATE_CREDITS, client->player->credits);
 		// inform owner
 		pym_init(&pms);
 		pym_tuple_begin(&pms);
