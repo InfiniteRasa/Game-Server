@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "mysql.h"
 #include "INIParser.h"
+#include <bitset>
 
 #define WORKER_QUEUELENGTH	128 // jobs at max
 #define WORKER_THREADS		1
@@ -61,6 +62,15 @@ typedef struct
 		sint32 classId;		// entityClassId
 		uint32 hue;	// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
+	sint32 level;
+	uint32 numLogins;
+	uint32 totalTimePlayed;
+	uint32 timeSinceLastPlayed;
+	uint32 clonecredits;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
+	uint32 experience;
 }di_characterPreview_t;
 
 typedef struct
@@ -117,13 +127,30 @@ typedef struct
 	uint32 credits;
 	uint32 prestige;
 	uint32 experience;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
 
-	// inventory
+	// skills
+	uint8 skill[73];
+
+	// abilities
+	sint32 abilityDrawer[5 * 5];
+	sint32 abilityLvDrawer[5 * 5];
+	sint8 currentAbilityDrawer;
 
 	// mission data
 	uint32 missionStateCount;
 	di_CharacterMissionData *missionStateData;
 
+	// login time
+	time_t loginTime;
+
+	// logos
+	std::bitset<409> logos;
+
+	// clone credits
+	uint32 clonecredits;
 }di_characterData_t;
 
 /* npc */
@@ -482,6 +509,11 @@ typedef struct
 	float posY;
 	float posZ;
 	float rotation;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
+	unsigned long long characterID;
+	char logos[410];
 	// output
 	bool error;
 }diJob_updateCharacter_t;
@@ -523,6 +555,25 @@ typedef struct
 	// output
 	bool error;
 }diJob_updateCharacterAppearance_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	uint8 * level;
+	// output
+	bool error;
+}diJob_updateCharacterSkills_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	sint32 index;
+	sint32 item;
+	sint32 level;
+	sint32 drawer;
+	// output
+	bool error;
+}diJob_updateCharacterAbility_t;
 
 typedef struct
 {
@@ -597,10 +648,14 @@ void DataInterface_Character_createCharacter(di_characterLayout_t *characterData
 void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void(*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
 void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 value);
 void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 body, uint32 mind, uint32 spirit);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, const char* logos);
 void DataInterface_Character_getCharacterInventory(unsigned long long characterID, uint32 * item, uint32 * qty, void(*cb)(void *param, diJob_getCharacterInventory_t *jobData), void *param);
 void DataInterface_Character_updateCharacterInventory(unsigned long long characterID, sint32 slotIndex, uint32 templateId, uint32 qty);
 void DataInterface_Character_updateCharacterAppearance(unsigned long long characterID, uint32 index, uint32 classId, uint32 hue);
 void DataInterface_Character_updateCharacterAmmo(unsigned long long characterID, sint32 slotIndex, sint32 ammo);
+void DataInterface_Character_updateCharacterSkills(unsigned long long characterID, uint8 * level);
+void DataInterface_Character_updateCharacterAbility(unsigned long long characterID, sint32 index, sint32 item, sint32 level, sint32 drawer);
 
 /* npc */
 void DataInterface_NPC_getNPCList(void(*cb)(void *param, diJob_npcListData_t *jobData), void *param);
