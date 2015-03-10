@@ -192,6 +192,9 @@
     <ClCompile Include="src\waypoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\humandropship.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\mysql\libmysql.def">
@@ -590,6 +593,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\humandropship.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

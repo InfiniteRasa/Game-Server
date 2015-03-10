@@ -129,6 +129,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\gm.cpp" />
     <ClCompile Include="src\hashTable.cpp" />
     <ClCompile Include="src\hashTableSynced.cpp" />
+    <ClCompile Include="src\humandropship.cpp" />
     <ClCompile Include="src\INIParser.cpp" />
     <ClCompile Include="src\inventory.cpp" />
     <ClCompile Include="src\logosObject.cpp" />
@@ -276,6 +277,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClInclude Include="src\Global.h" />
     <ClInclude Include="src\gm.h" />
     <ClInclude Include="src\hashTable.h" />
+    <ClInclude Include="src\humandropship.h" />
     <ClInclude Include="src\INIParser.h" />
     <ClInclude Include="src\inventory.h" />
     <ClInclude Include="src\logosObject.h" />

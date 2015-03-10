@@ -4,7 +4,7 @@
 #define OBJECTTYPE_BANE_DROPSHIP	3
 #define OBJECTTYPE_CONTROL_POINT	4
 #define OBJECTTYPE_LOGOS			5
-#define OBJECTTYPE_AFS_DROPSHIP		6
+#define OBJECTTYPE_HUMAN_DROPSHIP	6
 #define OBJECTTYPE_TELEPORTER		7
 #define OBJECTTYPE_WAYPOINT			8
 #define OBJECTTYPE_DOOR				9
@@ -19,7 +19,7 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, uint8 *pySt
 
 bool _dynamicObject_controlpoint_callback(mapChannel_t *mapChannel, void *param, sint32 timePassed);
 void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y, float z);
-void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z);
+//void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z);
 void dynamicObject_forceState(clientGamemain_t* cgm, uint32 entityId, sint32 state);
 
 void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
@@ -93,6 +93,7 @@ void dynamicObject_stopPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyn
 
 #include"defaultObject.h"
 #include"banedropship.h"
+#include"humandropship.h"
 #include"waypoint.h"
 #include"controlpoint.h"
 #include"logosObject.h"
