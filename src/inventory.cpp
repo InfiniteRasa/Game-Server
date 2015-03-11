@@ -330,6 +330,8 @@ item_t* inventory_addItemToInventory(mapChannelClient_t *client, item_t* item)
 			// do we still need to continue?
 			if (item->stacksize == 0)
 			{
+				// update item in database
+				DataInterface_Character_updateCharacterInventory(client->tempCharacterData->characterID, slotItem->locationSlotIndex, slotItem->itemTemplate->item.templateId, slotItem->stacksize);
 				// destroy the item
 				item_sendItemDestruction(client, item);
 				item_free(item);
