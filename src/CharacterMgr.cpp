@@ -389,7 +389,7 @@ void _cb_charMgr_recv_requestDeleteCharacterInSlot(void *param, diJob_deleteChar
 	clientGamemain_t *cgm = (clientGamemain_t*)param;
 	charMgr_sendCharacterDeleteSuccess(cgm);
 	if( jobData->error == false )
-		if( jobData->slotId >= 1 && jobData->slotId <= 12 )
+		if( jobData->slotId >= 1 && jobData->slotId <= 16 )
 			_charMgr_sendUpdateEmptyPod(cgm, jobData->slotId);
 }
 
