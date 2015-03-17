@@ -167,6 +167,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <None Include="pthreadVC2.dll" />
     <None Include="sql\abilities.sql" />
     <None Include="sql\characters.sql" />
+    <None Include="sql\inventory.sql" />
     <None Include="sql\ir_gameserver.sql" />
     <None Include="sql\skills.sql" />
     <None Include="sql\Spawnpool_V0.1.sql" />

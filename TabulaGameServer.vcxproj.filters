@@ -215,6 +215,7 @@
     <None Include="sql\abilities.sql" />
     <None Include="sql\skills.sql" />
     <None Include="sql\characters.sql" />
+    <None Include="sql\inventory.sql" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\minini\minGlue.h">
