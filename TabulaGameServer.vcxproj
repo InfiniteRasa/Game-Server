@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -11,159 +11,284 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5AAC9C49-5BFA-49DC-B04C-C695D0E12D79}</ProjectGuid>
-    <RootNamespace>TabulaGameServer</RootNamespace>
+    <ProjectGuid>{9796F6DC-E2D8-4133-A713-0442A036ECF3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\mysql;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\devel\PROJECTS\c&amp;c++\TRServer\GameSrv\InfiniteRasa-Game-Server-experimental5\mysql;$(LibraryPath)</LibraryPath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>build\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>build\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)\mysql\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)\libs\pthreads\;$(ProjectDir)\libs\mysql\;$(ProjectDir)\libs\minINI\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libmysql.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\mysql\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>$(ProjectDir)\libs\mysql\;$(ProjectDir)\libs\pthreads\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;ws2_32.lib;pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(ProjectDir)libmysql.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)pthreadVC2.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)config.ini" "$(OutDir)"
+xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <Optimization>MaxSpeed</Optimization>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\mysql\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)\libs\pthreads\;$(ProjectDir)\libs\mysql\;$(ProjectDir)\libs\minINI\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libmysql.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\mysql\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libmysql.lib;ws2_32.lib;pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\libs\mysql\;$(ProjectDir)\libs\pthreads\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "$(ProjectDir)libmysql.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)pthreadVC2.dll" "$(OutDir)"
+xcopy /y /d "$(ProjectDir)config.ini" "$(OutDir)"
+xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DataInterface_Teleporter.cpp" />
-    <ClCompile Include="GameMain.cpp" />
-    <ClCompile Include="MapChannel.cpp" />
-    <ClCompile Include="CharacterMgr.cpp" />
-    <ClCompile Include="netMgr.cpp" />
-    <ClCompile Include="PyMarshal.cpp" />
-    <ClCompile Include="teleporter.cpp" />
-    <ClCompile Include="UnpackObjects.cpp" />
-    <ClCompile Include="fileMgr.cpp" />
-    <ClCompile Include="sData.cpp" />
-    <ClCompile Include="hashTable_string.cpp" />
-    <ClCompile Include="hashTable_StringSynced.cpp" />
-    <ClCompile Include="hashTable_uint32.cpp" />
-    <ClCompile Include="hashTable_uint32Iterable.cpp" />
-    <ClCompile Include="gameData.cpp" />
-    <ClCompile Include="entityMgr.cpp" />
-    <ClCompile Include="manifestation.cpp" />
-    <ClCompile Include="playerActions.cpp" />
-    <ClCompile Include="communicator.cpp" />
-    <ClCompile Include="inventory.cpp" />
-    <ClCompile Include="dynamicObject.cpp" />
-    <ClCompile Include="cellMgr.cpp" />
-    <ClCompile Include="npc.cpp" />
-    <ClCompile Include="gameEffects.cpp" />
-    <ClCompile Include="mission.cpp" />
-    <ClCompile Include="creature.cpp" />
-    <ClCompile Include="spawnSystem.cpp" />
-    <ClCompile Include="missile.cpp" />
-    <ClCompile Include="behaviorController.cpp" />
-    <ClCompile Include="MD5.cpp" />
-    <ClCompile Include="TabulaCrypt2.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Bignum.cpp" />
-    <ClCompile Include="AuthServerUtil.cpp" />
-    <ClCompile Include="DataInterface.cpp" />
-    <ClCompile Include="DataInterface_Character.cpp" />
-    <ClCompile Include="DataInterface_Mission.cpp" />
-    <ClCompile Include="DataInterface_NPC.cpp" />
+    <ClCompile Include="libs\minini\minIni.c" />
+    <ClCompile Include="src\actorAction.cpp" />
+    <ClCompile Include="src\AuthServerUtil.cpp" />
+    <ClCompile Include="src\banedropship.cpp" />
+    <ClCompile Include="src\behaviorController.cpp" />
+    <ClCompile Include="src\behaviorControllerInit.cpp" />
+    <ClCompile Include="src\Bignum.cpp" />
+    <ClCompile Include="src\cellMgr.cpp" />
+    <ClCompile Include="src\CharacterMgr.cpp" />
+    <ClCompile Include="src\communicator.cpp" />
+    <ClCompile Include="src\controlpoint.cpp" />
+    <ClCompile Include="src\creature.cpp" />
+    <ClCompile Include="src\DataInterface.cpp" />
+    <ClCompile Include="src\DataInterface_Character.cpp" />
+    <ClCompile Include="src\DataInterface_Creature.cpp" />
+    <ClCompile Include="src\DataInterface_Items.cpp" />
+    <ClCompile Include="src\DataInterface_Mission.cpp" />
+    <ClCompile Include="src\DataInterface_NPC.cpp" />
+    <ClCompile Include="src\DataInterface_SpawnSystem.cpp" />
+    <ClCompile Include="src\DataInterface_Teleporter.cpp" />
+    <ClCompile Include="src\defaultObject.cpp" />
+    <ClCompile Include="src\DetourAlloc.cpp" />
+    <ClCompile Include="src\DetourCommon.cpp" />
+    <ClCompile Include="src\DetourNavMesh.cpp" />
+    <ClCompile Include="src\DetourNavMeshBuilder.cpp" />
+    <ClCompile Include="src\DetourNavMeshQuery.cpp" />
+    <ClCompile Include="src\DetourNode.cpp" />
+    <ClCompile Include="src\dynamicObject.cpp" />
+    <ClCompile Include="src\entityMgr.cpp" />
+    <ClCompile Include="src\fileMgr.cpp" />
+    <ClCompile Include="src\gameData.cpp" />
+    <ClCompile Include="src\gameEffects.cpp" />
+    <ClCompile Include="src\GameMain.cpp" />
+    <ClCompile Include="src\gm.cpp" />
+    <ClCompile Include="src\hashTable.cpp" />
+    <ClCompile Include="src\hashTableSynced.cpp" />
+    <ClCompile Include="src\INIParser.cpp" />
+    <ClCompile Include="src\inventory.cpp" />
+    <ClCompile Include="src\logosObject.cpp" />
+    <ClCompile Include="src\lootdispenser.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\manifestation.cpp" />
+    <ClCompile Include="src\MapChannel.cpp" />
+    <ClCompile Include="src\MD5.cpp" />
+    <ClCompile Include="src\missile.cpp" />
+    <ClCompile Include="src\mission.cpp" />
+    <ClCompile Include="src\navmesh.cpp" />
+    <ClCompile Include="src\netMgr.cpp" />
+    <ClCompile Include="src\npc.cpp" />
+    <ClCompile Include="src\playerActions.cpp" />
+    <ClCompile Include="src\PyMarshal.cpp" />
+    <ClCompile Include="src\sData.cpp" />
+    <ClCompile Include="src\spawnSystem.cpp" />
+    <ClCompile Include="src\TabulaCrypt2.cpp" />
+    <ClCompile Include="src\teleporter.cpp" />
+    <ClCompile Include="src\ThreadsUtils.cpp" />
+    <ClCompile Include="src\UnpackObjects.cpp" />
+    <ClCompile Include="src\vendor.cpp" />
+    <ClCompile Include="src\waypoint.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameMain.h" />
-    <ClInclude Include="Global.h" />
-    <ClInclude Include="MapChannel.h" />
-    <ClInclude Include="Msg.h" />
-    <ClInclude Include="Packet.h" />
-    <ClInclude Include="Packing.h" />
-    <ClInclude Include="fileMgr.h" />
-    <ClInclude Include="sData.h" />
-    <ClInclude Include="hashTable.h" />
-    <ClInclude Include="classIDs.h" />
-    <ClInclude Include="entityIDs.h" />
-    <ClInclude Include="gameData.h" />
-    <ClInclude Include="methodIDs.h" />
-    <ClInclude Include="MapInstance.h" />
-    <ClInclude Include="entityMgr.h" />
-    <ClInclude Include="manifestation.h" />
-    <ClInclude Include="communicator.h" />
-    <ClInclude Include="inventory.h" />
-    <ClInclude Include="dynamicObject.h" />
-    <ClInclude Include="cellMgr.h" />
-    <ClInclude Include="npc.h" />
-    <ClInclude Include="actor.h" />
-    <ClInclude Include="gameEffects.h" />
-    <ClInclude Include="mission.h" />
-    <ClInclude Include="creature.h" />
-    <ClInclude Include="spawnSystem.h" />
-    <ClInclude Include="combatMgr.h" />
-    <ClInclude Include="behaviorController.h" />
-    <ClInclude Include="TabulaCrypt.h" />
-    <ClInclude Include="main.h" />
-    <ClInclude Include="Bignum.h" />
-    <ClInclude Include="AuthServerUtil.h" />
-    <ClInclude Include="DataInterface.h" />
-    <ClInclude Include="teleporter.h" />
+    <None Include="libs\mysql\libmysql.def" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDescriptions.txt" />
-    <None Include="ToDo.txt" />
-    <None Include="libmysql.dll" />
-    <None Include="sql\tabuladb.sql" />
-    <None Include="gameData\equipableClassEquipmentSlot.txt" />
-    <None Include="gameData\itemTemplates.txt" />
-    <None Include="gameData\mapInfo.txt" />
-    <None Include="gameData\starterItemTemplateClassIds.txt" />
+    <ClInclude Include="libs\minini\minGlue.h" />
+    <ClInclude Include="libs\minini\minIni.h" />
+    <ClInclude Include="libs\mysql\base64.h" />
+    <ClInclude Include="libs\mysql\config-netware.h" />
+    <ClInclude Include="libs\mysql\config-win.h" />
+    <ClInclude Include="libs\mysql\decimal.h" />
+    <ClInclude Include="libs\mysql\errmsg.h" />
+    <ClInclude Include="libs\mysql\ft_global.h" />
+    <ClInclude Include="libs\mysql\hash.h" />
+    <ClInclude Include="libs\mysql\heap.h" />
+    <ClInclude Include="libs\mysql\help_end.h" />
+    <ClInclude Include="libs\mysql\help_start.h" />
+    <ClInclude Include="libs\mysql\keycache.h" />
+    <ClInclude Include="libs\mysql\myisam.h" />
+    <ClInclude Include="libs\mysql\myisammrg.h" />
+    <ClInclude Include="libs\mysql\myisampack.h" />
+    <ClInclude Include="libs\mysql\mysql.h" />
+    <ClInclude Include="libs\mysql\mysqld_ername.h" />
+    <ClInclude Include="libs\mysql\mysqld_error.h" />
+    <ClInclude Include="libs\mysql\mysql_com.h" />
+    <ClInclude Include="libs\mysql\mysql_embed.h" />
+    <ClInclude Include="libs\mysql\mysql_time.h" />
+    <ClInclude Include="libs\mysql\mysql_version.h" />
+    <ClInclude Include="libs\mysql\mysys_err.h" />
+    <ClInclude Include="libs\mysql\my_aes.h" />
+    <ClInclude Include="libs\mysql\my_alarm.h" />
+    <ClInclude Include="libs\mysql\my_alloc.h" />
+    <ClInclude Include="libs\mysql\my_atomic.h" />
+    <ClInclude Include="libs\mysql\my_attribute.h" />
+    <ClInclude Include="libs\mysql\my_base.h" />
+    <ClInclude Include="libs\mysql\my_bit.h" />
+    <ClInclude Include="libs\mysql\my_bitmap.h" />
+    <ClInclude Include="libs\mysql\my_dbug.h" />
+    <ClInclude Include="libs\mysql\my_dir.h" />
+    <ClInclude Include="libs\mysql\my_getopt.h" />
+    <ClInclude Include="libs\mysql\my_global.h" />
+    <ClInclude Include="libs\mysql\my_handler.h" />
+    <ClInclude Include="libs\mysql\my_libwrap.h" />
+    <ClInclude Include="libs\mysql\my_list.h" />
+    <ClInclude Include="libs\mysql\my_md5.h" />
+    <ClInclude Include="libs\mysql\my_net.h" />
+    <ClInclude Include="libs\mysql\my_nosys.h" />
+    <ClInclude Include="libs\mysql\my_no_pthread.h" />
+    <ClInclude Include="libs\mysql\my_pthread.h" />
+    <ClInclude Include="libs\mysql\my_stacktrace.h" />
+    <ClInclude Include="libs\mysql\my_sys.h" />
+    <ClInclude Include="libs\mysql\my_time.h" />
+    <ClInclude Include="libs\mysql\my_tree.h" />
+    <ClInclude Include="libs\mysql\my_trie.h" />
+    <ClInclude Include="libs\mysql\my_uctype.h" />
+    <ClInclude Include="libs\mysql\my_user.h" />
+    <ClInclude Include="libs\mysql\my_vle.h" />
+    <ClInclude Include="libs\mysql\my_xml.h" />
+    <ClInclude Include="libs\mysql\m_ctype.h" />
+    <ClInclude Include="libs\mysql\m_string.h" />
+    <ClInclude Include="libs\mysql\queues.h" />
+    <ClInclude Include="libs\mysql\rijndael.h" />
+    <ClInclude Include="libs\mysql\sha1.h" />
+    <ClInclude Include="libs\mysql\sql_common.h" />
+    <ClInclude Include="libs\mysql\sql_state.h" />
+    <ClInclude Include="libs\mysql\sslopt-case.h" />
+    <ClInclude Include="libs\mysql\sslopt-longopts.h" />
+    <ClInclude Include="libs\mysql\sslopt-vars.h" />
+    <ClInclude Include="libs\mysql\thr_alarm.h" />
+    <ClInclude Include="libs\mysql\thr_lock.h" />
+    <ClInclude Include="libs\mysql\typelib.h" />
+    <ClInclude Include="libs\mysql\t_ctype.h" />
+    <ClInclude Include="libs\mysql\violite.h" />
+    <ClInclude Include="libs\pthreads\pthread.h" />
+    <ClInclude Include="libs\pthreads\sched.h" />
+    <ClInclude Include="libs\pthreads\semaphore.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\actor.h" />
+    <ClInclude Include="src\AuthServerUtil.h" />
+    <ClInclude Include="src\banedropship.h" />
+    <ClInclude Include="src\behaviorController.h" />
+    <ClInclude Include="src\Bignum.h" />
+    <ClInclude Include="src\cellMgr.h" />
+    <ClInclude Include="src\classIDs.h" />
+    <ClInclude Include="src\combatMgr.h" />
+    <ClInclude Include="src\communicator.h" />
+    <ClInclude Include="src\controlpoint.h" />
+    <ClInclude Include="src\creature.h" />
+    <ClInclude Include="src\DataInterface.h" />
+    <ClInclude Include="src\defaultObject.h" />
+    <ClInclude Include="src\DetourAlloc.h" />
+    <ClInclude Include="src\DetourAssert.h" />
+    <ClInclude Include="src\DetourCommon.h" />
+    <ClInclude Include="src\DetourNavMesh.h" />
+    <ClInclude Include="src\DetourNavMeshBuilder.h" />
+    <ClInclude Include="src\DetourNavMeshQuery.h" />
+    <ClInclude Include="src\DetourNode.h" />
+    <ClInclude Include="src\DetourStatus.h" />
+    <ClInclude Include="src\dynamicObject.h" />
+    <ClInclude Include="src\entityIDs.h" />
+    <ClInclude Include="src\entityMgr.h" />
+    <ClInclude Include="src\fileMgr.h" />
+    <ClInclude Include="src\framework.h" />
+    <ClInclude Include="src\gameData.h" />
+    <ClInclude Include="src\gameEffects.h" />
+    <ClInclude Include="src\GameMain.h" />
+    <ClInclude Include="src\Global.h" />
+    <ClInclude Include="src\gm.h" />
+    <ClInclude Include="src\hashTable.h" />
+    <ClInclude Include="src\INIParser.h" />
+    <ClInclude Include="src\inventory.h" />
+    <ClInclude Include="src\logosObject.h" />
+    <ClInclude Include="src\lootdispenser.h" />
+    <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\manifestation.h" />
+    <ClInclude Include="src\MapChannel.h" />
+    <ClInclude Include="src\MapInstance.h" />
+    <ClInclude Include="src\methodIDs.h" />
+    <ClInclude Include="src\mission.h" />
+    <ClInclude Include="src\Msg.h" />
+    <ClInclude Include="src\navmesh.h" />
+    <ClInclude Include="src\npc.h" />
+    <ClInclude Include="src\Packet.h" />
+    <ClInclude Include="src\Packing.h" />
+    <ClInclude Include="src\sData.h" />
+    <ClInclude Include="src\spawnSystem.h" />
+    <ClInclude Include="src\TabulaCrypt.h" />
+    <ClInclude Include="src\teleporter.h" />
+    <ClInclude Include="src\ThreadsUtils.h" />
+    <ClInclude Include="src\vendor.h" />
+    <ClInclude Include="src\waypoint.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TabulaGameServer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\icon_r.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

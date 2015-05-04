@@ -1,0 +1,110 @@
+#(contextId, 'mapName', version, baseRegionId)  
+#Foreas
+(1985, 'adv_bootcamp', 783, 4) #Planet Foreas - Bootcamp -225,102,-67
+##Foreas Concordia
+###Foreas Concordia Divide
+(1148, 'adv_foreas_concordia_divide', 1584, 10) #Planet Foreas: Concordia - Divide -42,117,489 (Foreas Base)
+(1347, 'adv_foreas_concordia_divide_minoscaverns', 293, 4) #Planet Foreas: Concordia - Divide (Minos Caverns) -3,30,100
+(1348, 'adv_foreas_concordia_divide_timoramines', 288, 3) #Planet Foreas: Concordia - Divide (Timora Mines) -153,202,453
+(1349, 'adv_foreas_concordia_divide_torcastraprison', 468, 3) #Planet Foreas: Concordia - Divide (Torcastra Prison) -237,10,313
+(1806, 'adv_foreas_concordia_divide_purgasstation2', 298, 0) #Planet Foreas: Concordia - Divide (Purgas Station) 88,66,205
+###Foreas Concordia Wilderness
+(1220, 'adv_foreas_concordia_wilderness', 1556, 0) #Concordia Wilderness - 791,295,383
+(1721, 'adv_foreas_concordia_wilderness_clrf', 290, 0) #Planet Foreas: Concordia - Wilderness (Crater Lake Research Facility) 32,141,158
+(1416, 'adv_foreas_concordia_wilderness_guardianprom', 232, 0) #Planet Foreas: Concordia - Wilderness (Guardian Prominence) 152,-222,190
+(1430, 'adv_foreas_concordia_wilderness_pravusresearch', 555, 0) #Planet Foreas: Concordia - Wilderness (Pravus Research) -214,7,-140
+(1506, 'adv_foreas_concordia_wilderness_cavesofdonn02', 535, 8) #Planet Foreas: Concordia - Wilderness (Caves of Donn) -276,25,-362
+(2368, 'adv_foreas_concordia_wilderness_cavesofdonn_epic', 13, 8) #adv_foreas_concordia_wilderness_cavesofdonn_epic (Epic Caves of Donn) -276,25,-362
+###Foreas Concordia Palisades
+#(1244, 'adv_foreas_concordia_palisades', 1016, 0) #Planet Foreas: Concordia - Palisades (Cumbria Research Facility) -766,140,654 
+#(1384, 'adv_foreas_concordia_palisades_warnetcaverns', 203, 0) #Planet Foreas: Concordia - Palisades (Warnet Caverns) -120,100,45
+#(1394, 'adv_foreas_concordia_palisades_devilsden', 327, 0) #Planet Foreas: Concordia - Palisades (Devils Den) 15,102,-359
+#(1397, 'adv_foreas_concordia_palisades_treebackcamp', 286, 0) #Planet Foreas: Concordia - Palisades (Treeback Camp) -325,104,338
+#(1803, 'adv_foreas_concordia_palisades_elohtemples', 250, 0) #Planet Foreas: Concordia - Palisades (Eloh Temples) -1000,25,150
+#(2084, 'adv_foreas_concordia_elohcommtower2', 337, 0) #Planet Foreas: Concordia - Palisades (Eloh Vale) -46,171,-455
+##Foreas Valverde
+###Foreas Valverde Plateu
+#(1497, 'adv_foreas_valverde_plateau', 791, 0) #Planet Foreas: Valverde - Plateau (Fort Defiance) -263,421,858
+#(1502, 'adv_foreas_valverde_plateau_ustoryard', 187, 9) #Planet Foreas: Valverde - Plateau (Ustor Yard) 366,170,-8
+#(1823, 'adv_foreas_valverde_plateau_sanctusgrotto', 154, 0) #Planet Foreas: Valverde - Descent (Sanctus Grotto) 336,202,-152
+#(1830, 'adv_foreas_valverde_plateau_maligobasev3', 144, 0) #Planet Foreas: Valverde - Plateau (Maligo Base) -123,43,166
+#(2029, 'adv_foreas_valverde_plateau_temporalchamber', 131, 0) #Planet Foreas: Valverde - Plateau (Temporal Chamber) 1,248,8
+###Foreas Valverde Pools
+#(1304, 'adv_foreas_valverde_pools', 520, 0) #Planet Foreas: Valverde - Pools (Snakepit) -885,933,438 (Retread Outpost) 156,865,379
+#(1465, 'adv_foreas_valverde_pools_test_weapons_center', 133, 0) #Planet Foreas: Valverde - Pools (Lamnas Armory) 394,10,-15
+#(1763, 'adv_foreas_valverde_pools_livetargetpensv2', 178, 0) #Planet Foreas: Valverde - Howling Maw (Live Target Pens) -142,156,-313
+#(1694, 'adv_foreas_valverde_pools_retread_caves', 198, 0) #Planet Foreas: Valverde - Pools (Retread Caves) 10,82,-3
+###Foreas Valverde Marshes
+#(1454, 'adv_foreas_valverde_marshes', 663, 0) #Planet Foreas: Valverde - Marshes (Paludos) -293,219,127
+#(1429, 'adv_foreas_valverde_marshes_wetlandrefinery', 306, 0) #Planet Foreas: Valverde - Marshes (Turpis Refinery) -211,107,-224
+#(1451, 'adv_foreas_valverde_marshes_banesupplydepot', 185, 0) #Planet Foreas: Valverde - Marshes (Bane Supply Depot) -259,149,35
+#(1700, 'adv_foreas_valverde_marshes_logosresearchfacility', 371, 0) #Planet Foreas: Valverde - Marshes (Logos Research Facility) 871,354,-112
+#(1743, 'adv_foreas_valverde_marshes_villageruins', 446, 0) #Planet Foreas: Valverde - Marshes (Preo Das) -113,61,-357
+###Foreas Valverde Descent
+#(2047, 'adv_foreas_valverde_descent', 330, 0) #Planet Foreas: Valverde - Descent -337,738,-630
+#(2156, 'adv_foreas_valverde_descent_therefuge', 56, 0) #Planet Foreas: Valverde - Descent (The Refuge) -123,13,56
+#(2163, 'adv_foreas_valverde_descent_inferno_outpost', 128, 0) #Planet Foreas: Valverde - Descent (Outpost Inferno) 189,25,3
+###Foreas Howling Maw 
+#(2051, 'adv_foreas_howlingmaw1', 421, 0) #Planet Foreas: Howling Maw (Gangus Outpost) -619,200,-1052
+#(2162, 'adv_foreas_howlingmaw_cuthahbase', 125, 0) #Planet Foreas: Howling Maw: (Cuthah Base) 4,212,-490
+#(2136, 'adv_foreas_howlingmaw_deathburrow', 218, 0) #Planet Foreas: Valverde - Plateau (Velon Hollow) (Sanctuary of Renewal) 612,57,-396
+#Arieki
+##Arieki Torden
+###Arieki Torden Mires
+#(1759, 'adv_arieki_torden_mires', 628, 0) #Planet Arieki: Torden - Mires Baylor Base -606,235,-473
+#(2107, 'adv_arieki_torden_mires_energyweaponcenter', 214, 0) #Planet Arieki: Torden - Mires (Energy Weapon Center) Entrance 300,98,0
+#(2115, 'adv_arieki_torden_mires_banefluxitemines', 204, 0) #Planet Arieki: Torden - Mires (Bane Fluxite Mines) Entrance -16,145,-11
+#(2125, 'adv_arieki_torden_mires_tahrendrabase', 96, 0) #Planet Arieki: Torden - Mires (Tahrendra Base) Entrance -195,121,15
+###Arieki Torden Plains
+#(1764, 'adv_arieki_torden_plains', 877, 0) #Planet Arieki: Torden - Plains (Mt. Hellas Outpost) -562,438,449
+#(1773, 'adv_arieki_torden_plains_attacolony', 274, 0) #Planet Arieki: Torden - Plains (Kardash Atta Colony) -10,314,180
+#(2034, 'adv_arieki_torden_plains_penalresearch', 230, 0) #Planet Arieki: Torden - Plains (Phanin Research Center) Entrance 23,0,0
+#(2093, 'adv_arieki_torden_plains_brannwaterrefinery', 209, 0) #Planet Arieki: Torden - Plains (Brann Water Refinery) Entrance -33,424,-86
+###Arieki Torden Incline
+#(1761, 'adv_arieki_torden_incline', 802, 0) #Planet Arieki: Torden - Incline (Plains Post) 124,237,-230
+#(1865, 'adv_arieki_torden_incline_ojasaattahive', 222, 0) #Planet Arieki: Torden - Incline (Ojasa Atta Hive) Entrance 439,73,126
+#(2085, 'adv_arieki_torden_incline_commtower', 226, 0) #Planet Arieki: Torden - Incline (Comm Tower) Entrance 102,249,-83
+#(2111, 'adv_arieki_torden_incline_wardenbotfactory', 191, 0) #Planet Arieki: Torden - Incline (Raksha Robotic Factory) Entrance -280,105,75
+###Arieki Torden Abyss
+#(2028, 'adv_arieki_torden_abyss', 410, 0) #Planet Arieki: Torden - Abyss (Tantalus Base) -396,540,-223
+#(2155, 'adv_arieki_torden_abyss_tampei', 167, 0) #adv_arieki_torden_abyss_tampei Entrance 140,56,129
+#(2190, 'adv_arieki_torden_abyss_dybukkar', 174, 0) #adv_arieki_torden_abyss_dybukkar (Dybukkar Garrison) Entrance -48,322,-568
+#(2203, 'adv_arieki_torden_abyss_omegalabs', 162, 0) #Planet Arieki: Torden - Abyss (Section 5: Omega Labs) Entrance 0,269,-465
+##Arieki Ligo
+###Arieki Ligo Thunderhead
+#(1911, 'adv_arieki_ligo_thunderhead', 376, 2)#Planet Arieki: Ligo - Thunderhead (Thunderhead Base Dropship) 600,345,-416
+#(2112, 'adv_arieki_ligo_thunderhead_rivasaattacolony', 86, 0) #Planet Arieki: Ligo - Thunderhead (Rivasa Atta Colony) Entrance 36,153,-453
+#(2103, 'adv_arieki_ligo_thunderhead_faultlever', 304, 0) #Planet Arieki: Ligo - Thunderhead (Fault Lever) Entrance 0,326,133
+#(2105, 'adv_arieki_ligo_thunderhead_quassostation', 261, 0) #Planet Arieki: Ligo - Thunderhead (Quasso Station) Entrance 10,47,-178
+###Arieki Ligo Ashen Desert
+#(1734, 'adv_arieki_ligo_ashendesert', 373, 0) #Planet Arieki: Ligo - Ashen Desert (Shadows Edge Post) -129,295,-746
+#(1988, 'adv_arieki_ligo_ashendesert_baneconscriptfacility', 254, 0) #Planet Arieki: Ligo - Ashen Desert (Bane Conscription Facility) Entrance 8,154,-640
+#(2055, 'adv_arieki_ligo_ashendesert_indracaverns', 219, 0) #Planet Arieki: Ligo - Ashen Desert (Indra Caverns) Entrance -55,9,-398
+#(2110, 'adv_arieki_ligo_ashendesert_avernusoutpost', 139, 0) #Planet Arieki: Ligo - Ashen Desert (Avernus Outpost) Entrance 84,529,101
+###Arieki Ligo Burning Steps
+#(1993, 'adv_arieki_ligo_burningsteps', 406, 0) #Planet Arieki: Ligo - Crucible (Outpost Intrepid) 968,146,-75
+#(1977, 'adv_arieki_ligo_burningsteps_magmacaverns', 195, 0) #Planet Arieki: Torden Abyss (Magma Caverns) Entrance -365,207,-446
+###Arieki Ligo Staal Junkyard
+#(2138, 'adv_arieki_ligo_staaljunkyard', 173, 0) #Planet Arieki: Ligo - Crucible (Staal Junkyard) Entrance 0,242,-312
+###Arieki Ligo Crucible
+#(2141, 'adv_arieki_ligo_crucible_incurablesward', 199, 0) #Planet Arieki: Ligo - Crucible (Incurables Ward) Entrance 18,71,-119
+#(2146, 'adv_arieki_ligo_crucible_wbfacility', 147, 0) #Planet Arieki: Ligo - Crucible (Chaukas Robotics Facility) Entrance -31,18,-272
+#Empire Sector
+#(2375, 'adv_earth_unitedstates_manhattan_01_shared', 13, 0) #manhattan (Empire Sector: The Last Stand) Cellar -283,185,-677
+#(2327, 'adv_earth_unitedstates_manhattan_01', 122, 0) #New York City: Empire Sector Cellar (Operation Ragnarok video) -283,185,-677
+#(20000009, 'adv_afs_arena', 56, 0) #adv_afs_arena (Boxing Arena) center of the ring 0,33,87
+##WARGAME##
+#(2374, 'adv_wargame_edmundrange2', 24, 0) #Edmund Range Wargame Map (5 BasesCenter Fortress) -59,430,40
+#(2259, 'adv_wargame_indoorarena', 35, 0) #Wargame (Indoor Arena) Unknown Area -NO GUI RADAR- Near Medic Tent 76,1,50
+#(2361, 'adv_wargame_provinggroundsv002', 109, 0) #Wargame (Proving Grounds v002 Edmund Range OLD only 3 bases) -60,430,167
+##EPIC##
+#(2278, 'adv_zepic_pve_arena', 41, 0) #EPIC PvE Arena (The Gauntlet) -240,1,1024
+##TEST##
+#(1737, 'test_nexus2', 147, 0) #TEST Nexus 2 -NO GUI RADAR- Center of Nexus -6,27,3
+#(1115, 'characterselection', 0, 0) #Character Selection -NO GUI RADAR- supply tent in the middle of nowhere -15,20,-72
+##UNUSED##
+##(2371, 'adv_earth_unitedstates_newyorkcity', 1, 0) #adv_earth_unitedstates_newyorkcity MAP NOT FOUND (physically)
+##UNKNOWN##
+##(2233, 'test_pvpcontrolpoint', 140, 0) #TEST PvP Control Point 01
+##(X, 'test_pvpcontrolpoint01', 140, 0) #TEST PvP Control Point 01
+##(X, 'test_lridout_outpostcombat', 0, 0) #TEST LRidout Outpost Combat

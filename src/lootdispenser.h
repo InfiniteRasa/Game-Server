@@ -1,0 +1,2 @@
+dynObject_t* lootdispenser_create(mapChannel_t *mapChannel, creature_t* creature, mapChannelClient_t* creatureKiller);
+void lootdispenser_recv_RequestLootAllFromCorpse(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);

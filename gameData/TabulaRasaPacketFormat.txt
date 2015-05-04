@@ -1,0 +1,172 @@
+##########################################################################
+#  Work-in-progress description of the protocol Gameserver <--> Client.  #
+#  Author: J.H.								 #
+##########################################################################
+
+This file includes the headers and data blocks for different packets.
+The (...) term after the header name will refer to when the header is used.
+
+
+#######################
+#   Header (Always)   #
+#######################
+U8	alignedBytes[5]		any value
+U16	subSize			size of the full packet excluding header
+
+* description:
+*   why the align bytes?
+*
+
+########################
+#   Header2 (Always)   #
+########################
+U8	channel(ch)		the channel index
+U8	ukn			? 0x01	Checksum? Read but not used (@0070249D)
+
+* description:
+*  the exact use of the channel index is unknown yet.
+*  so far only channel 0x00(game packets) and 0xFF(ping) are known.
+*  when any other other channel id is used, a new short-living ('ephemeral') channel is generated.
+*  Ephemeral channels still have to be researched
+
+##############################
+#   Channel0_Header (ch=0)   #
+##############################
+U8	flagMask	bit:XXFF FFFF --> x = unknown1, y = flags
+gv16	opcode		bit:CCCC CCCC CCCC CCCX ---> x = unknown2, c = opcode
+U8(opt)	XCKS		Xor-Checksum of this header (see below)
+
+
+flags:
+   .....1	use serialization prefix bytes
+   ....1.	dont use compressed groupVal format (i.e. gv16 type becomes u16)
+   ...1..	(not used?)
+   ..1...	(not used?)
+   .1....	(not used?)
+   1.....	(not used?)
+
+unknown1:
+   if not zero, it will trigger an error as soon as a serialized byte or the XOR-Checksum is read. 
+
+
+opcode(opc):
+   2		ClientLoginState
+   4		PhysicalEntityMovement
+   5 		EchoRequest
+   7		RPC ('AddMethodCall')
+   8		?
+
+#################################################
+#   Channel0_EchoRequest_Data    (ch=0,opc=4)   #
+#################################################
+U8	flagMask	see above
+z8	value1		?
+gv64	value2		?
+U8(opt)	XCKS		Xor-Checksum of this block
+
+If the client receives an echo request packet, it will instantly send back an echo response packet
+containing the same data as passed by the request packet.
+It is currently unknown if the data has any other means.
+
+
+#########################################
+#   Channel0_RPC_Header2 (ch=0,opc=7)   #
+#########################################
+U8?	compression	?
+U8	mif		methodInfoFormat
+
+compression:
+   not used if zero
+   still has to be researched
+
+methodInfoFormat(mif):
+   specifies how the entityID and methodID are encoded in the next header.
+   1,2,3,4 are the allowed formats.
+
+
+####################################################
+#   Channel0_RPC_Header3_mif1 (ch=0,mif=1,opc=7)   #
+####################################################
+gv64	entityId	the python entity which owns the method
+gv32	methodId	the method id, listed in methodIds.pyo
+dv32	dataSize	the size of the method data, in bytes	
+
+####################################################
+#   Channel0_RPC_Header3_mif2 (ch=0,mif=2,opc=7)   #
+####################################################
+gv64	entityId	the python entity which owns the method
+??str	methodName?	???
+dv32	dataSize	the size of the method data, in bytes	
+
+####################################################
+#   Channel0_RPC_Header3_mif3 (ch=0,mif=3,opc=7)   #
+####################################################
+gv64	entityId	the python entity which owns the method
+gv32	methodId	the method id, listed in methodIds.pyo
+dv32	dataSize?	the size of the method data, in bytes	
+gv32	?		unknown purpose
+
+####################################################
+#   Channel0_RPC_Header3_mif4 (ch=0,mif=4,opc=7)   #
+####################################################
+gv64	entityId	the python entity which owns the method
+??str	methodName?	???
+dv32	dataSize	the size of the method data, in bytes	
+gv32	?		unknown purpose
+
+######################################
+#   Channel0_RPC_Data (ch=0,opc=7)   #
+######################################
+U8	formatPrefix	a letter defining the format of the following marshalData
+U8[]	marshalData	variable amount of marshalData 
+
+
+formatPrefix 'M':
+	marhsalData is a serialized python tuple object containing the method parameters
+	See PyMarshal_WriteObjectToString() and PyMarshal_ReadObjectFromString()
+
+formatPrefix 'F':
+	?
+
+formatPrefix 'O':
+	?
+
+
+
+
+Xor-Checksum:
+	Each byte of the header is XORed. [30 F0 45] would be 0x30^0xF0^45 --> XOR-Checksum
+
+***Data types***
+	U8	unsigned 8-bit (unsigned char)
+	U16	unsigned 16-bit (unsigned short)
+	U32	unsigned 32-bit (unsigned int)
+	Z8	serialized byte
+	gv16 	groupVal (dynamic size, limit 16, see below)
+
+groupVal(gv):
+	a groupval is a compressed integer type.
+	The value is split into 7bit blocks
+	It is stored from lowest to highest block, one byte for each block. The highest bit is used to mark if there is a following byte.
+	groupVal is a serialized type and thus has a preleading byte if enabled.
+		0x09	for gv64
+		0x08	for gv64 (unused, maybe signed/unsigned type?)
+		0x07	for gv32
+	Examples:
+		gv32 with value 0x112233 becomes [B3 C4 44]
+		gv32 with value 0x03 becomes [03]
+		gv32 with value 0x7F becomes [7F]
+		gv32 with value 0x80 becomes [80 01]
+	
+
+dynVal(dv):
+	a dynval is, similar to groupVal, a compressed integer type
+	the first byte is split up into two parts:
+		bit:SSDD DDDD
+		  S ... the number of data bytes that follow
+		  D ... the low 6 bit of data
+	if s is nonzero, there are s number of data bytes following.
+	dynVal is a serialized type and thus has a preleading byte if enabled.
+		0xCB	for dv32
+	
+
