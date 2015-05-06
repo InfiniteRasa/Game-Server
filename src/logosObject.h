@@ -1,0 +1,1 @@
+void logos_initForMapChannel(mapChannel_t *mapChannel);

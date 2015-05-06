@@ -1,0 +1,176 @@
+(This doc is slightly outdated, check the source code for more information)
+
+----- Client connects to IP:7790 (specified by AuthServer) -----
+
+--------------------
+|  SMSG_ITD_FAKE1  |
+--------------------
+DWORD		PacketLen	1b 00 00 00
+DWORD		ALen		08 00 00 00
+DWORD		PrimeLen	06 00 00 00
+DWORD		GenLen		01 00 00 00
+BYTE[ALen]	Server public	50 55 42 4b 45 59 31 32 "PUBKEY12"
+BYTE[PrimeLen]	Prime		46 4f 4f 42 41 52	"FOOBAR"
+BYTE[GenLen]	Generator	41			"A"
+
+----------------------------
+|  CMSG_ITD_FAKE1RESPONSE  |
+----------------------------
+DWORD		PacketLen	0c 00 00 00
+DWORD 		BLen		08 00 00 00
+BYTE[6]		Client public	50 55 42 4b 45 59 31 32 "PUBKEY12"
+
+-----------------------
+|   SMSG_ITD_FAKE2    |
+-----------------------
+DWORD		PacketLen	06 00 00 00
+BYTE[6]		Checkstring	45 4e 43 20 4f 4b "ENC OK"
+
+----------------------------
+|  CMSG_ITD_FAKE2RESPONSE  |
+----------------------------
+DWORD		PacketLen	09 00 00 00
+BYTE		OP		07
+DWORD?		LoginID1*	xx xx xx xx
+DWORD?		LoginID2*	xx xx xx xx
+
+*From Authentication server[SMSG_SERVERRESPONSE]
+
+--------------------
+|  SMSG_ITD_FAKE3  |
+--------------------
+DWORD		PacketLen	09 00 00 00
+BYTE		OP		0d
+DWORD		?		00 00 00 00
+DWORD		?		05 00 00 00   
+
+----------------------
+|  SMSG_ITD_FORWARD  |
+----------------------
+DWORD		PacketLen	11 00 00 00
+BYTE		OP		0e
+DWORD		GAthSrvIP	d8 6b f8 89
+DWORD		GAthSrvPort	41 1f 00 00
+DWORD		LoginID1*	xx xx xx xx
+DWORD		LoginID2*	xx xx xx xx   
+
+*This LoginID may not be the same than that from the AuthServer.
+ If you specify a different one every future packet with an LoginID field
+ will use this value.
+
+
+----- Client disconnects -----
+
+----- Client connects to IP:8001 (specified by AuthServer) -----
+
+Now the same thing repeats but with real values
+
+---------------------
+|  SMSG_AUTH_HELLO  |
+---------------------
+DWORD		PacketLen	8d 00 00 00
+DWORD		LenA		40 00 00 00
+DWORD		LenP		40 00 00 00
+DWORD		LenG		01 00 00 00
+BYTE[LenA]	"A"	
+				40 09 ef df 8e ee 96 65 14 47 37 99 e8 1a 2e 4b
+				c3 f8 d4 03 07 e2 7f 91 ba 93 55 08 26 22 43 45
+				c4 57 be b4 47 07 8b e3 37 12 a2 ca c6 22 32 51
+				62 6e 9a bf a3 6d 74 2e 7b 90 93 b8 2d 97 7c af
+BYTE[LenP]	Prime
+				98 0f 91 ea ad ad 8e 7d f9 ec 43 1d d4 1c ef 3f
+				be cf d1 ae d2 77 1c cf f8 5e f8 85 3e 2f 9b c8
+				30 2e d3 c4 7f e6 29 72 e0 08 e9 32 53 97 db 41
+				37 98 b3 8a dc b8 af d3 6a 69 d5 12 ec 32 61 af
+BYTE[LenG]	Generator
+				05
+
+------------------
+|  CMSG_AUTH_??  |
+------------------
+DWORD		PacketLen	44 00 00 00
+DWORD		BLen		40 00 00 00
+BYTE[BLen]	"B"
+				4e 26 72 d6 66 fb ca f7 65 6f ad 71 72 5f e9 be
+				57 2d 50 a6 4e ac b7 59 d6 20 4c b5 aa 00 9b 81
+				55 56 22 5f a7 cc 55 42 60 65 20 78 18 a3 81 50
+				2a 66 3d 4e f4 11 ae 83 9b 4e 1e d6 6b 5c 70 ef 
+
+-----------------------------------
+|  SMSG_AUTH_??(*Encrypted - BF)  |
+-----------------------------------
+DWORD		PacketLen	08 00 00 00
+BYTE[2]		Alignbytes	02 00
+BYTE[6]		CheckString	"ENC OK"
+
+-----------------------------------
+|  CMSG_AUTH_??(*Encrypted - BF)  |
+-----------------------------------
+DWORD		PacketLen	28 00 00 00
+VARY		Alignbytes	05 00 00 00 00
+WORD		Subsize		23 00
+BYTE		Opcode		00 
+BYTE[0x20]??	-----
+				00 02 02 00 03 03 29 03 01 07
+DWORD		Repeating Cnst.	FC 56 01 00
+				07 78 9C 75 7A 0D CB 08 31 2E 31 31 2E 36 2E 30 2A 1A
+
+
+00
+
+PRE _ BYTE: 02 (*Hardcoded)
+PRE _ WORD: 02 00
+BYTE: 03
+
+BYTE: 03
+
+BYTE: 29
+BYTE: 03
+BYTE: 01
+BYTE: 07
+DWORD: FC 56 01 00
+BYTE: 07
+DWORD: 78 9C 75 7A ? Also some kind of repeater constant
+BYTE: 0D
+BYTE: CB (*Hardcoded)
+BYTE: 08
+BYTE[8]: 31 2E 31 31 2E 36 2E 30 "1.11.6.0"
+BYTE: 2A (*Hardcoded)
+BYTE: 1A
+
+This again includes the repeating constant or is this just random?
+
+
+---------------------------------------
+|  CMSG_AUTH_REMIND(*Encrypted - BF)  |
+---------------------------------------
+DWORD		PacketLen	08 00 00 00
+DWORD		Alignbytes	04 00 00 00
+WORD		Subsize		04 00
+BYTE		Opcode		FF
+BYTE		?		00
+
+This packet is periodically sent until server sends SMSG_AUTH_FORWARD data
+
+----------------------------------------
+|  SMSG_AUTH_HANDOFF(*Encrypted - BF)  |
+----------------------------------------
+??????????????????????????
+??????????????????????????
+??????????????????????????
+
+All we know - len: 52 bytes with header.
+It must include IP, Port at least.
+
+We have found out about this packet now, although many is still unclear, we can specify new connection and let client apply it.
+See "Supermagicpacket.txt" and source for this.
+
+--- Client disconnects ---
+
+--- Client connects to IP:8102 (specified by game auth server) ---
+
+Now the same procedure repeats again a third time...
+Except, instead of sending a HANDOFF msg, we send char data etc?
+
+SMSG_MAIN_HELLO - is like SMSG_AUTH_HELLO
+

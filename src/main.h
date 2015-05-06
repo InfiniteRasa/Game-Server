@@ -1,0 +1,1 @@
+SOCKET CreateSocket(uint16 Port);
