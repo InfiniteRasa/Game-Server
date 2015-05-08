@@ -277,8 +277,8 @@ sint32 charMgr_recv_requestCreateCharacterInSlot(clientGamemain_t *cgm, uint8 *p
 
 	uint32 slotNum = pym_unpackInt(&cgm->pyums);
 	characterData->slotIndex = slotNum;
-	sint8 familyName[128];
-	sint8 firstName[128];
+	//sint8 familyName[128];
+	//sint8 firstName[128];
 	characterData->unicodeFamily[0] = '\0';
 	characterData->unicodeName[0] = '\0';
 	pym_unpackUnicode(&cgm->pyums, characterData->unicodeFamily, CHARACTER_FIRSTNAMELIMIT);

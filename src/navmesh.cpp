@@ -223,8 +223,8 @@ dtStatus findSmoothPath(mapChannel_t *mapChannel, const float* startPos, const f
 		if (!getSteerTarget(mapChannel, iterPos, targetPos, SMOOTH_PATH_SLOP, polys, npolys, steerPos, steerPosFlag, steerPosRef))
 			break;
 
-		bool endOfPath = (steerPosFlag & DT_STRAIGHTPATH_END);
-		bool offMeshConnection = (steerPosFlag & DT_STRAIGHTPATH_OFFMESH_CONNECTION);
+		bool endOfPath = (steerPosFlag & DT_STRAIGHTPATH_END) != 0;
+		bool offMeshConnection = (steerPosFlag & DT_STRAIGHTPATH_OFFMESH_CONNECTION) != 0;
 
 		// Find movement delta.
 		float delta[3];
@@ -324,7 +324,7 @@ sint32 navmesh_getPath(mapChannel_t *mapChannel, float start[3], float end[3], f
 	//float spos[3] = { start.x, start.y, start.z };
 	//float epos[3] = { end.x, end.y, end.z };
 	dtQueryFilter filter;
-	filter.setIncludeFlags(0xffffff);
+	filter.setIncludeFlags((unsigned short int)0xffffff);
 	filter.setExcludeFlags(0);
 	float extents[3] = { 16.0f, 32.0f, 16.0f };
 	dtPolyRef startRef;
@@ -339,8 +339,8 @@ sint32 navmesh_getPath(mapChannel_t *mapChannel, float start[3], float end[3], f
 	int   nbPolys = 0;
 	float   strPath[MAX_POLY*3];
 	int   nbStrPath = 0;
-	unsigned char strPathFlags[MAX_POLY];
-	dtPolyRef  strPathPolys[MAX_POLY];
+	//unsigned char strPathFlags[MAX_POLY];
+	//dtPolyRef  strPathPolys[MAX_POLY];
 
 	sint32 pathNodes = 0;
 

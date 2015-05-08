@@ -2,7 +2,7 @@
 #define TR_INI_PARSER_H
 
 #include <string>
-#include <minINI/minIni.h>
+#include <minIni.h>
 
 class INIParser
 {

@@ -390,7 +390,7 @@ void dynamicObject_teleporter_useObject(mapChannelClient_t *client, sint32 actio
 	if( actionId == ACTION_USEOBJECT )
 	{
 
-		typedef struct tloc
+		struct tloc
 		{
 			sint32 x;
 			sint32 y;

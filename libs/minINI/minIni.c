@@ -50,7 +50,7 @@
   #define _tcsicmp  stricmp
   #define _tcslen   strlen
   #define _tcsncpy  strncpy
-  #define _tcsnicmp strnicmp
+  #define _tcsnicmp _strnicmp
   #define _tcsrchr  strrchr
   #define _tcstol   strtol
   #define _tcstod   strtod
@@ -69,9 +69,9 @@
 #if defined FREEBSD && !defined __FreeBSD__
   #define __FreeBSD__
 #endif
-#if !defined strnicmp
+#if !defined _strnicmp
   #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __APPLE__
-    #define strnicmp  strncasecmp
+    #define _strnicmp  _strncasecmp
   #endif
 #endif
 

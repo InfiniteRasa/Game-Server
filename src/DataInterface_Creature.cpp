@@ -20,7 +20,7 @@ void cb_DataInterface_Creature_getCreatureActionList(MYSQL *dbCon, diJob_creatur
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// parse rows
-	sint32 rowCount = mysql_num_rows(dbResult);
+	sint32 rowCount = (sint32)mysql_num_rows(dbResult);
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		//"id,description,actionId,actionArgId,"
@@ -66,7 +66,7 @@ void cb_DataInterface_Creature_getCreatureTypeList_LootTable(MYSQL *dbCon, diJob
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// parse rows
-	sint32 rowCount = mysql_num_rows(dbResult);
+	sint32 rowCount = (sint32)mysql_num_rows(dbResult);
 	// allocate table
 	if( rowCount > 0 )
 	{
@@ -119,7 +119,7 @@ void cb_DataInterface_Creature_getCreatureTypeList(MYSQL *dbCon, diJob_creatureT
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// parse rows
-	sint32 rowCount = mysql_num_rows(dbResult);
+	sint32 rowCount = (sint32)mysql_num_rows(dbResult);
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		//"id,name,classId,faction,"
@@ -187,7 +187,7 @@ void cb_DataInterface_Creature_savePath(MYSQL *dbCon, diJob_path_t *job, void *c
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// parse rows
-	sint32 rowCount = mysql_num_rows(dbResult);
+	sint32 rowCount = (sint32)mysql_num_rows(dbResult);
 	if( rowCount == NULL )
 		__debugbreak();
 	dbRow = mysql_fetch_row(dbResult);
@@ -253,7 +253,7 @@ void _cb_DataInterface_Creature_getPathNodes(MYSQL *dbCon, diData_path_t* pathDa
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate path nodes
-	sint32 pathNodeCount = mysql_num_rows(dbResult);
+	sint32 pathNodeCount = (sint32)mysql_num_rows(dbResult);
 	diData_pathNodes_t *pathNodeList = (diData_pathNodes_t*)malloc(sizeof(diData_pathNodes_t) * pathNodeCount);
 	// parse mysql data
 	diData_pathNodes_t* pathNodeData = pathNodeList;
@@ -295,7 +295,7 @@ void cb_DataInterface_Vendor_getVendorList(MYSQL *dbCon, diJob_path_t *job, void
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate path data
-	sint32 pathCount = mysql_num_rows(dbResult);
+	sint32 pathCount = (sint32)mysql_num_rows(dbResult);
 	diData_path_t *pathDataList = (diData_path_t*)malloc(sizeof(diData_path_t) * pathCount);
 	// parse mysql data
 	diData_path_t* path = pathDataList;
@@ -334,7 +334,7 @@ void cb_DataInterface_Vendor_getVendorList(MYSQL *dbCon, diJob_path_t *job, void
 	// do callback param1: mapchannel param2: list of job path data
 	((void (*)(void*,void*))cb)(param, job);
 	// free all path node lists
-	for(uint32 i=0; i<pathCount; i++)
+	for(sint32 i=0; i<pathCount; i++)
 	{
 		if( pathDataList[i].pathnodes )
 			free(pathDataList[i].pathnodes);

@@ -22,7 +22,7 @@ void cb_DataInterface_teleporter_getList(MYSQL *dbCon, diJob_teleporterData *job
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate spawn data
-	sint32 teleporterCount = mysql_num_rows(dbResult);
+	sint32 teleporterCount = (sint32)mysql_num_rows(dbResult);
 	di_teleporterData *teleporterList = (di_teleporterData*)malloc(sizeof(di_teleporterData) * teleporterCount);
 	sint32 x = 0;
 	while((dbRow = mysql_fetch_row(dbResult)))

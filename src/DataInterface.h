@@ -1,5 +1,5 @@
 #include "framework.h"
-#include <mysql/mysql.h>
+#include "mysql.h"
 #include "INIParser.h"
 
 #define WORKER_QUEUELENGTH	128 // jobs at max

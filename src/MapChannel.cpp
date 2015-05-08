@@ -123,7 +123,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 void mapteleporter_checkForEntityInRange(mapChannel_t *mapChannel)
 {
     return; // disabled until someone fixes this and gets rid of all the memory leaks (when using 'new', also use 'delete')
-	pyMarshalString_t pms;
+	//pyMarshalString_t pms;
 
 	sint32 tCount =0;
 	float minimumRange = 1.8f;
@@ -471,7 +471,7 @@ void mapChannel_recv_LogoutRequest(mapChannelClient_t *cm, uint8 *pyString, sint
 
 void mapChannel_recv_CharacterLogout(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
 {
-	pyMarshalString_t pms;
+	//pyMarshalString_t pms;
 	// pass to character selection
 	if( cm->logoutActive == false )
 		return;

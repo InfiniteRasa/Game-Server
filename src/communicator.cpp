@@ -105,7 +105,7 @@ mapChannelClient_t *communicator_findPlayerByName(sint8 *name)
 // called after the player entered the world
 void communicator_playerEnterMap(mapChannelClient_t *client)
 {
-	pyMarshalString_t pms;
+	//pyMarshalString_t pms;
 
 	communicator_joinDefaultLocalChannel(client, 1); // join general
 	//// send ChatChannelJoined ( MAP_General )
@@ -601,7 +601,15 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			manifestation_GainExperience(cm, xp);
 		return true;
 	}
-	if( memcmp(textMsg,".animtest ",10) == 0 )
+	if (memcmp(textMsg, ".givecredit ", 12) == 0)
+	{
+		sint8 *pch = textMsg + 12;
+		sint32 credit = atoi(pch);
+		if (credit > 0)
+			manifestation_GainCredits(cm, credit);
+		return true;
+	}
+	if (memcmp(textMsg, ".animtest ", 10) == 0)
 	{
 		    //__debugbreak();
 		    creature_t *npc = (creature_t*)entityMgr_get(cm->player->targetEntityId);
@@ -1018,7 +1026,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			pym_addFloat(&pms, cm->player->actor->posZ);	// z
 			pym_tuple_end(&pms); 
 			// rotation quaterninion
-			float qOut[4];
+			//float qOut[4];
 
 			pym_tuple_begin(&pms);
 			pym_addFloat(&pms, 0.0f);
@@ -1041,7 +1049,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		sint8 cmd[10];
 	    //sint8 *cmdpos = textMsg + 7;
 
-		typedef struct tloc
+		struct tloc
 		{
 			sint32 x;
 			sint32 y;
@@ -1087,7 +1095,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		sint8 cmd[7];
 	    //sint8 *cmdpos = textMsg + 7;
 
-		typedef struct tloc
+		struct tloc
 		{
 			sint32 x;
 			sint32 y;

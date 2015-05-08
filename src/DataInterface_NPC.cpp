@@ -43,13 +43,13 @@ void cb_DataInterface_NPC_getNPCList(MYSQL *dbCon, diJob_npcListData_t *job, voi
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate npc data
-	sint32 npcCount = mysql_num_rows(dbResult);
+	sint32 npcCount = (sint32)mysql_num_rows(dbResult);
 	di_npcData_t *npcDataList = (di_npcData_t*)malloc(sizeof(di_npcData_t) * npcCount);
 	//allocate the spawntypes/pools the same way
 	di_npcData_t* npcData = npcDataList;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
-		unsigned long long npc_id;
+		//unsigned long long npc_id;
 		sint32 npc_creatureTypeId;
 		sint32 idx = 0;
 		sscanf(dbRow[idx], "%I64u", &npcData->npcID); idx++;
@@ -102,7 +102,7 @@ void _cb_DataInterface_Vendor_getVendorItemList(MYSQL *dbCon, di_vendorData_t* v
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate vendor item data
-	sint32 itemCount = mysql_num_rows(dbResult);
+	sint32 itemCount = (sint32)mysql_num_rows(dbResult);
 	di_vendorItemData_t *vendorItemDataList = (di_vendorItemData_t*)malloc(sizeof(di_vendorItemData_t) * itemCount);
 	// parse mysql data
 	di_vendorItemData_t* vendorItemData = vendorItemDataList;
@@ -148,7 +148,7 @@ void cb_DataInterface_Vendor_getVendorList(MYSQL *dbCon, diJob_vendorListData_t 
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// allocate vendor data
-	sint32 vendorCount = mysql_num_rows(dbResult);
+	sint32 vendorCount = (sint32)mysql_num_rows(dbResult);
 	di_vendorData_t *vendorDataList = (di_vendorData_t*)malloc(sizeof(di_vendorData_t) * vendorCount);
 	// parse mysql data
 	di_vendorData_t* vendorData = vendorDataList;
@@ -172,7 +172,7 @@ void cb_DataInterface_Vendor_getVendorList(MYSQL *dbCon, diJob_vendorListData_t 
 	// do callback param1: mapchannel param2: list of vendordata
 	((void (*)(void*,void*))cb)(param, job);
 	// free all item lists
-	for(uint32 i=0; i<vendorCount; i++)
+	for(sint32 i=0; i<vendorCount; i++)
 	{
 		if( job->outVendorList[i].itemList )
 			free(job->outVendorList[i].itemList);

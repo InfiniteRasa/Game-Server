@@ -119,19 +119,19 @@ void DataInterface_init()
 	printf("Reading configuration file...\n\n");
 	INIParser* Parser = new INIParser("config.ini");
 	// Game Server Database
-	dbConInfo.dbHost = strdup(Parser->GetString("Game Server Database", "dbHost", "localhost").c_str());
+	dbConInfo.dbHost = _strdup(Parser->GetString("Game Server Database", "dbHost", "localhost").c_str());
 	dbConInfo.dbPort = Parser->GetInt("Game Server Database", "dbPort", 3306);
-	dbConInfo.dbName = strdup(Parser->GetString("Game Server Database", "dbName", "ir_gameserver").c_str());
-	dbConInfo.dbUser = strdup(Parser->GetString("Game Server Database", "dbUser", "root").c_str());
-	dbConInfo.dbPass = strdup(Parser->GetString("Game Server Database", "dbPass", "").c_str());
+	dbConInfo.dbName = _strdup(Parser->GetString("Game Server Database", "dbName", "ir_gameserver").c_str());
+	dbConInfo.dbUser = _strdup(Parser->GetString("Game Server Database", "dbUser", "root").c_str());
+	dbConInfo.dbPass = _strdup(Parser->GetString("Game Server Database", "dbPass", "").c_str());
 	// Auth Server Database
-	AuthInfo.dbHost = strdup(Parser->GetString("Auth Server Database", "dbHost", "localhost").c_str());
+	AuthInfo.dbHost = _strdup(Parser->GetString("Auth Server Database", "dbHost", "localhost").c_str());
 	AuthInfo.dbPort = Parser->GetInt("Auth Server Database", "dbPort", 3306);
-	AuthInfo.dbName = strdup(Parser->GetString("Auth Server Database", "dbName", "ir_authentication").c_str());
-	AuthInfo.dbUser = strdup(Parser->GetString("Auth Server Database", "dbUser", "root").c_str());
-	AuthInfo.dbPass = strdup(Parser->GetString("Auth Server Database", "dbPass", "").c_str());
+	AuthInfo.dbName = _strdup(Parser->GetString("Auth Server Database", "dbName", "ir_authentication").c_str());
+	AuthInfo.dbUser = _strdup(Parser->GetString("Auth Server Database", "dbUser", "root").c_str());
+	AuthInfo.dbPass = _strdup(Parser->GetString("Auth Server Database", "dbPass", "").c_str());
 	// Game  Server options
-	AuthInfo.gsInfo.ServerIP	= strdup(Parser->GetString("Game Server", "IPAddress", "127.0.0.1").c_str());
+	AuthInfo.gsInfo.ServerIP	= _strdup(Parser->GetString("Game Server", "IPAddress", "127.0.0.1").c_str());
 	AuthInfo.gsInfo.ServerIPHex = DataInterface_IPtoHex();
 	AuthInfo.gsInfo.ServerPort	= Parser->GetInt("Game Server", "Port", 8001);
 	AuthInfo.gsInfo.ID			= Parser->GetInt("Game Server", "ID", 234);

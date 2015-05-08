@@ -27,7 +27,7 @@ void cb_DataInterface_SpawnSystem_getSpawnPoolList(MYSQL *dbCon, diJob_spawnpool
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
 	MYSQL_ROW dbRow;
 	// parse rows
-	sint32 rowCount = mysql_num_rows(dbResult);
+	sint32 rowCount = (sint32)mysql_num_rows(dbResult);
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
 		//"id,mode,animType,"

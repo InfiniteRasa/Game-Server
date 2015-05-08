@@ -1,6 +1,3 @@
-#if(_MSC_VER>=1600)
- #define _HAS_ITERATOR_DEBUGGING 0	
-#endif
 #include <vector>
 
 typedef struct _missile_t

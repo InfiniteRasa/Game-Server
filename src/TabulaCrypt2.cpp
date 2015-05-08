@@ -280,7 +280,8 @@ void BF_decrypt(BF_LONG *data, const BF_KEY *key)
 void BF_set_key(unsigned char *data, BF_KEY *key) {
 
 	unsigned char *end, *d;
-	unsigned int in[2], *p, cnt, ri;
+	unsigned int in[2], *p, ri;
+	//unsigned cnt;
 
 	memcpy(key, &bf_init, 0x1018u);
 	d = data;

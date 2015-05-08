@@ -5,356 +5,638 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\GameMain">
-      <UniqueIdentifier>{8880617b-49b8-47ef-8fae-d8792081cdc3}</UniqueIdentifier>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Source Files\GameMain\Message">
-      <UniqueIdentifier>{0dbfbfdb-f26f-4ee9-aae6-355d560e2fe4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help">
-      <UniqueIdentifier>{a0d8616b-c885-4edc-8103-ce82e440cbd7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help\netMgr %28Packet%29">
-      <UniqueIdentifier>{abe3d4f2-1b7d-4147-9e5e-c73359c57c67}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help\Packing">
-      <UniqueIdentifier>{c5bd7b28-9e70-4f82-b7aa-5d5b358d3067}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help\FileMgr">
-      <UniqueIdentifier>{369e436a-58f1-475f-818c-671d218037d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help\FileMgr\sData">
-      <UniqueIdentifier>{f679c3d8-f845-4244-b7fc-4a8596580146}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Help\HashTable">
-      <UniqueIdentifier>{fe9865be-35db-4531-a332-85dc5663653d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\GameData">
-      <UniqueIdentifier>{7c7e40d1-70b2-47ca-ab5a-401dc690ca8e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance">
-      <UniqueIdentifier>{8740248f-bea7-4ef1-831b-c5a9ca530433}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\entityMgr">
-      <UniqueIdentifier>{a3640cca-6d1a-4fb4-8f25-b5e44bc1f27f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\manifestation">
-      <UniqueIdentifier>{b487fda7-b793-4e55-b140-dffa02fd354a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\communicator">
-      <UniqueIdentifier>{3233d015-0b47-4054-86da-038e3e223b51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\inventory">
-      <UniqueIdentifier>{923784dd-412b-4a5a-88de-73b32d95d81f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\dynamicObjects">
-      <UniqueIdentifier>{31c58ff9-c1c6-46dd-b7bc-0efe7f52cc7a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\cellMgr">
-      <UniqueIdentifier>{f087ec72-47be-42b3-8dfe-9e8a4c40c701}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\npc">
-      <UniqueIdentifier>{df4f5c05-0661-47ec-803d-c927db16acf6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\actor">
-      <UniqueIdentifier>{20fa6304-449f-4099-84d5-ca0c6007e049}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\mission">
-      <UniqueIdentifier>{cf78ef6d-252b-478b-9100-c5bea48947c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\creature">
-      <UniqueIdentifier>{6baf8bd3-c6fd-4ce0-84c5-04ee1ff2ddaa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\creature\spawnSystem">
-      <UniqueIdentifier>{dcd7c11a-57b0-4b84-8622-d271c2a73c71}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\combatMgr">
-      <UniqueIdentifier>{d67e3377-5908-4b75-96a8-ffbe6ca2a776}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\behaviorController">
-      <UniqueIdentifier>{2c981a76-c077-45b1-bdcc-77cbd59a74ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Global">
-      <UniqueIdentifier>{ddbf205d-8d7e-447f-867d-927fd73fcb4f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\Global\TabulaCrypt2">
-      <UniqueIdentifier>{017c2745-7404-46f5-92f6-34fbb940daa1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Main">
-      <UniqueIdentifier>{96f1c3b3-c7cb-4b08-b02c-1e3ef677ce65}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Main\Bignum">
-      <UniqueIdentifier>{eb8a1a84-315b-4ec4-a5c1-97c257352a19}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Main\AuthServerUtil">
-      <UniqueIdentifier>{aa4ad90b-2251-4fb0-a0d7-be018d909949}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\DataInterface">
-      <UniqueIdentifier>{e4bd32c8-bd92-49c7-83c9-e8b16cd9e219}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Doc">
-      <UniqueIdentifier>{1da8a4f1-1f46-46dd-a02a-3be29db2b4bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data">
-      <UniqueIdentifier>{763e3461-7129-413a-b0f6-8cdaf24b41d7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data\Libs">
-      <UniqueIdentifier>{34ee92bf-fa13-45d1-aaeb-b66bd1ec957d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data\sql">
-      <UniqueIdentifier>{aeca8776-a517-4e3f-b154-087fac33f061}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data\gameData">
-      <UniqueIdentifier>{7ad09d26-5c5a-407d-b12f-1edabe1c5be2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameMain\MapInstance\Teleporter">
-      <UniqueIdentifier>{d2d3a830-ffc5-49ff-b93d-bf68d681bb17}</UniqueIdentifier>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GameMain.cpp">
-      <Filter>Source Files\GameMain</Filter>
+    <ClCompile Include="libs\minini\minIni.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MapChannel.cpp">
-      <Filter>Source Files\GameMain</Filter>
+    <ClCompile Include="src\actorAction.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CharacterMgr.cpp">
-      <Filter>Source Files\GameMain\Message</Filter>
+    <ClCompile Include="src\AuthServerUtil.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="netMgr.cpp">
-      <Filter>Source Files\GameMain\Help\netMgr %28Packet%29</Filter>
+    <ClCompile Include="src\banedropship.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PyMarshal.cpp">
-      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    <ClCompile Include="src\behaviorController.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnpackObjects.cpp">
-      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    <ClCompile Include="src\behaviorControllerInit.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fileMgr.cpp">
-      <Filter>Source Files\GameMain\Help\FileMgr</Filter>
+    <ClCompile Include="src\Bignum.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sData.cpp">
-      <Filter>Source Files\GameMain\Help\FileMgr\sData</Filter>
+    <ClCompile Include="src\cellMgr.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashTable_string.cpp">
-      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    <ClCompile Include="src\CharacterMgr.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashTable_StringSynced.cpp">
-      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    <ClCompile Include="src\communicator.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashTable_uint32.cpp">
-      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    <ClCompile Include="src\controlpoint.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashTable_uint32Iterable.cpp">
-      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    <ClCompile Include="src\creature.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gameData.cpp">
-      <Filter>Source Files\GameMain\GameData</Filter>
+    <ClCompile Include="src\DataInterface.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="entityMgr.cpp">
-      <Filter>Source Files\GameMain\MapInstance\entityMgr</Filter>
+    <ClCompile Include="src\DataInterface_Character.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="manifestation.cpp">
-      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    <ClCompile Include="src\DataInterface_Creature.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="playerActions.cpp">
-      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    <ClCompile Include="src\DataInterface_Items.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="communicator.cpp">
-      <Filter>Source Files\GameMain\MapInstance\communicator</Filter>
+    <ClCompile Include="src\DataInterface_Mission.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="inventory.cpp">
-      <Filter>Source Files\GameMain\MapInstance\inventory</Filter>
+    <ClCompile Include="src\DataInterface_NPC.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dynamicObject.cpp">
-      <Filter>Source Files\GameMain\MapInstance\dynamicObjects</Filter>
+    <ClCompile Include="src\DataInterface_SpawnSystem.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cellMgr.cpp">
-      <Filter>Source Files\GameMain\MapInstance\cellMgr</Filter>
+    <ClCompile Include="src\DataInterface_Teleporter.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="npc.cpp">
-      <Filter>Source Files\GameMain\MapInstance\npc</Filter>
+    <ClCompile Include="src\defaultObject.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gameEffects.cpp">
-      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    <ClCompile Include="src\DetourAlloc.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mission.cpp">
-      <Filter>Source Files\GameMain\MapInstance\mission</Filter>
+    <ClCompile Include="src\DetourCommon.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="creature.cpp">
-      <Filter>Source Files\GameMain\MapInstance\creature</Filter>
+    <ClCompile Include="src\DetourNavMesh.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spawnSystem.cpp">
-      <Filter>Source Files\GameMain\MapInstance\creature\spawnSystem</Filter>
+    <ClCompile Include="src\DetourNavMeshBuilder.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="missile.cpp">
-      <Filter>Source Files\GameMain\MapInstance\combatMgr</Filter>
+    <ClCompile Include="src\DetourNavMeshQuery.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="behaviorController.cpp">
-      <Filter>Source Files\GameMain\MapInstance\behaviorController</Filter>
+    <ClCompile Include="src\DetourNode.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MD5.cpp">
-      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    <ClCompile Include="src\dynamicObject.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabulaCrypt2.cpp">
-      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    <ClCompile Include="src\entityMgr.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files\Main</Filter>
+    <ClCompile Include="src\fileMgr.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bignum.cpp">
-      <Filter>Source Files\Main\Bignum</Filter>
+    <ClCompile Include="src\gameData.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AuthServerUtil.cpp">
-      <Filter>Source Files\Main\AuthServerUtil</Filter>
+    <ClCompile Include="src\gameEffects.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataInterface.cpp">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClCompile Include="src\GameMain.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataInterface_Character.cpp">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClCompile Include="src\gm.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataInterface_Mission.cpp">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClCompile Include="src\hashTable.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataInterface_NPC.cpp">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClCompile Include="src\hashTableSynced.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="teleporter.cpp">
-      <Filter>Source Files\GameMain\MapInstance\Teleporter</Filter>
+    <ClCompile Include="src\INIParser.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataInterface_Teleporter.cpp">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClCompile Include="src\inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\logosObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lootdispenser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\manifestation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MapChannel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MD5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\missile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mission.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\navmesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\netMgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\npc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\playerActions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PyMarshal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\spawnSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TabulaCrypt2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\teleporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ThreadsUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UnpackObjects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\waypoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PyMarshalString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashTable_uint32Iterable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashTable_uint32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashTable_StringSynced.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hashTable_string.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameMain.h">
-      <Filter>Source Files\GameMain</Filter>
+    <None Include="libs\mysql\libmysql.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="config.ini" />
+    <None Include="libmysql.dll" />
+    <None Include="pthreadVC2.dll" />
+    <None Include="sql\ir_gameserver.sql" />
+    <None Include="sql\Spawnpool_V0.1.sql" />
+    <None Include="sql\tabuladb.sql" />
+    <None Include="libs\mysql\libmysql.pdb" />
+    <None Include="libs\mysql\mysqlclient.pdb" />
+    <None Include="libs\mysql\mysys.pdb" />
+    <None Include="libs\mysql\regex.pdb" />
+    <None Include="libs\mysql\strings.pdb" />
+    <None Include="libs\mysql\zlib.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libs\minini\minGlue.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Global.h">
-      <Filter>Source Files\GameMain</Filter>
+    <ClInclude Include="libs\minini\minIni.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MapChannel.h">
-      <Filter>Source Files\GameMain</Filter>
+    <ClInclude Include="libs\mysql\base64.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Msg.h">
-      <Filter>Source Files\GameMain\Message</Filter>
+    <ClInclude Include="libs\mysql\config-netware.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Source Files\GameMain\Help\netMgr %28Packet%29</Filter>
+    <ClInclude Include="libs\mysql\config-win.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Packing.h">
-      <Filter>Source Files\GameMain\Help\Packing</Filter>
+    <ClInclude Include="libs\mysql\decimal.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fileMgr.h">
-      <Filter>Source Files\GameMain\Help\FileMgr</Filter>
+    <ClInclude Include="libs\mysql\errmsg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sData.h">
-      <Filter>Source Files\GameMain\Help\FileMgr\sData</Filter>
+    <ClInclude Include="libs\mysql\ft_global.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hashTable.h">
-      <Filter>Source Files\GameMain\Help\HashTable</Filter>
+    <ClInclude Include="libs\mysql\hash.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="classIDs.h">
-      <Filter>Source Files\GameMain\GameData</Filter>
+    <ClInclude Include="libs\mysql\heap.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entityIDs.h">
-      <Filter>Source Files\GameMain\GameData</Filter>
+    <ClInclude Include="libs\mysql\help_end.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gameData.h">
-      <Filter>Source Files\GameMain\GameData</Filter>
+    <ClInclude Include="libs\mysql\help_start.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="methodIDs.h">
-      <Filter>Source Files\GameMain\GameData</Filter>
+    <ClInclude Include="libs\mysql\keycache.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MapInstance.h">
-      <Filter>Source Files\GameMain\MapInstance</Filter>
+    <ClInclude Include="libs\mysql\myisam.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="entityMgr.h">
-      <Filter>Source Files\GameMain\MapInstance\entityMgr</Filter>
+    <ClInclude Include="libs\mysql\myisammrg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="manifestation.h">
-      <Filter>Source Files\GameMain\MapInstance\manifestation</Filter>
+    <ClInclude Include="libs\mysql\myisampack.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="communicator.h">
-      <Filter>Source Files\GameMain\MapInstance\communicator</Filter>
+    <ClInclude Include="libs\mysql\mysql.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inventory.h">
-      <Filter>Source Files\GameMain\MapInstance\inventory</Filter>
+    <ClInclude Include="libs\mysql\mysqld_ername.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dynamicObject.h">
-      <Filter>Source Files\GameMain\MapInstance\dynamicObjects</Filter>
+    <ClInclude Include="libs\mysql\mysqld_error.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cellMgr.h">
-      <Filter>Source Files\GameMain\MapInstance\cellMgr</Filter>
+    <ClInclude Include="libs\mysql\mysql_com.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="npc.h">
-      <Filter>Source Files\GameMain\MapInstance\npc</Filter>
+    <ClInclude Include="libs\mysql\mysql_embed.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="actor.h">
-      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    <ClInclude Include="libs\mysql\mysql_time.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gameEffects.h">
-      <Filter>Source Files\GameMain\MapInstance\actor</Filter>
+    <ClInclude Include="libs\mysql\mysql_version.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mission.h">
-      <Filter>Source Files\GameMain\MapInstance\mission</Filter>
+    <ClInclude Include="libs\mysql\mysys_err.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="creature.h">
-      <Filter>Source Files\GameMain\MapInstance\creature</Filter>
+    <ClInclude Include="libs\mysql\my_aes.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="spawnSystem.h">
-      <Filter>Source Files\GameMain\MapInstance\creature\spawnSystem</Filter>
+    <ClInclude Include="libs\mysql\my_alarm.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="combatMgr.h">
-      <Filter>Source Files\GameMain\MapInstance\combatMgr</Filter>
+    <ClInclude Include="libs\mysql\my_alloc.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="behaviorController.h">
-      <Filter>Source Files\GameMain\MapInstance\behaviorController</Filter>
+    <ClInclude Include="libs\mysql\my_atomic.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TabulaCrypt.h">
-      <Filter>Source Files\GameMain\Global\TabulaCrypt2</Filter>
+    <ClInclude Include="libs\mysql\my_attribute.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>Source Files\Main</Filter>
+    <ClInclude Include="libs\mysql\my_base.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bignum.h">
-      <Filter>Source Files\Main\Bignum</Filter>
+    <ClInclude Include="libs\mysql\my_bit.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AuthServerUtil.h">
-      <Filter>Source Files\Main\AuthServerUtil</Filter>
+    <ClInclude Include="libs\mysql\my_bitmap.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataInterface.h">
-      <Filter>Source Files\DataInterface</Filter>
+    <ClInclude Include="libs\mysql\my_dbug.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="teleporter.h">
-      <Filter>Source Files\GameMain\MapInstance\Teleporter</Filter>
+    <ClInclude Include="libs\mysql\my_dir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_getopt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_libwrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_net.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_nosys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_no_pthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_pthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_stacktrace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_sys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_time.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_trie.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_uctype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_user.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_vle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\my_xml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\m_ctype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\m_string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\queues.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\rijndael.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sql_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sql_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sslopt-case.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sslopt-longopts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\sslopt-vars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\thr_alarm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\thr_lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\typelib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\t_ctype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\mysql\violite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\pthreads\pthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\pthreads\sched.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\pthreads\semaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\actor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AuthServerUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\banedropship.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\behaviorController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Bignum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cellMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\classIDs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\combatMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\communicator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\controlpoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\creature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\defaultObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourAlloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourAssert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourNavMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourNavMeshBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourNavMeshQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DetourStatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dynamicObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entityIDs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entityMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fileMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gameData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gameEffects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hashTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\INIParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\inventory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\logosObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lootdispenser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\manifestation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MapChannel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MapInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\methodIDs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mission.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Msg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\navmesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Packing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spawnSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TabulaCrypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\teleporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThreadsUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\waypoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pyMarshalString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\crypt_test_arrays.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDescriptions.txt">
-      <Filter>Doc</Filter>
-    </None>
-    <None Include="ToDo.txt">
-      <Filter>Doc</Filter>
-    </None>
-    <None Include="libmysql.dll">
-      <Filter>Data\Libs</Filter>
-    </None>
-    <None Include="sql\tabuladb.sql">
-      <Filter>Data\sql</Filter>
-    </None>
-    <None Include="gameData\equipableClassEquipmentSlot.txt">
-      <Filter>Data\gameData</Filter>
-    </None>
-    <None Include="gameData\itemTemplates.txt">
-      <Filter>Data\gameData</Filter>
-    </None>
-    <None Include="gameData\mapInfo.txt">
-      <Filter>Data\gameData</Filter>
-    </None>
-    <None Include="gameData\starterItemTemplateClassIds.txt">
-      <Filter>Data\gameData</Filter>
-    </None>
+    <ResourceCompile Include="TabulaGameServer.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\icon_r.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\pthreads\pthreadVC2.lib" />
+    <Library Include="libs\mysql\libmysql.lib" />
+    <Library Include="libs\mysql\mysqlclient.lib" />
+    <Library Include="libs\mysql\mysys.lib" />
+    <Library Include="libs\mysql\regex.lib" />
+    <Library Include="libs\mysql\strings.lib" />
+    <Library Include="libs\mysql\zlib.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="gameData\ClassDescriptions.txt" />
+    <Text Include="gameData\equipableClassEquipmentSlot.txt" />
+    <Text Include="gameData\GameServerLoginSequence.txt" />
+    <Text Include="gameData\itemTemplates.txt" />
+    <Text Include="gameData\mapInfo.txt" />
+    <Text Include="gameData\starterItemTemplateClassIds.txt" />
+    <Text Include="gameData\TabulaRasaPacketFormat.txt" />
   </ItemGroup>
 </Project>

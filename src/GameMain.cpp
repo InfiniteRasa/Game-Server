@@ -273,6 +273,7 @@ sint32 findSubsize(sint32 current, uint8 *data)
 			return iIndex -2;
 		}
 	}
+	return iIndex;
 }
 
 /***Debug***/

@@ -492,7 +492,7 @@ void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, s
 	if( dstSlot == client->inventory.activeWeaponDrawer )
 	{
 		inventory_notifyEquipmentUpdate(client);
-		pyMarshalString_t pms;
+		//pyMarshalString_t pms;
 		if( !itemToEquip )
 		{
 			// remove item graphic if dequipped

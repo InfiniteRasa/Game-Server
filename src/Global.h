@@ -1,10 +1,5 @@
 #pragma warning(disable: 4018 4244 4482)
 
-
-#if(_MSC_VER>=1600)
- #define _HAS_ITERATOR_DEBUGGING 0	
-#endif
-
 #include <Winsock2.h>
 #include <Windows.h>
 #include <stdio.h>
@@ -13,10 +8,6 @@
 #include "DetourCommon.h"
 #include "DetourNavMesh.h"
 #include "DetourNavMeshQuery.h"
-
-#if(_MSC_VER>=1600)
-#define _HAS_ITERATOR_DEBUGGING 0	
-#endif
 
 #include <vector>
 #include <list>
