@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "mysql.h"
 #include "INIParser.h"
+#include <bitset>
 
 #define WORKER_QUEUELENGTH	128 // jobs at max
 #define WORKER_THREADS		1
@@ -16,19 +17,19 @@ typedef struct
 			uint32 UID1;
 			uint32 UID2;
 		};
-	unsigned long long uid;
+		unsigned long long uid;
 	};
 }authSessionInfo_t;
 
-typedef struct  
+typedef struct
 {
-	void (*workCallback)(MYSQL *dbCon, void *job, void *cb, void *param);
+	void(*workCallback)(MYSQL *dbCon, void *job, void *cb, void *param);
 	void *doneCallBack;
 	void *param; // cgm
 	void *jobData;
 }DataInterfaceWorkerQueueEntry_t;
 
-typedef struct  
+typedef struct
 {
 	MYSQL *dbCon;
 	DataInterfaceWorkerQueueEntry_t jobQueue[WORKER_QUEUELENGTH];
@@ -42,7 +43,7 @@ typedef struct
 #define CHARACTER_FIRSTNAMELIMIT	64
 #define NPC_NAMELIMIT				56
 
-typedef struct  
+typedef struct
 {
 	unsigned long long characterID;
 	sint8 unicodeName[CHARACTER_FIRSTNAMELIMIT];
@@ -56,14 +57,23 @@ typedef struct
 	float posY;
 	float posZ;
 	sint32 currentContextId;
-	struct  
+	struct
 	{
 		sint32 classId;		// entityClassId
 		uint32 hue;	// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
+	sint32 level;
+	uint32 numLogins;
+	uint32 totalTimePlayed;
+	uint32 timeSinceLastPlayed;
+	uint32 clonecredits;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
+	uint32 experience;
 }di_characterPreview_t;
 
-typedef struct  
+typedef struct
 {
 	sint8 unicodeName[CHARACTER_FIRSTNAMELIMIT];
 	sint8 unicodeFamily[CHARACTER_FIRSTNAMELIMIT];
@@ -76,7 +86,7 @@ typedef struct
 	float posY;
 	float posZ;
 	sint32 currentContextId;
-	struct  
+	struct
 	{
 		sint32 classId;		// entityClassId
 		uint32 hue;	// 0xAABBGGRR
@@ -91,7 +101,7 @@ typedef struct {
 	uint32 missionState;
 }di_CharacterMissionData;
 
-typedef struct  
+typedef struct
 {
 	unsigned long long characterID;
 	sint8 unicodeName[CHARACTER_FIRSTNAMELIMIT];
@@ -104,30 +114,53 @@ typedef struct
 	float posX;
 	float posY;
 	float posZ;
+	float rotation;
 	sint32 currentContextId;
-	struct  
+	struct
 	{
 		sint32 classId;		// entityClassId
 		uint32 hue;	// 0xAABBGGRR
 	}appearanceData[SWAPSET_SIZE];
-	// stats shit
 
-	// inventory shit
+	// stats
+	sint32 level;
+	uint32 credits;
+	uint32 prestige;
+	uint32 experience;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
+
+	// skills
+	uint8 skill[73];
+
+	// abilities
+	sint32 abilityDrawer[5 * 5];
+	sint32 abilityLvDrawer[5 * 5];
+	sint8 currentAbilityDrawer;
 
 	// mission data
 	uint32 missionStateCount;
 	di_CharacterMissionData *missionStateData;
-	
+
+	// login time
+	time_t loginTime;
+
+	// logos
+	std::bitset<409> logos;
+
+	// clone credits
+	uint32 clonecredits;
 }di_characterData_t;
 
 /* npc */
 
-typedef struct  
+typedef struct
 {
 	unsigned long long npcID;
 	uint32 creatureTypeId;
 	sint32 npcPackageId;
-	struct  
+	struct
 	{
 		sint32 classId;	// entityClassId
 		uint32 hue;		// 0xAABBGGRR
@@ -136,14 +169,14 @@ typedef struct
 
 /* vendor */
 
-typedef struct  
+typedef struct
 {
 	uint32 itemTemplateId;
 	uint32 stacksize;
 	sint32 sequence;
 }di_vendorItemData_t;
 
-typedef struct  
+typedef struct
 {
 	uint32 creatureTypeId;
 	sint32 vendorPackageId;
@@ -155,7 +188,7 @@ typedef struct
 
 /* creature loot table */
 
-typedef struct  
+typedef struct
 {
 	sint32 itemTemplateId;
 	float chance;
@@ -165,8 +198,8 @@ typedef struct
 
 /* creature type */
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 id;
 	sint8 name[70];
 	sint32 nameId;
@@ -184,8 +217,8 @@ typedef struct
 
 /* missile */
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 id;
 	sint8 description[50];
 	sint32 actionId; // action
@@ -201,8 +234,8 @@ typedef struct
 
 /* spawnpool */
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 id;
 	sint32 mode; // 0 -> automatic spawn, 1 -> base/outpost(CP) spawn, 2 -> scripted spawn (must be triggered)
 	sint8 animType; // 0 -> no animation, 1 -> bane dropship
@@ -211,7 +244,7 @@ typedef struct
 	float posY;
 	float posZ;
 	sint32 contextId;
-	struct  
+	struct
 	{
 		sint32 creatureType;
 		sint32 countMin;
@@ -228,7 +261,7 @@ typedef struct
 	float posY;
 	float posZ;
 	sint32 contextId;
-	struct  
+	struct
 	{
 		sint32 creatureType;
 		sint32 countMin;
@@ -238,7 +271,7 @@ typedef struct
 
 /* TEST:entitydata */
 
-typedef struct  
+typedef struct
 {
 	unsigned long long npcID;
 	sint8 unicodeName[NPC_NAMELIMIT];
@@ -248,7 +281,7 @@ typedef struct
 	float posZ;
 	float rotation;
 	sint32 currentContextId;
-	struct  
+	struct
 	{
 		sint32 classId;		// entityClassId
 		uint32 hue;			// 0xAABBGGRR
@@ -256,7 +289,7 @@ typedef struct
 }di_entityDataW_t;
 
 /*TEST entity queue job*/
-typedef struct  
+typedef struct
 {
 	di_entityDataW_t *entityData;
 }diJob_updateEntityW_t;
@@ -272,53 +305,53 @@ typedef struct baseBehavior_baseNode
 	sint32 pindex; //-- postition of pathnode
 }cbaseNode;
 
-typedef struct  
+typedef struct
 {
-	
+
 	sint32 spawntype;
 	float posX;
 	float posY;
 	float posZ;
 	sint32 pathindex;
 	sint32 currentContextId;
-	
+
 }di_pathNodeDataW2_t;
 
-typedef struct  
+typedef struct
 {
 	di_pathNodeDataW2_t *pnodedata;
 }diJob_updatePathNodeW2_t;
 
 typedef struct
 {
-  uint32 id;
-  uint32 contextid;
-  uint32 type;   //--- twostate teleporter, waypoint, wormhole,etc
-  uint32 nameId; // used for name lookup
-  //uint32 modelid; //---appereance (now integrated into type)
-  sint8 label[50];
-  float sx; //---current location
-  float sy;
-  float sz;
-  float dx; //---destination
-  float dy;
-  float dz;
-  float bx; //---activation area
-  float bz;
+	uint32 id;
+	uint32 contextid;
+	uint32 type;   //--- twostate teleporter, waypoint, wormhole,etc
+	uint32 nameId; // used for name lookup
+	//uint32 modelid; //---appereance (now integrated into type)
+	sint8 label[50];
+	float sx; //---current location
+	float sy;
+	float sz;
+	float dx; //---destination
+	float dy;
+	float dz;
+	float bx; //---activation area
+	float bz;
 }di_teleporterData;
 
 
 typedef struct
 {
-    uint32 mapContextId;
+	uint32 mapContextId;
 	uint32 scount;
 	di_teleporterData *tdata;
 }diJob_teleporterData;
 
 /* item templates */
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 itemTemplateId;
 	sint32 classId;
 	sint32 qualityId;
@@ -337,14 +370,14 @@ typedef struct
 	sint32 stacksize;
 }diJob_itemTemplateEntry_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 numberOfItemTemplates;
 	diJob_itemTemplateEntry_t* itemTemplateList;
 }diJob_itemTemplate_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 itemTemplateId;
 	sint32 slotType;
 	sint32 skillId; // -1 if not used
@@ -352,27 +385,27 @@ typedef struct
 	// todo: Add appearance hue to this table?
 }diJob_itemTemplateEquipmentEntry_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 numberOfTemplates;
 	diJob_itemTemplateEquipmentEntry_t* itemTemplateEquipmentList;
 }diJob_itemTemplateEquipment_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 itemTemplateId;
 	sint32 damageAbsorbed; // damage absorbed
 	sint32 regenRate; // regen rate
 	sint32 armorValue; // body armor
 }diJob_itemTemplateArmorEntry_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 numberOfTemplates;
 	diJob_itemTemplateArmorEntry_t* itemTemplateArmorList;
 }diJob_itemTemplateArmor_t;
 
-typedef struct  
+typedef struct
 {
 	sint32  itemTemplateId;
 	uint32	clipSize;
@@ -406,15 +439,15 @@ typedef struct
 	sint8	attackType;
 }diJob_itemTemplateWeaponEntry_t;
 
-typedef struct  
-{	
+typedef struct
+{
 	sint32 numberOfTemplates;
 	diJob_itemTemplateWeaponEntry_t* itemTemplateWeaponList;
 }diJob_itemTemplateWeapon_t;
 
 /* mission */
 
-typedef struct  
+typedef struct
 {
 	sint32 missionId;
 	unsigned long long dispenserNPC;
@@ -422,7 +455,7 @@ typedef struct
 	// more todo
 }di_missionData_t;
 
-typedef struct  
+typedef struct
 {
 	uint32 id;
 	uint32 missionId;
@@ -434,7 +467,7 @@ typedef struct
 	sint32 value3;
 }di_missionScriptLine_t;
 
-typedef struct  
+typedef struct
 {
 	uint32 scriptLineCount;
 	di_missionScriptLine_t* scriptLines;
@@ -442,7 +475,7 @@ typedef struct
 
 /* job data blocks */
 
-typedef struct  
+typedef struct
 {
 	unsigned long long userId;
 	uint32 slotIndex;
@@ -450,7 +483,7 @@ typedef struct
 	di_characterPreview_t *outPreviewData[16];
 }diJob_getCharacterPreviewInfo_t;
 
-typedef struct  
+typedef struct
 {
 	unsigned long long userId;
 	uint32 slotIndex;
@@ -458,7 +491,7 @@ typedef struct
 	di_characterData_t *outCharacterData;
 }diJob_characterData_t;
 
-typedef struct  
+typedef struct
 {
 	unsigned long long userId;
 	uint32 slotId;
@@ -466,46 +499,122 @@ typedef struct
 	bool error;
 }diJob_deleteCharacter_t;
 
-typedef struct  
+typedef struct
+{
+	unsigned long long userId;
+	uint32 slotId;
+	uint32 stat;
+	uint32 value;
+	float posX;
+	float posY;
+	float posZ;
+	float rotation;
+	uint32 body;
+	uint32 mind;
+	uint32 spirit;
+	unsigned long long characterID;
+	char logos[410];
+	// output
+	bool error;
+}diJob_updateCharacter_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	uint32 * item;
+	uint32 * qty;
+	// output
+	bool error;
+}diJob_getCharacterInventory_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	sint32 slotIndex;
+	uint32 templateId;
+	uint32 qty;
+	// output
+	bool error;
+}diJob_updateCharacterInventory_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	sint32 slotIndex;
+	sint32 ammo;
+	// output
+	bool error;
+}diJob_updateCharacterAmmo_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	uint32 index;
+	uint32 classId;
+	uint32 hue;
+	// output
+	bool error;
+}diJob_updateCharacterAppearance_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	uint8 * level;
+	// output
+	bool error;
+}diJob_updateCharacterSkills_t;
+
+typedef struct
+{
+	unsigned long long characterID;
+	sint32 index;
+	sint32 item;
+	sint32 level;
+	sint32 drawer;
+	// output
+	bool error;
+}diJob_updateCharacterAbility_t;
+
+typedef struct
 {
 	// output
 	sint32 outNpcCount;
 	di_npcData_t *outNpcList;
 }diJob_npcListData_t;
 
-typedef struct  
+typedef struct
 {
 	// output
 	sint32 outVendorCount;
 	di_vendorData_t *outVendorList;
 }diJob_vendorListData_t;
 
-typedef struct  
+typedef struct
 {
 	di_npcData_t *npcData;
 }diJob_updateNPC_t;
 
-typedef struct  
+typedef struct
 {
 	// output
 	sint32 outState;
 	unsigned long long outEntityId;
 }diJob_getLastNPCEntityID_t;
 
-typedef struct  
+typedef struct
 {
 	// output
 	sint32 outMissionCount;
 	di_missionData_t *outMissionList;
 }diJob_missionListData_t;
 
-typedef struct  
+typedef struct
 {
 	float pos[3];
 	//sint32 nodeIndex;
 }diData_pathNodes_t;
 
-typedef struct  
+typedef struct
 {
 	sint32 pathId;
 	sint32 contextId;
@@ -517,7 +626,7 @@ typedef struct
 	bool _isFinished; // only used by the data interface methods
 }diData_path_t;
 
-typedef struct  
+typedef struct
 {
 	// when writing a single path
 	diData_path_t* pathData;
@@ -528,50 +637,58 @@ typedef struct
 
 /* general */
 void DataInterface_init();
-
 void* DataInterface_allocJob(sint32 size);
 void DataInterface_freeJob(void *job);
-
 void DataInterface_queueJob(void *jobData, void *workCallback, void *doneCallback, void *param);
 
 /* character */
-void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, uint32 slotIndex, void (*cb)(void *param, diJob_getCharacterPreviewInfo_t *jobData), void *param);
-void DataInterface_Character_getCharacterData(unsigned long long userID, uint32 slotIndex, void (*cb)(void *param, diJob_characterData_t *jobData), void *param);
-void DataInterface_Character_createCharacter(di_characterLayout_t *characterData, void (*cb)(void *param, di_characterLayout_t *jobData), void *param);
-void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void (*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
+void DataInterface_Character_getCharacterPreviewInfo(unsigned long long userID, uint32 slotIndex, void(*cb)(void *param, diJob_getCharacterPreviewInfo_t *jobData), void *param);
+void DataInterface_Character_getCharacterData(unsigned long long userID, uint32 slotIndex, void(*cb)(void *param, diJob_characterData_t *jobData), void *param);
+void DataInterface_Character_createCharacter(di_characterLayout_t *characterData, void(*cb)(void *param, di_characterLayout_t *jobData), void *param);
+void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void(*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 value);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 body, uint32 mind, uint32 spirit);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, const char* logos);
+void DataInterface_Character_getCharacterInventory(unsigned long long characterID, uint32 * item, uint32 * qty, void(*cb)(void *param, diJob_getCharacterInventory_t *jobData), void *param);
+void DataInterface_Character_updateCharacterInventory(unsigned long long characterID, sint32 slotIndex, uint32 templateId, uint32 qty);
+void DataInterface_Character_updateCharacterAppearance(unsigned long long characterID, uint32 index, uint32 classId, uint32 hue);
+void DataInterface_Character_updateCharacterAmmo(unsigned long long characterID, sint32 slotIndex, sint32 ammo);
+void DataInterface_Character_updateCharacterSkills(unsigned long long characterID, uint8 * level);
+void DataInterface_Character_updateCharacterAbility(unsigned long long characterID, sint32 index, sint32 item, sint32 level, sint32 drawer);
 
 /* npc */
-void DataInterface_NPC_getNPCList(void (*cb)(void *param, diJob_npcListData_t *jobData), void *param);
+void DataInterface_NPC_getNPCList(void(*cb)(void *param, diJob_npcListData_t *jobData), void *param);
 
-/* vendor */ 
+/* vendor */
 
-void DataInterface_Vendor_getVendorList(void (*cb)(void *param, diJob_vendorListData_t *jobData), void *param);
+void DataInterface_Vendor_getVendorList(void(*cb)(void *param, diJob_vendorListData_t *jobData), void *param);
 
 //void DataInterface_NPC_updateNPC(di_npcData_t *npcData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
 /* creatureType */
-void DataInterface_Creature_getCreatureTypeList(void (*cb)(void *param, diJob_creatureType_t *jobData), void *param);
+void DataInterface_Creature_getCreatureTypeList(void(*cb)(void *param, diJob_creatureType_t *jobData), void *param);
 
 /* path nodes */
-void DataInterface_Creature_getPathList(void (*cb)(void *param, diJob_path_t *jobData), void *param);
+void DataInterface_Creature_getPathList(void(*cb)(void *param, diJob_path_t *jobData), void *param);
 void DataInterface_Creature_savePath(diData_path_t* pathData);
 
 /* spawn system */
-void DataInterface_SpawnSystem_getSpawnPoolList(void (*cb)(void *param, diJob_spawnpool_t *jobData), void *param);
+void DataInterface_SpawnSystem_getSpawnPoolList(void(*cb)(void *param, diJob_spawnpool_t *jobData), void *param);
 sint32 DataInterface_SpawnSystem_addSpawnPoint(diData_spawnEntry_t* spawnEntry);
 
 /* missile */
-void DataInterface_Creature_getCreatureActionList(void (*cb)(void *param, diJob_creatureAction_t *jobData), void *param);
+void DataInterface_Creature_getCreatureActionList(void(*cb)(void *param, diJob_creatureAction_t *jobData), void *param);
 
 /* mission */
-void DataInterface_Mission_getMissionList(void (*cb)(void *param, diJob_missionListData_t *jobData), void *param);
-void DataInterface_Mission_getMissionScriptData(void (*cb)(void *param, di_missionScript_t *jobData), void *param);
+void DataInterface_Mission_getMissionList(void(*cb)(void *param, diJob_missionListData_t *jobData), void *param);
+void DataInterface_Mission_getMissionScriptData(void(*cb)(void *param, di_missionScript_t *jobData), void *param);
 
 /* item template */
-void DataInterface_Item_getItemTemplates(void (*cb)(void *param, diJob_itemTemplate_t *jobData), void *param);
-void DataInterface_Item_getItemEquipmentData(void (*cb)(void *param, diJob_itemTemplateEquipment_t *jobData), void *param);
-void DataInterface_Item_getItemArmorData(void (*cb)(void *param, diJob_itemTemplateArmor_t *jobData), void *param);
-void DataInterface_Item_getItemWeaponData(void (*cb)(void *param, diJob_itemTemplateWeapon_t *jobData), void *param);
+void DataInterface_Item_getItemTemplates(void(*cb)(void *param, diJob_itemTemplate_t *jobData), void *param);
+void DataInterface_Item_getItemEquipmentData(void(*cb)(void *param, diJob_itemTemplateEquipment_t *jobData), void *param);
+void DataInterface_Item_getItemArmorData(void(*cb)(void *param, diJob_itemTemplateArmor_t *jobData), void *param);
+void DataInterface_Item_getItemWeaponData(void(*cb)(void *param, diJob_itemTemplateWeapon_t *jobData), void *param);
 
 /* extra */
 void DataInterface_registerServerForAuth();
@@ -581,5 +698,5 @@ sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asi
 
 //void DataInterface_Entity_updateEntityW(di_entityDataW_t *entityData, void (*cb)(void *param, diJob_updateNPC_t *jobData), void *param);
 
-void DataInterface_teleporter_getList(uint32 mapContextId, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);
-void DataInterface_teleporter_updateList( di_teleporterData *objectData, void (*cb)(void *param, diJob_teleporterData *jobData), void *param);
+void DataInterface_teleporter_getList(uint32 mapContextId, void(*cb)(void *param, diJob_teleporterData *jobData), void *param);
+void DataInterface_teleporter_updateList(di_teleporterData *objectData, void(*cb)(void *param, diJob_teleporterData *jobData), void *param);

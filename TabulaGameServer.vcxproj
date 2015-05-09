@@ -129,6 +129,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\gm.cpp" />
     <ClCompile Include="src\hashTable.cpp" />
     <ClCompile Include="src\hashTableSynced.cpp" />
+    <ClCompile Include="src\humandropship.cpp" />
     <ClCompile Include="src\INIParser.cpp" />
     <ClCompile Include="src\inventory.cpp" />
     <ClCompile Include="src\logosObject.cpp" />
@@ -154,7 +155,23 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\waypoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="config.ini" />
+    <None Include="libmysql.dll" />
     <None Include="libs\mysql\libmysql.def" />
+    <None Include="libs\mysql\libmysql.pdb" />
+    <None Include="libs\mysql\mysqlclient.pdb" />
+    <None Include="libs\mysql\mysys.pdb" />
+    <None Include="libs\mysql\regex.pdb" />
+    <None Include="libs\mysql\strings.pdb" />
+    <None Include="libs\mysql\zlib.pdb" />
+    <None Include="pthreadVC2.dll" />
+    <None Include="sql\abilities.sql" />
+    <None Include="sql\characters.sql" />
+    <None Include="sql\inventory.sql" />
+    <None Include="sql\ir_gameserver.sql" />
+    <None Include="sql\skills.sql" />
+    <None Include="sql\Spawnpool_V0.1.sql" />
+    <None Include="sql\tabuladb.sql" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\minini\minGlue.h" />
@@ -261,6 +278,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClInclude Include="src\Global.h" />
     <ClInclude Include="src\gm.h" />
     <ClInclude Include="src\hashTable.h" />
+    <ClInclude Include="src\humandropship.h" />
     <ClInclude Include="src\INIParser.h" />
     <ClInclude Include="src\inventory.h" />
     <ClInclude Include="src\logosObject.h" />
@@ -289,6 +307,26 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\icon_r.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\mysql\libmysql.lib" />
+    <Library Include="libs\mysql\mysqlclient.lib" />
+    <Library Include="libs\mysql\mysys.lib" />
+    <Library Include="libs\mysql\regex.lib" />
+    <Library Include="libs\mysql\strings.lib" />
+    <Library Include="libs\mysql\zlib.lib" />
+    <Library Include="libs\pthreads\pthreadVC2.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="gameData\class.txt" />
+    <Text Include="gameData\ClassDescriptions.txt" />
+    <Text Include="gameData\equipableClassEquipmentSlot.txt" />
+    <Text Include="gameData\GameServerLoginSequence.txt" />
+    <Text Include="gameData\itemTemplates.txt" />
+    <Text Include="gameData\logos.txt" />
+    <Text Include="gameData\mapInfo.txt" />
+    <Text Include="gameData\starterItemTemplateClassIds.txt" />
+    <Text Include="gameData\TabulaRasaPacketFormat.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

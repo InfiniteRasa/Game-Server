@@ -9,9 +9,8 @@ extern sint32 gridCount;
 extern sint32** entityPosGrid;
 extern sint32** forcefieldMap;
 
+extern dynObjectType_t dynObjectType_humandropship;
 extern dynObjectType_t dynObjectType_banedropship;
-
-
 
 #include<math.h>
 // Convert from Euler Angles
@@ -650,18 +649,6 @@ void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y,
 	//if( !dynObject )
 	//	return;
 	//dynamicObject_setPosition(dynObject, x, y, z);
-	//cellMgr_addToWorld(mapChannel, dynObject);
-}
-
-void dynamicObject_createHumanDropship(mapChannel_t *mapChannel, float x, float y, float z)
-{
-	//dynObject_t *dynObject = _dynamicObject_create(9269, OBJECTTYPE_BANE_DROPSHIP); // 3814
-	//if( !dynObject )
-	//	return;
-	//printf("Human Dropship Entity ID: %u\n", dynObject->entityId);
-	//dynamicObject_setPosition(dynObject, x, y, z);
-	////dynamicObject_setRotation(dynObject, 0.0f, 0.0f, 0.0f);
-	//dynObject->stateId = 1;
 	//cellMgr_addToWorld(mapChannel, dynObject);
 }
 

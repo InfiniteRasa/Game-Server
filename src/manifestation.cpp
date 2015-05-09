@@ -88,28 +88,25 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
 	// set abilities
 	// it seems that we also have to send Recv_Abilities to make icons in the skill window dragable,
-	// todo: currently a few skills are hardcoded but we should switch to a "skillIdx2AbilityID" list similar to the one we use for METHODID_SKILLS.
+	// done: currently a few skills are hardcoded but we should switch to a "skillIdx2AbilityID" list similar to the one we use for METHODID_SKILLS.
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	// for ability IDs <-> skill IDs see abilitydata.skillRequirements dict
-	if( owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] )
+	for (sint32 i = 0; i < 73; i++)
 	{
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 401);															// id
-		pym_addInt(&pms, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);			// level
-		pym_tuple_end(&pms);
-	}
-	if( owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING] )
-	{
-		pym_tuple_begin(&pms);
-		pym_addInt(&pms, 194);															// id
-		pym_addInt(&pms, owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING]);			// level
-		pym_tuple_end(&pms);
+		if (owner->player->skill[i] && skillIdx2AbilityID[i] != -1)
+		{
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, skillIdx2AbilityID[i]); // id
+			pym_addInt(&pms, owner->player->skill[i]); // level
+			pym_tuple_end(&pms);
+		}
 	}
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
+	// set drawers
+	manifestation_SendAbilityDrawerFull(owner);
 }
 
 void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 itemClassId)
@@ -118,6 +115,8 @@ void manifestation_removeAppearanceItem(manifestation_t *manifestation, sint32 i
 	if( equipmentSlotId == 0 )
 	return;
 	manifestation->appearanceData[equipmentSlotId-1].classId = 0;
+	// update appearance data in database
+	DataInterface_Character_updateCharacterAppearance(manifestation->actor->owner->tempCharacterData->characterID, equipmentSlotId, 0, 0);
 }
 
 void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 itemClassId, uint32 hueAARRGGBB)
@@ -127,11 +126,13 @@ void manifestation_setAppearanceItem(manifestation_t *manifestation, sint32 item
 		return;
 	manifestation->appearanceData[equipmentSlotId-1].classId = itemClassId;
 	manifestation->appearanceData[equipmentSlotId-1].hue = hueAARRGGBB;
+	// update appearance data in database
+	DataInterface_Character_updateCharacterAppearance(manifestation->actor->owner->tempCharacterData->characterID, equipmentSlotId, itemClassId, hueAARRGGBB);
 }
 
 void manifestation_updateAppearance(mapChannelClient_t *owner)
 {
-	if( owner->player == NULL )
+	if (owner->player == NULL)
 		return;
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -263,12 +264,12 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->posX = characterData->posX;
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
-	manifestation->actor->rotation = 0.0f;
+	manifestation->actor->rotation = characterData->rotation;
 	manifestation->actor->entityClassId = characterData->genderIsMale?692:691;
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
 	manifestation->raceId = characterData->raceID;
-	manifestation->classId = 1; // Recruit
+	manifestation->classId = characterData->classID; // Recruit
 	/*
 		1: 'RECRUIT',
 		2: 'SOLDIER',
@@ -289,22 +290,33 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->isRunning = true;
 	manifestation->actor->inCombatMode = false;
 	manifestation->targetEntityId = 0;
-	manifestation->currentAbilityDrawer = 0;
-	memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
+	manifestation->currentAbilityDrawer = characterData->currentAbilityDrawer;
+	for (sint32 i = 0; i <= 24; i++)
+	{
+		manifestation->abilityDrawer[i] = characterData->abilityDrawer[i];
+		manifestation->abilityLvDrawer[i] = characterData->abilityLvDrawer[i];
+	}
+
+	//memset(manifestation->abilityDrawer, 0, sizeof(manifestation->abilityDrawer));
 	owner->player = manifestation;
 
 	// validate skills (Recruit skills start at level 1)
-	owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS]);
-	owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND]);
-	owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING]);
-	owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR]);
-	owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);
+	//owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_FIREARMS]);
+	//owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_HAND_TO_HAND]);
+	//owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_LIGHTNING]);
+	//owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_MOTOR_ASSIST_ARMOR]);
+	//owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT] = max(1, owner->player->skill[SKILL_IDX_T1_RECRUIT_SPRINT]);
+	for (sint32 i = 0; i < 73; i++)
+		owner->player->skill[i] = characterData->skill[i];
 
 	// set stats (should read them from the db)
-	owner->player->actor->stats.level = 1;
-	owner->player->credits = 0;
-	owner->player->prestige = 0;
-	owner->player->experience = 0;
+	owner->player->actor->stats.level = characterData->level;
+	owner->player->credits = characterData->credits;
+	owner->player->prestige = characterData->prestige;
+	owner->player->experience = characterData->experience;
+	owner->player->spentAttributePoints_body = characterData->body;
+	owner->player->spentAttributePoints_mind = characterData->mind;
+	owner->player->spentAttributePoints_spirit = characterData->spirit;
 	manifestation_updateStatsValues(owner, true);
 	// initialize mission state map
 	// note that the number of missions must not change during runtime,
@@ -583,7 +595,11 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
-	pym_addInt(&pms, 23); //power
+	for (sint32 i = 0; i < LOGOS_COUNT; i++)
+	{
+		if (client->tempCharacterData->logos.test(i))
+			pym_addInt(&pms, i + 1);
+	}
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	for(sint32 i=0; i<playerCount; i++)
@@ -713,6 +729,8 @@ void manifestation_recv_ClearTargetId(mapChannelClient_t *cm, uint8 *pyString, s
 void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 {
 	cm->player->credits += credits;
+	// update database with new character credits amount
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_CREDITS, cm->player->credits);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -741,6 +759,8 @@ void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
 {
 	cm->player->prestige += prestige;
+	// update database with new character prestige amount
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_PRESTIGE, cm->player->prestige);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -758,6 +778,8 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 	if( cm->player->actor->stats.level >= 50 )
 		return; // cannot gain xp over level 50
 	cm->player->experience += experience;
+	// update database with new character experience amount
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_EXPERIENCE, cm->player->experience);
 	// inform owner
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -785,7 +807,8 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 		{
 			// level up
 			cm->player->actor->stats.level++;
-			// update stats
+			// update database when new character level
+			DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_LEVEL, cm->player->actor->stats.level);
 			// inform client of level up
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
@@ -842,6 +865,8 @@ void manifestation_recv_AllocateAttributePoints(mapChannelClient_t *cm, uint8 *p
 	cm->player->spentAttributePoints_body += body;
 	cm->player->spentAttributePoints_mind += mind;
 	cm->player->spentAttributePoints_spirit += spirit;
+	// update database with new character body, mind, and spirit amounts
+	DataInterface_Character_updateCharacter(cm->tempCharacterData->userID, cm->tempCharacterData->slotIndex, UPDATE_ABILITY, cm->player->spentAttributePoints_body, cm->player->spentAttributePoints_mind, cm->player->spentAttributePoints_spirit);
 	// send updated allocation points
 	manifestation_SendAvailableAllocationPoints(cm);
 	// update stats
@@ -1071,6 +1096,8 @@ void manifestation_recv_LevelSkills(mapChannelClient_t *cm, uint8 *pyString, sin
 	{
 		cm->player->skill[i] += skillLevelupArray[i];
 	}
+	// update database with new character skills
+	DataInterface_Character_updateCharacterSkills(cm->tempCharacterData->characterID, cm->player->skill);
 	// send skill update to client
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -1079,13 +1106,30 @@ void manifestation_recv_LevelSkills(mapChannelClient_t *cm, uint8 *pyString, sin
 	for(sint32 i=0; i<SKILL_COUNT; i++)
 	{
 		pym_tuple_begin(&pms);
-		pym_addInt(&pms, skillIdx2ID[i]);			// id
-		pym_addInt(&pms, cm->player->skill[i]);	// level
+		pym_addInt(&pms, skillIdx2ID[i]); // id
+		pym_addInt(&pms, cm->player->skill[i]); // level
 		pym_tuple_end(&pms);
 	}
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(&cm, 1, cm->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
+	// set abilities
+	pym_init(&pms);
+	pym_tuple_begin(&pms);
+	pym_list_begin(&pms);
+	for (sint32 i = 0; i < 73; i++)
+	{
+		if (cm->player->skill[i] && skillIdx2AbilityID[i] != -1)
+		{
+			pym_tuple_begin(&pms);
+			pym_addInt(&pms, skillIdx2AbilityID[i]); // id
+			pym_addInt(&pms, cm->player->skill[i]); // level
+			pym_tuple_end(&pms);
+		}
+	}
+	pym_list_end(&pms);
+	pym_tuple_end(&pms);
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, 10, pym_getData(&pms), pym_getLen(&pms));
 	// update allocation points
 	manifestation_SendAvailableAllocationPoints(cm);
 }
@@ -1149,6 +1193,8 @@ void manifestation_recv_RequestArmAbility(mapChannelClient_t *cm, uint8 *pyStrin
 		return;
 	sint32 slot = pym_unpackInt(&pums);
 	cm->player->currentAbilityDrawer = (sint8)slot;
+	// update database with current ability drawer
+	DataInterface_Character_updateCharacterAbility(cm->tempCharacterData->characterID, NULL, NULL, NULL, cm->player->currentAbilityDrawer);
 	// Recv_AbilityDrawerSlot(self, slotNum, bRequested = True): 394
 	pyMarshalString_t pms;
 	pym_init(&pms);
@@ -1174,7 +1220,8 @@ void manifestation_recv_RequestSetAbilitySlot(mapChannelClient_t *cm, uint8 *pyS
 	// todo: check if ability is available
 	cm->player->abilityDrawer[slot] = (sint32)abilityId;
 	cm->player->abilityLvDrawer[slot] = (sint32)abilityLevel;
-	
+	// update database with new drawer slot ability
+	DataInterface_Character_updateCharacterAbility(cm->tempCharacterData->characterID, slot, cm->player->abilityDrawer[slot], cm->player->abilityLvDrawer[slot], NULL);
 	manifestation_SendAbilityDrawerFull(cm);
 }
 // 

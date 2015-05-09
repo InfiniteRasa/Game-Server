@@ -170,13 +170,13 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, sint32 slotId, di_characte
 
 	pym_addUnicode(&pms, charInfo->unicodeName);	// 0	charname
 	pym_addInt(&pms, 1);							// 1	Pos
-	pym_addInt(&pms, 41);							// 2	XPPtrs
-	pym_addInt(&pms, 10);							// 3	XPLvl
-	pym_addInt(&pms, 111);							// 4	Body
-	pym_addInt(&pms, 12);							// 5	Mind
-	pym_addInt(&pms, 21);							// 6	Spirit
+	pym_addInt(&pms, charInfo->experience);			// 2	XPPtrs
+	pym_addInt(&pms, charInfo->level);				// 3	XPLvl
+	pym_addInt(&pms, charInfo->body);				// 4	Body
+	pym_addInt(&pms, charInfo->mind);				// 5	Mind
+	pym_addInt(&pms, charInfo->spirit);				// 6	Spirit
 	pym_addInt(&pms, charInfo->classID);			// 7	Class
-	pym_addInt(&pms, 3);							// 8	CloneCredits
+	pym_addInt(&pms, charInfo->clonecredits);		// 8	CloneCredits
 	pym_addInt(&pms, charInfo->raceID);				// 9	RaceID
 
 	pym_tuple_end(&pms);
@@ -215,15 +215,15 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, sint32 slotId, di_characte
 	//LoginData
 	pym_dict_addKey(&pms, (sint8*)"LoginData");
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 0);		// 0	numLogins
-	pym_addInt(&pms, 0);		// 1	totalTimePlayed
-	pym_addInt(&pms, 0);		// 2	timeSinceLastPlayed
+	pym_addInt(&pms, charInfo->numLogins);		// 0	numLogins
+	pym_addInt(&pms, charInfo->totalTimePlayed);		// 1	totalTimePlayed
+	pym_addInt(&pms, charInfo->timeSinceLastPlayed);		// 2	timeSinceLastPlayed
 	pym_tuple_end(&pms);
 	//ClanData
 	pym_dict_addKey(&pms, (sint8*)"ClanData");
 	pym_tuple_begin(&pms);
-	pym_addInt(&pms, 123);		// 0	clanID (0 marks no-clan)
-	pym_addUnicode(&pms, (sint8*)"Infinite Salsa");	// 1	clanName
+	pym_addInt(&pms, 0);		// 0	clanID (0 marks no-clan)
+	pym_addUnicode(&pms, "");	// 1	clanName
 	pym_tuple_end(&pms);
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
@@ -389,7 +389,7 @@ void _cb_charMgr_recv_requestDeleteCharacterInSlot(void *param, diJob_deleteChar
 	clientGamemain_t *cgm = (clientGamemain_t*)param;
 	charMgr_sendCharacterDeleteSuccess(cgm);
 	if( jobData->error == false )
-		if( jobData->slotId >= 1 && jobData->slotId <= 12 )
+		if( jobData->slotId >= 1 && jobData->slotId <= 16 )
 			_charMgr_sendUpdateEmptyPod(cgm, jobData->slotId);
 }
 

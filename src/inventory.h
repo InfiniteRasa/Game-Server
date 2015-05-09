@@ -39,6 +39,7 @@ typedef struct
 }item_t;
 
 void inventory_initForClient(mapChannelClient_t *client);
+void _inventory_initForClient(void *param, diJob_getCharacterInventory_t *jobData);
 item_t* inventory_CurrentWeapon(mapChannelClient_t *client);
 
 void inventory_notifyEquipmentUpdate(mapChannelClient_t *client);
@@ -54,6 +55,7 @@ void item_sendItemDestruction(mapChannelClient_t *client, item_t *item);
 void item_free(item_t* item);
 
 void item_recv_RequestTooltipForItemTemplateId(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
+void item_recv_PersonalInventoryDestroyItem(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void item_recv_PersonalInventoryMoveItem(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen);
 void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen);

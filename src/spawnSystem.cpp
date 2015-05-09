@@ -151,11 +151,17 @@ bool _spawnPool_callback(mapChannel_t *mapChannel, void *param, sint32 timePasse
 		if( spawnPool )
 			spawnPool_decreaseQueueCount(mapChannel,spawnPool);
 	}
-	//---type==2; bane dropship animation
+	//---type==1; bane dropship animation
 	else if(spawnPool->animType == SPAWNPOOL_ANIMTYPE_BANE_DROPSHIP)
 	{
-        // create dropship
+        // create bane_dropship
 	    banedropship_create(mapChannel, location->x, location->y, location->z, spawnTypeCount, spawnTypeList, spawnPool);
+	}
+	//---type==2; human dropship animation
+	else if (spawnPool->animType == SPAWNPOOL_ANIMTYPE_HUMAN_DROPSHIP)
+	{
+		// create human_dropship
+		humandropship_create(mapChannel, location->x, location->y, location->z, spawnTypeCount, spawnTypeList, spawnPool);
 	}
 	return true;
 }
