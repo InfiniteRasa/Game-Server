@@ -231,7 +231,7 @@ sint32 DataInterface_QuerySession(uint32 ID1, uint32 ID2, authSessionInfo_t *asi
 	
 	if( mysql_query(AuthInfo.mysql_as, queryText) )
 	{
-		printf("Error in query for sessions\n");
+		printf("Error in query DataInterface_QuerySession\n");
 		return 0;	
 	}
 	MYSQL_RES *dbResult = mysql_store_result(AuthInfo.mysql_as);

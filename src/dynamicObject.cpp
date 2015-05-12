@@ -4,7 +4,7 @@
 #define ACTION_USEOBJECT	80
 
 extern sint32 gridL1;
-extern  sint32 gridL2;
+extern sint32 gridL2;
 extern sint32 gridCount;
 extern sint32** entityPosGrid;
 extern sint32** forcefieldMap;
@@ -183,7 +183,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 	pym_addInt(&pms, dynObject->entityClassId); // classID
 	pym_addNoneStruct(&pms); // entityData (dunno)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	// set position
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -261,7 +261,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		pym_addInt(&pms, 56);
 //		pym_addInt(&pms, 0);
 //		pym_tuple_end(&pms);
-//		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, METHODID_FORCESTATE, pym_getData(&pms), pym_getLen(&pms));
+//		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, ForceState, pym_getData(&pms), pym_getLen(&pms));
 //	}
 //	if (dynObject->objectType == OBJECTTYPE_BASEWORMHOLE)
 //	{
@@ -271,7 +271,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		pym_addInt(&pms, 56);
 //		pym_addInt(&pms, 0);
 //		pym_tuple_end(&pms);
-//		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, METHODID_FORCESTATE, pym_getData(&pms), pym_getLen(&pms));
+//		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, ForceState, pym_getData(&pms), pym_getLen(&pms));
 //	}
 //	if (dynObject->objectType == OBJECTTYPE_TELEPORTER)
 //	{
@@ -538,7 +538,7 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, uint8 *pySt
 //	pym_addInt(&pms, 80);			// Action ID
 //	pym_addInt(&pms, 7);			// Arg ID
 //	pym_tuple_end(&pms); 			// Packet End
-//	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+//	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 //	return true;
 //}
 
@@ -572,7 +572,7 @@ void dynamicObject_recv_RequestActionInterrupt(mapChannelClient_t *client, uint8
 	pym_addInt(&pms, actionId);				// Action ID // 1 Weapon attack
 	pym_addInt(&pms, actionArgId);			// Arg ID // 133 pistol physical not crouched
 	pym_tuple_end(&pms); 							// Packet End
-	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 	// reset object use
 	client->usedObject.actionId = 0;
 	client->usedObject.actionArg = 0;

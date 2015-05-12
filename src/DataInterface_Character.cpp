@@ -66,7 +66,7 @@ void cb_DataInterface_Character_getCharacterPreviewInfo(MYSQL *dbCon, diJob_getC
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query cb_DataInterface_Character_getCharacterPreviewInfo\n");
 		while (1) Sleep(1000);
 	}
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
@@ -198,7 +198,7 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query cb_DataInterface_Character_getCharacterData\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 	}
@@ -367,7 +367,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	if (mysql_query(dbCon, queryText))
 	{
 		characterData->error = true;
-		printf("Error in query\n");
+		printf("Error in query cb_DataInterface_Character_createCharacter\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		((void(*)(void*, void*))cb)(param, characterData);
@@ -461,7 +461,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query inventory\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		((void(*)(void*, void*))cb)(param, characterData);
@@ -472,7 +472,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query skills\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		((void(*)(void*, void*))cb)(param, characterData);
@@ -483,7 +483,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query abilities\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		((void(*)(void*, void*))cb)(param, characterData);
@@ -507,7 +507,7 @@ void cb_DataInterface_Character_deleteCharacter(MYSQL *dbCon, diJob_deleteCharac
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query 'DELETE character'\n");
 		job->error = true;
 	}
 	else
@@ -566,7 +566,7 @@ void cb_DataInterface_Character_updateCharacter(MYSQL *dbCon, diJob_updateCharac
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query 'updateCharacter'\n");
 		job->error = true;
 	}
 	else
@@ -631,7 +631,7 @@ void cb_DataInterface_Character_getCharacterInventory(MYSQL *dbCon, diJob_getCha
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query 'getCharacterInventory'\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		job->error = true;
@@ -681,7 +681,7 @@ void cb_DataInterface_Character_updateCharacterInventory(MYSQL *dbCon, diJob_upd
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query 'cb_getCharacterInventory'\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		job->error = true;
@@ -713,7 +713,7 @@ void cb_DataInterface_Character_updateCharacterAppearance(MYSQL *dbCon, diJob_up
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query 'cb_updateCharacterAppearance'\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		job->error = true;
@@ -745,7 +745,7 @@ void cb_DataInterface_Character_updateCharacterAmmo(MYSQL *dbCon, diJob_updateCh
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
 	{
-		printf("Error in query\n");
+		printf("Error in query inventory\n");
 		puts(queryText);
 		puts(mysql_error(dbCon));
 		job->error = true;

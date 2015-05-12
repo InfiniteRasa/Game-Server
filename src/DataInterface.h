@@ -185,6 +185,13 @@ typedef struct
 	di_vendorItemData_t* itemList;
 }di_vendorData_t;
 
+typedef struct
+{
+	uint32 entityId;
+	char name;
+	char comment;
+}di_game_object_t;
+
 
 /* creature loot table */
 
@@ -325,18 +332,18 @@ typedef struct
 typedef struct
 {
 	uint32 id;
-	uint32 contextid;
-	uint32 type;   //--- twostate teleporter, waypoint, wormhole,etc
-	uint32 nameId; // used for name lookup
-	//uint32 modelid; //---appereance (now integrated into type)
+	uint32 contextId;	// teleporter map id
+	uint32 type;		//--- twostate teleporter, waypoint, wormhole,etc
+	uint32 nameId;		// used for name lookup
+	//uint32 modelid;	//---appereance (now integrated into type)
 	sint8 label[50];
 	float sx; //---current location
 	float sy;
 	float sz;
-	float dx; //---destination
+	float dx;			//---destination
 	float dy;
 	float dz;
-	float bx; //---activation area
+	float bx;			//---activation area
 	float bz;
 }di_teleporterData;
 

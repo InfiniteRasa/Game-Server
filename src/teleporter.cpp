@@ -21,14 +21,22 @@ void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData
 														teleporterList->sz);*/
 		dynObject_t *dynObject = NULL;
 		//_dynamicObject_create(teleporterList->modelid, teleporterList->type); 
-		if( teleporterList->type == OBJECTTYPE_WAYPOINT )
+		if (mapChannel->mapInfo->contextId == teleporterList->contextId)
 		{
-			dynObject = waypoint_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId);
-		}
-		if( !dynObject )
-		{
-			printf("Unknown teleporter type(%d) in db\n", teleporterList->type);
-			continue;
+			if (teleporterList->type == OBJECTTYPE_WAYPOINT)
+			{
+				dynObject = waypoint_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId, teleporterList->contextId);
+			}
+			else if (teleporterList->type == OBJECTTYPE_BASEWORMHOLE)
+			{
+				dynObject = wormhole_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId, teleporterList->contextId);
+				printf("wormhole created \n");
+			}
+			if (!dynObject)
+			{
+				printf("Unknown teleporter type(%d) in db\n", teleporterList->type);
+				continue;
+			}
 		}
 	}
 

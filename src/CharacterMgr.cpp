@@ -17,7 +17,7 @@ void charMgr_beginCharacterSelection(clientGamemain_t *cgm)
 	pym_tuple_end(&pms);
 	pym_addInt(&pms, 1); // bCanSkipBootcamp
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_BEGINCHARACTERSELETION, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, 5, BeginCharacterSelection, pym_getData(&pms), pym_getLen(&pms));
 
 }
 
@@ -29,7 +29,7 @@ void charMgr_sendCharacterCreateSuccess(clientGamemain_t *cgm, sint8* familyName
 	pym_addInt(&pms, slotNum); // slotNum
 	pym_addUnicode(&pms, familyName); // familyName
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_CHARACTERCREATESUCCESS, pym_getData(&pms), pym_getLen(&pms)); // 426 = CharacterCreateSuccess
+	netMgr_pythonAddMethodCallRaw(cgm, 5, CharacterCreateSuccess, pym_getData(&pms), pym_getLen(&pms)); // 426 = CharacterCreateSuccess
 }
 
 void charMgr_sendCharacterCreateFailed(clientGamemain_t *cgm, sint32 errorCode)
@@ -39,7 +39,7 @@ void charMgr_sendCharacterCreateFailed(clientGamemain_t *cgm, sint32 errorCode)
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, errorCode); // errorCode
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_USERCREATIONFAILED, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, 5, UserCreationFailed, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void charMgr_sendCharacterDeleteSuccess(clientGamemain_t *cgm)
@@ -49,7 +49,7 @@ void charMgr_sendCharacterDeleteSuccess(clientGamemain_t *cgm)
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 1); // hasCharacters
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_CHARACTERDELETESUCCESS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, 5, CharacterDeleteSuccess, pym_getData(&pms), pym_getLen(&pms));
 }
 
 
@@ -63,7 +63,7 @@ void charMgr_sendGeneratedCharacterName(clientGamemain_t *cgm, bool isMale)
 	else
 		pym_addUnicode(&cgm->pyms, (sint8*)"Rachel");
 	pym_tuple_end(&cgm->pyms);
-	netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_GENERATEDCHARACTERNAME, pym_getData(&cgm->pyms), pym_getLen(&cgm->pyms));
+	netMgr_pythonAddMethodCallRaw(cgm, 5, GeneratedCharacterName, pym_getData(&cgm->pyms), pym_getLen(&cgm->pyms));
 }
 
 
@@ -116,7 +116,7 @@ void _charMgr_sendUpdateEmptyPod(clientGamemain_t *cgm, sint32 podIdx)
 	pym_addNoneStruct(&pms);
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, entityID_charPodFirst+podIdx-1, METHODID_CHARACTERINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, entityID_charPodFirst+podIdx-1, CharacterInfo, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void charMgr_createSelectionPodEntitys(clientGamemain_t *cgm)
@@ -130,7 +130,7 @@ void charMgr_createSelectionPodEntitys(clientGamemain_t *cgm)
 		pym_addInt(&pms, 3543); // classID
 		pym_addNoneStruct(&pms); // entityData (dunno)
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	}
 }
 
@@ -227,7 +227,7 @@ void charMgr_sendCharacterInfo(clientGamemain_t *cgm, sint32 slotId, di_characte
 	pym_tuple_end(&pms);
 	pym_dict_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, entityID_charPodFirst+slotId-1, METHODID_CHARACTERINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, entityID_charPodFirst+slotId-1, CharacterInfo, pym_getData(&pms), pym_getLen(&pms));
 }
 
 sint32 charMgr_recv_requestCharacterName(clientGamemain_t *cgm, uint8 *pyString, sint32 pyStringLen)
@@ -474,7 +474,7 @@ void _cb_charMgr_recv_requestSwitchToCharacterInSlot(void *param, diJob_getChara
 	pym_tuple_end(&pms);
 	pym_addInt(&pms, 0);	// startRotation (todo, read from db and send as float)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cgm, 6, METHODID_WONKAVATE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cgm, 6, Wonkavate, pym_getData(&pms), pym_getLen(&pms));
 	// early pass the client to the mapChannel ( since it must load character )
 	cgm->State = GAMEMAIN_STATE_RELIEVED; // the gameMain thread will pass the client to the mapChannel
 	return;

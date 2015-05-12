@@ -61,7 +61,7 @@ void logos_appearForPlayers(mapChannel_t *mapChannel, dynObject_t *dynObject, ma
 	pym_addInt(&pms, USE_ID_STATE_ACTIVE);
 	pym_addInt(&pms, 10000); // windupTime should not be zero to avoid freezing animations?
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(playerList, playerCount, dynObject->entityId, METHODID_FORCESTATE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(playerList, playerCount, dynObject->entityId, ForceState, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void logos_disappearForPlayers(mapChannel_t *mapChannel, dynObject_t *dynObject, mapChannelClient_t **playerList, sint32 playerCount)
@@ -98,7 +98,7 @@ void logos_useObject(mapChannel_t *mapChannel, dynObject_t *dynObject, mapChanne
 	pym_addInt(&pms, 10000); // windupTime
 	// possible additional args
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, METHODID_USE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, Use, pym_getData(&pms), pym_getLen(&pms));
 	//// change CP state - ForceState
 	//pym_init(&pms);
 	//pym_tuple_begin(&pms);
@@ -147,7 +147,7 @@ bool logos_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObject, ui
 			pym_addInt(&pms, 80);			// Action ID
 			pym_addInt(&pms, 6);			// Arg ID
 			pym_tuple_end(&pms); 			// Packet End
-			netMgr_pythonAddMethodCallRaw(mapChannel, objData->userEntityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(mapChannel, objData->userEntityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 			// update logos point state
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
@@ -157,7 +157,7 @@ bool logos_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObject, ui
 			pym_tuple_begin(&pms);	// args
 			pym_tuple_end(&pms);
 			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, METHODID_USE, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, Use, pym_getData(&pms), pym_getLen(&pms));
 			// remove user
 			objData->userEntityId = 0;
 		}

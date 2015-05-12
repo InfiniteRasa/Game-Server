@@ -187,7 +187,7 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 		pym_addInt(&pms, 5); // dead
 		pym_list_end(&pms);
 		pym_tuple_end(&pms);
-		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, client->player->actor, client->player->actor->entityId, METHODID_STATECHANGE, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, client->player->actor, client->player->actor->entityId, StateChange, pym_getData(&pms), pym_getLen(&pms));
 		//direct decrease health
 		//gameEffect_attach(mapChannel, client->player->actor, 102, 1,500);										
 		//client->player->actor->stats.healthCurrent -= missile->damageA;
@@ -235,7 +235,7 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
 					client->player->actor, 
 					client->player->actor->entityId, 
-					METHODID_PLAYERDEAD, 
+					PlayerDead, 
 					pym_getData(&pms), pym_getLen(&pms));
 		}
 		// fix health
@@ -265,7 +265,7 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 		netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, 
 			client->player->actor, 
 			client->player->actor->entityId, 
-			METHODID_PLAYERDEAD, 
+			PlayerDead, 
 			pym_getData(&pms), pym_getLen(&pms));
 	}
 	if( armorDecrease != damage )
@@ -358,7 +358,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 	}
 	pym_list_end(&pms); 							// Hits Data End
 	pym_tuple_end(&pms); 							// Packet End
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 	
 	if( targetType == 0 )
 	{
@@ -429,7 +429,7 @@ void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t
 		pym_tuple_end(&pms); 						// Each Hit tuple start
 	pym_list_end(&pms); 							// Hits Data End
 	pym_tuple_end(&pms); 							// Packet End
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 	if( targetType == ENTITYTYPE_CREATURE )
 		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
 	else if( targetType == ENTITYTYPE_CLIENT )
@@ -507,7 +507,7 @@ void missile_ActionHandler_Lighting(mapChannel_t *mapChannel, missile_t *missile
 	}
 	pym_list_end(&pms); 							// Hits Data End
 	pym_tuple_end(&pms); 							// Packet End
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 	if( targetType == 0 )
 	{
 		// todo
@@ -617,7 +617,7 @@ void missile_check(mapChannel_t *mapChannel, sint32 passedTime)
 //	//pym_tuple_end(&pms); 						// Each Hit tuple start
 //	//pym_list_end(&pms); 							// Hits Data End
 //	pym_tuple_end(&pms); 							// Packet End
-//	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+//	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 //}
 
 /*

@@ -153,6 +153,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClCompile Include="src\UnpackObjects.cpp" />
     <ClCompile Include="src\vendor.cpp" />
     <ClCompile Include="src\waypoint.cpp" />
+    <ClCompile Include="src\wormhole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="config.ini" />
@@ -301,6 +302,7 @@ xcopy /y /d /s /i "$(ProjectDir)gameData" "$(OutDir)gameData"</Command>
     <ClInclude Include="src\ThreadsUtils.h" />
     <ClInclude Include="src\vendor.h" />
     <ClInclude Include="src\waypoint.h" />
+    <ClInclude Include="src\wormhole.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TabulaGameServer.rc" />

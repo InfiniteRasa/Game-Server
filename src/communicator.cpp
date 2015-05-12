@@ -367,7 +367,6 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		if (gm_parseGmCommands(cm, textMsg) == true)
 			return true;
 	}
-
 	//if( memcmp(textMsg,".pathnode ",10) == 0)
 	//{
 	//        
@@ -402,7 +401,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		pym_tuple_end(&pms);
 		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
 			cm->player->actor,
-			cm->player->actor->entityId, METHODID_UPDATEHEALTH,
+			cm->player->actor->entityId, UpdateHealth,
 			pym_getData(&pms), pym_getLen(&pms));
 		return true;
 	}
@@ -747,7 +746,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 				return true;
 
 			// destroy it through 
-			//#define METHODID_DESTROYPHYSICALENTITY 56
+			// MethodID::DestroyPhysicalEntity
 			creature_cellDiscardCreatureToClients(cm->mapChannel, creature, &cm->player->controllerUser, 1);
 		}
 		return true;
@@ -791,7 +790,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 		netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
 			cm->player->actor,
 			cm->player->actor->entityId,
-			METHODID_REVIVED,
+			Revived,
 			pym_getData(&pms), pym_getLen(&pms));
 		communicator_systemMessage(cm, "Revived!");
 		return true;
@@ -1073,15 +1072,15 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			pym_addInt(&pms, classId); // classID
 			pym_addNoneStruct(&pms); // entityData (dunno)
 			pym_tuple_end(&pms);
-			netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 			// set position
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
 			// position
 			pym_tuple_begin(&pms);
 			pym_addFloat(&pms, cm->player->actor->posX);	// x
-			pym_addFloat(&pms, cm->player->actor->posY + 1.0f);	// y
-			pym_addFloat(&pms, cm->player->actor->posZ);	// z
+			pym_addFloat(&pms, cm->player->actor->posY);	// y
+			pym_addFloat(&pms, cm->player->actor->posZ + 5);	// z
 			pym_tuple_end(&pms);
 			// rotation quaterninion
 			//float qOut[4];
@@ -1261,7 +1260,7 @@ bool communicator_parseCommand(mapChannelClient_t *cm, sint8 *textMsg)
 			pym_tuple_end(&pms);
 			pym_addInt(&pms, 0);	// startRotation (todo, read from db and send as float)
 			pym_tuple_end(&pms);
-			netMgr_pythonAddMethodCallRaw(cm->cgm, 6, METHODID_WONKAVATE, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(cm->cgm, 6, Wonkavate, pym_getData(&pms), pym_getLen(&pms));
 			//wonkavate = buggy?
 			//cm->cgm->State = GAMEMAIN_STATE_RELIEVED;
 			//################## player assigning ###############
