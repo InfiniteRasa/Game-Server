@@ -1,17 +1,27 @@
 // ids are used only for the database
-#define OBJECTTYPE_FOOTLOCKER		1
-#define OBJECTTYPE_UNDEFINED		2
-#define OBJECTTYPE_BANE_DROPSHIP	3
-#define OBJECTTYPE_CONTROL_POINT	4
-#define OBJECTTYPE_LOGOS			5
-#define OBJECTTYPE_HUMAN_DROPSHIP	6
-#define OBJECTTYPE_TELEPORTER		7
-#define OBJECTTYPE_WAYPOINT			8
-#define OBJECTTYPE_DOOR				9
-#define OBJECTTYPE_FORCEFIELD		10
-#define OBJECTTYPE_AFS_TURRET		11
-#define OBJECTTYPE_BASEWORMHOLE		14
-#define OBJECTTYPE_TORIODCANNON		15
+#pragma once
+enum ObjectType_IDs {
+	ControlPoint			= 1,
+	WaypointTeleporter		= 2,
+	Hospital				= 3,
+	CraftingStation			= 4,
+	InstanceEntrance		= 5,
+	BattlefieldEntrance		= 6,
+	LocalTeleporter			= 7,
+	WormholeTeleporter		= 8,
+	DropshipTeleporter		= 9,
+	Footlocker				= 10,
+	ClanFootLocker			= 11,
+	BaneDropShip			= 12,
+	HumanDropShip			= 13,
+	Logos					= 14,
+	DoorTrigger				= 15,
+	Auctioneer				= 16,
+	Forcefield				= 17,
+	AFSTuret				= 18,
+	ToriodCannon			= 19,
+	Undefined				= 20
+};
 
 void dynamicObject_init(mapChannel_t *mapChannel);
 
@@ -55,6 +65,8 @@ typedef struct _dynObject_t
 	//float viewY;
 	// useable data
 	sint32 stateId;
+	sint32 contextId;
+	sint32 contested;
 	// todo: rotation quarterninion
 	mapCellLocation_t cellLocation;
 }dynObject_t;

@@ -547,7 +547,7 @@ void cb_DataInterface_Character_updateCharacter(MYSQL *dbCon, diJob_updateCharac
 		sprintf(queryText, "UPDATE characters SET experience=%d WHERE userId=%I64u AND slotId=%d", job->value, job->userId, job->slotId);
 		break;
 	case 5:
-		sprintf(queryText, "UPDATE characters SET posX=%f, posY=%f, posZ=%f, rotation=%f WHERE userId=%I64u AND slotId=%d", job->posX, job->posY, job->posZ, job->rotation, job->userId, job->slotId);
+		sprintf(queryText, "UPDATE characters SET posX=%f, posY=%f, posZ=%f, rotation=%f, currentContextId =%d WHERE userId=%I64u AND slotId=%d", job->posX, job->posY, job->posZ, job->rotation, job->currentContextId, job->userId, job->slotId);
 		break;
 	case 6:
 		sprintf(queryText, "UPDATE characters SET body=%d, mind=%d, spirit=%d WHERE userId=%I64u AND slotId=%d", job->body, job->mind, job->spirit, job->userId, job->slotId);
@@ -588,7 +588,7 @@ void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 s
 	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
 }
 
-void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation)
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation, sint32 contextId)
 {
 	diJob_updateCharacter_t *job = (diJob_updateCharacter_t*)DataInterface_allocJob(sizeof(diJob_updateCharacter_t));
 	job->userId = userID;
@@ -598,6 +598,7 @@ void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 s
 	job->posY = posY;
 	job->posZ = posZ;
 	job->rotation = rotation;
+	job->currentContextId = contextId;
 	DataInterface_queueJob(job, cb_DataInterface_Character_updateCharacter, NULL, NULL);
 }
 

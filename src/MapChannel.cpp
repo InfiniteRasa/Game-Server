@@ -81,6 +81,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			player->player->actor->posX = destX; 
 			player->player->actor->posY = destY;
 			player->player->actor->posZ = destZ;
+			player->player->actor->contextId = mapContextId;
 			//cm->mapChannel->mapInfo->contextId = telepos.mapContextId;
 		  
 			
@@ -110,6 +111,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			player->player->actor->posX = destX; 
 			player->player->actor->posY = destY;
 			player->player->actor->posZ = destZ;
+			player->player->actor->contextId = mapContextId;
 			cellMgr_addToWorld(player); //cellsint32roducing to player /from players
 			// setCurrentContextId (clientMethod.362)
 			pym_init(&pms);

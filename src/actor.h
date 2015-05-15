@@ -86,6 +86,7 @@ typedef struct _actor_t
 	float posY;
 	float posZ;
 	float rotation;
+	sint32 contextId;
 	//sint32 attackstyle;
 	//sint32 actionid;
 	bool isRunning;

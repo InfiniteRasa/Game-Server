@@ -58,9 +58,9 @@ dynObject_t *_dynamicObject_create(uint32 classId, dynObjectType_t* objectType)
 	dynObject->entityId = entityMgr_getFreeEntityIdForObject();
 	dynObject->type = objectType;	
 
-	//if( objectType == OBJECTTYPE_FOOTLOCKER )
+	//if( objectType == Footlocker )
 	//	__debugbreak(); // todo
-	//else if( objectType == OBJECTTYPE_BANE_DROPSHIP )
+	//else if( objectType == BaneDropShip )
 	//	dynObject->type = &dynObjectType_banedropship;
 	//else
 	//{
@@ -151,7 +151,7 @@ void dynamicObject_stopPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyn
 //dynObject_t *dynamicObject_createFootlocker(float x, float y, float z, float rotX, float rotY, float rotZ)
 //{
 //	return NULL;
-//	//dynObject_t *dynObject = _dynamicObject_create(21030, OBJECTTYPE_FOOTLOCKER);
+//	//dynObject_t *dynObject = _dynamicObject_create(21030, Footlocker);
 //	//if( !dynObject )
 //	//	return NULL;
 //	//dynamicObject_setPosition(dynObject, x, y, z);
@@ -163,7 +163,7 @@ void dynamicObject_stopPeriodicUpdate(mapChannel_t *mapChannel, dynObject_t *dyn
 //dynObject_t *dynamicObject_createCustom(sint32 classId, float x, float y, float z, float rotX, float rotY, float rotZ)
 //{
 //	return NULL;
-//	//dynObject_t *dynObject = _dynamicObject_create(classId, OBJECTTYPE_UNDEFINED);
+//	//dynObject_t *dynObject = _dynamicObject_create(classId, Undefined);
 //	//if( !dynObject )
 //	//	return NULL;
 //	//dynamicObject_setPosition(dynObject, x, y, z);
@@ -206,7 +206,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 	pym_tuple_end(&pms);
 	netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 243, pym_getData(&pms), pym_getLen(&pms));	
 	// additional info depending on type
-//	if (dynObject->objectType == OBJECTTYPE_AFS_TURRET)
+//	if (dynObject->objectType == AFSTuret)
 //	{
 //	   
 //		
@@ -253,7 +253,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		netMgr_cellDomain_pythonAddMethodCallRaw(client->mapChannel, dynObject, dynObject->entityId, 125, pym_getData(&pms), pym_getLen(&pms));
 //		
 //	}
-//	if (dynObject->objectType == OBJECTTYPE_TORIODCANNON)
+//	if (dynObject->objectType == ToriodCannon)
 //	{
 //		pyMarshalString_t pms;
 //		pym_init(&pms);
@@ -263,7 +263,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		pym_tuple_end(&pms);
 //		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, ForceState, pym_getData(&pms), pym_getLen(&pms));
 //	}
-//	if (dynObject->objectType == OBJECTTYPE_BASEWORMHOLE)
+//	if (dynObject->objectType == WormholeTeleporter)
 //	{
 //		pyMarshalString_t pms;
 //		pym_init(&pms);
@@ -273,7 +273,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		pym_tuple_end(&pms);
 //		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, ForceState, pym_getData(&pms), pym_getLen(&pms));
 //	}
-//	if (dynObject->objectType == OBJECTTYPE_TELEPORTER)
+//	if (dynObject->objectType == InstanceEntrance)
 //	{
 //		pym_init(&pms);
 //		pym_tuple_begin(&pms);
@@ -286,7 +286,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 229, pym_getData(&pms), pym_getLen(&pms));
 //	}
 
-//	if (dynObject->objectType == OBJECTTYPE_DOOR)
+//	if (dynObject->objectType == DoorTrigger)
 //	{
 //	
 //		pyMarshalString_t pms;
@@ -297,7 +297,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //		pym_tuple_end(&pms);
 //		netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, 454, pym_getData(&pms), pym_getLen(&pms));
 //	}
-//	if (dynObject->objectType == OBJECTTYPE_FORCEFIELD)
+//	if (dynObject->objectType == Forcefield)
 //	{		
 //		pyMarshalString_t pms;
 //		pym_init(&pms);
@@ -316,7 +316,7 @@ void dynamicObject_createObjectOnClient(mapChannelClient_t *client, dynObject_t 
 //
 //	}
 
-//	if (dynObject->objectType == OBJECTTYPE_LOGOS)
+//	if (dynObject->objectType == Logos)
 //	{
 //		pym_init(&pms);
 //		pym_tuple_begin(&pms);
@@ -458,15 +458,15 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, uint8 *pySt
 
 	//switch( dynObject->objectType )
 	//{
-	//case OBJECTTYPE_TELEPORTER:
+	//case InstanceEntrance:
 	//	printf("use teleporter\n");
 	//	 dynamicObject_teleporter_useObject(client, actionId, actionArgId, dynObject);
 	//	break;
 	//
-	//case OBJECTTYPE_FOOTLOCKER:
+	//case Footlocker:
 	//	dynamicObject_footlocker_useObject(client, actionId, actionArgId, dynObject);
 	//	break;
-	//case OBJECTTYPE_CONTROL_POINT:
+	//case ControlPoint:
 	//	/*
 	//		(176) (USE_CPOsint32_STATE_FACTION_A_OWNED)
 	//		(177) (USE_CPOsint32_STATE_FACTION_B_CLAIMING)
@@ -494,7 +494,7 @@ void dynamicObject_recv_RequestUseObject(mapChannelClient_t *client, uint8 *pySt
 	//	client->mapChannel->cp_trigger.timeLeft = 9500;
 	//	client->mapChannel->cp_trigger.period = 0;
 	//	break;
-	//case OBJECTTYPE_LOGOS:
+	//case Logos:
 	//	printf("using logos\n");
 	//	// Recv_Use(self, actorId, curStateId, windupTimeMs, *args):
 	//	// send interruptible use
@@ -598,6 +598,8 @@ void dynamicObject_cellIntroduceObjectsToClient(mapChannel_t *mapChannel, mapCha
 	for(sint32 i=0; i<objectCount; i++)
 	{
 		dynamicObject_createObjectOnClient(client, objectList[i]);
+		printf("objectlist %i \n", objectList[i]->entityId);
+		printf("objectlist class %i \n", objectList[i]->entityClassId);
 		if( objectList[i]->type->appearForPlayers )
 			objectList[i]->type->appearForPlayers(mapChannel, objectList[i], tempPlayerList, 1);
 	}
@@ -645,7 +647,7 @@ void dynamicObject_cellDiscardObjectsToClient(mapChannel_t *mapChannel, mapChann
 
 void dynamicObject_createLogosObject(mapChannel_t *mapChannel, float x, float y, float z)
 {
-	//dynObject_t *dynObject = _dynamicObject_create(7302, OBJECTTYPE_LOGOS); // 3814
+	//dynObject_t *dynObject = _dynamicObject_create(7302, Logos); // 3814
 	//if( !dynObject )
 	//	return;
 	//dynamicObject_setPosition(dynObject, x, y, z);

@@ -5,7 +5,6 @@
 
 void cb_DataInterface_teleporter_getList(MYSQL *dbCon, diJob_teleporterData *job, void *cb, void *param)
 {
-  
 	sint8 queryText[1024];
 	job->scount = 0;
 	job->tdata = NULL;
@@ -31,7 +30,6 @@ void cb_DataInterface_teleporter_getList(MYSQL *dbCon, diJob_teleporterData *job
 		   x++;
 		   sscanf(dbRow[0], "%d", &teleporter->id);
 		   sscanf(dbRow[1], "%d", &teleporter->type);
-		   //strcpy(teleporter->label, dbRow[2]); 
 		   sscanf(dbRow[2], "%f", &teleporter->sx);
 		   sscanf(dbRow[3], "%f", &teleporter->sy);
 		   sscanf(dbRow[4], "%f", &teleporter->sz);

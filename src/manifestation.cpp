@@ -265,6 +265,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
 	manifestation->actor->rotation = characterData->rotation;
+	manifestation->actor->contextId = characterData->currentContextId;
 	manifestation->actor->entityClassId = characterData->genderIsMale?692:691;
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;

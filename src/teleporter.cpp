@@ -20,24 +20,22 @@ void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData
 														teleporterList->sy,
 														teleporterList->sz);*/
 		dynObject_t *dynObject = NULL;
-		//_dynamicObject_create(teleporterList->modelid, teleporterList->type); 
-		if (mapChannel->mapInfo->contextId == teleporterList->contextId)
-		{
-			if (teleporterList->type == OBJECTTYPE_WAYPOINT)
+		//_dynamicObject_create(teleporterList->modelid, teleporterList->type);
+		if (teleporterList->type == WaypointTeleporter)
+			if (mapChannel->mapInfo->contextId == teleporterList->contextId)
 			{
 				dynObject = waypoint_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId, teleporterList->contextId);
 			}
-			else if (teleporterList->type == OBJECTTYPE_BASEWORMHOLE)
+			else
+				continue;
+		else if (teleporterList->type == WormholeTeleporter)
+			// if (mapChannel->mapInfo->contextId == teleporterList->contextId) // this should be enable so it dont add wormhole object on every map
 			{
 				dynObject = wormhole_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId, teleporterList->contextId);
 				printf("wormhole created \n");
 			}
-			if (!dynObject)
-			{
-				printf("Unknown teleporter type(%d) in db\n", teleporterList->type);
+			else
 				continue;
-			}
-		}
 	}
 
 	mapChannel->loadState = 1; // loading is done
