@@ -185,6 +185,13 @@ typedef struct
 	di_vendorItemData_t* itemList;
 }di_vendorData_t;
 
+typedef struct
+{
+	uint32 entityId;
+	char name;
+	char comment;
+}di_game_object_t;
+
 
 /* creature loot table */
 
@@ -325,18 +332,18 @@ typedef struct
 typedef struct
 {
 	uint32 id;
-	uint32 contextid;
-	uint32 type;   //--- twostate teleporter, waypoint, wormhole,etc
-	uint32 nameId; // used for name lookup
-	//uint32 modelid; //---appereance (now integrated into type)
+	uint32 contextId;	// teleporter map id
+	uint32 type;		//--- twostate teleporter, waypoint, wormhole,etc
+	uint32 nameId;		// used for name lookup
+	//uint32 modelid;	//---appereance (now integrated into type)
 	sint8 label[50];
 	float sx; //---current location
 	float sy;
 	float sz;
-	float dx; //---destination
+	float dx;			//---destination
 	float dy;
 	float dz;
-	float bx; //---activation area
+	float bx;			//---activation area
 	float bz;
 }di_teleporterData;
 
@@ -509,6 +516,7 @@ typedef struct
 	float posY;
 	float posZ;
 	float rotation;
+	sint32 currentContextId;
 	uint32 body;
 	uint32 mind;
 	uint32 spirit;
@@ -647,7 +655,7 @@ void DataInterface_Character_getCharacterData(unsigned long long userID, uint32 
 void DataInterface_Character_createCharacter(di_characterLayout_t *characterData, void(*cb)(void *param, di_characterLayout_t *jobData), void *param);
 void DataInterface_Character_deleteCharacter(unsigned long long userID, sint32 slotId, void(*cb)(void *param, diJob_deleteCharacter_t *jobData), void *param);
 void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 value);
-void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation);
+void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, float posX, float posY, float posZ, float rotation, sint32 contextId);
 void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, uint32 body, uint32 mind, uint32 spirit);
 void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 slotId, uint32 stat, const char* logos);
 void DataInterface_Character_getCharacterInventory(unsigned long long characterID, uint32 * item, uint32 * qty, void(*cb)(void *param, diJob_getCharacterInventory_t *jobData), void *param);

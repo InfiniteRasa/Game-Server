@@ -16,7 +16,7 @@
 (1506, 'adv_foreas_concordia_wilderness_cavesofdonn02', 535, 8) #Planet Foreas: Concordia - Wilderness (Caves of Donn) -276,25,-362
 (2368, 'adv_foreas_concordia_wilderness_cavesofdonn_epic', 13, 8) #adv_foreas_concordia_wilderness_cavesofdonn_epic (Epic Caves of Donn) -276,25,-362
 ###Foreas Concordia Palisades
-#(1244, 'adv_foreas_concordia_palisades', 1016, 0) #Planet Foreas: Concordia - Palisades (Cumbria Research Facility) -766,140,654 
+(1244, 'adv_foreas_concordia_palisades', 1016, 0) #Planet Foreas: Concordia - Palisades (Cumbria Research Facility) -766,140,654 
 #(1384, 'adv_foreas_concordia_palisades_warnetcaverns', 203, 0) #Planet Foreas: Concordia - Palisades (Warnet Caverns) -120,100,45
 #(1394, 'adv_foreas_concordia_palisades_devilsden', 327, 0) #Planet Foreas: Concordia - Palisades (Devils Den) 15,102,-359
 #(1397, 'adv_foreas_concordia_palisades_treebackcamp', 286, 0) #Planet Foreas: Concordia - Palisades (Treeback Camp) -325,104,338
@@ -24,7 +24,7 @@
 #(2084, 'adv_foreas_concordia_elohcommtower2', 337, 0) #Planet Foreas: Concordia - Palisades (Eloh Vale) -46,171,-455
 ##Foreas Valverde
 ###Foreas Valverde Plateu
-#(1497, 'adv_foreas_valverde_plateau', 791, 0) #Planet Foreas: Valverde - Plateau (Fort Defiance) -263,421,858
+(1497, 'adv_foreas_valverde_plateau', 791, 0) #Planet Foreas: Valverde - Plateau (Fort Defiance) -263,421,858
 #(1502, 'adv_foreas_valverde_plateau_ustoryard', 187, 9) #Planet Foreas: Valverde - Plateau (Ustor Yard) 366,170,-8
 #(1823, 'adv_foreas_valverde_plateau_sanctusgrotto', 154, 0) #Planet Foreas: Valverde - Descent (Sanctus Grotto) 336,202,-152
 #(1830, 'adv_foreas_valverde_plateau_maligobasev3', 144, 0) #Planet Foreas: Valverde - Plateau (Maligo Base) -123,43,166

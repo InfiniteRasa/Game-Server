@@ -72,7 +72,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			pym_tuple_end(&pms);
 			pym_addInt(&pms, 0);	// startRotation (todo, read from db and send as float)
 			pym_tuple_end(&pms);
-			netMgr_pythonAddMethodCallRaw(player->cgm, 6, METHODID_WONKAVATE, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(player->cgm, 6, Wonkavate, pym_getData(&pms), pym_getLen(&pms));
 			
 			//################## player assigning ###############
 			communicator_loginOk(player->mapChannel, player);
@@ -81,6 +81,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			player->player->actor->posX = destX; 
 			player->player->actor->posY = destY;
 			player->player->actor->posZ = destZ;
+			player->player->actor->contextId = mapContextId;
 			//cm->mapChannel->mapInfo->contextId = telepos.mapContextId;
 		  
 			
@@ -110,6 +111,7 @@ void mapteleporter_teleportEntity(sint32 destX,sint32 destY, sint32 destZ, sint3
 			player->player->actor->posX = destX; 
 			player->player->actor->posY = destY;
 			player->player->actor->posZ = destZ;
+			player->player->actor->contextId = mapContextId;
 			cellMgr_addToWorld(player); //cellsint32roducing to player /from players
 			// setCurrentContextId (clientMethod.362)
 			pym_init(&pms);
@@ -464,7 +466,7 @@ void mapChannel_recv_LogoutRequest(mapChannelClient_t *cm, uint8 *pyString, sint
 	pym_tuple_begin(&pms);
 	pym_addInt(&pms, 0*1000); // milliseconds
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_LOGOUTTIMEREMAINING, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, 5, LogoutTimeRemaining, pym_getData(&pms), pym_getLen(&pms));
 	cm->logoutRequestedLast = GetTickCount();
 	cm->logoutActive = true;
 }
@@ -486,7 +488,7 @@ void mapChannel_recv_ClearTrackingTarget(mapChannelClient_t *cm, uint8 *pyString
 	pym_tuple_begin(&pms);
 	pym_addLong(&pms, 0); // tracking target - none
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_SETTRACKINGTARGET, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, SetTrackingTarget, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void mapChannel_recv_SetTrackingTarget(mapChannelClient_t *cm, uint8 *pyString, sint32 pyStringLen)
@@ -503,67 +505,67 @@ void mapChannel_recv_SetTrackingTarget(mapChannelClient_t *cm, uint8 *pyString, 
 	pym_tuple_begin(&pms);
 	pym_addLong(&pms, trackingTargetEntityId); // tracking target
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_SETTRACKINGTARGET, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, SetTrackingTarget, pym_getData(&pms), pym_getLen(&pms));
 }
 
-void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 *pyString, sint32 pyStringLen)
+void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 MethodID, uint8 *pyString, sint32 pyStringLen)
 {
 	// check if 'O'
 	if( *pyString != 'O' )
 		__debugbreak(); // oh shit...
 	pyString++; pyStringLen--;
 
-	switch( methodID )
+	switch( MethodID )
 	{
-	case METHODID_ALLOCATEATTRIBUTEPOINTS:
+	case AllocateAttributePoints:
 		manifestation_recv_AllocateAttributePoints(cm, pyString, pyStringLen);
 		return;
-	case METHODID_LEVELSKILLS:
+	case LevelSkills:
 		manifestation_recv_LevelSkills(cm, pyString, pyStringLen);
 		return;
-	case METHODID_WHISPER: // Whisper
+	case Whisper: // Whisper
 		communicator_recv_whisper(cm, pyString, pyStringLen);
 		return;
 	case 43: // ClearTargetId
 		manifestation_recv_ClearTargetId(cm, pyString, pyStringLen);
 		return;
-	case METHODID_RADIALCHAT: // RadialChat
+	case RadialChat: // RadialChat
 		communicator_recv_radialChat(cm, pyString, pyStringLen);
 		return;
-	case METHODID_MAPLOADED: // MapLoaded
+	case MapLoaded: // MapLoaded
 		mapChannel_recv_mapLoaded(cm, pyString, pyStringLen);
 		return;
 	case 129: // Ping
 		// todo
 		return;
-	case METHODID_REQUESTTOGGLERUN: // ToggleRun
+	case RequestToggleRun: // ToggleRun
 		manifestation_recv_ToggleRun(cm, pyString, pyStringLen);
 		return;
 	case 201: // SetTargetId
 		manifestation_recv_SetTargetId(cm, pyString, pyStringLen);
 		return;
-	case METHODID_CLEARTRACKINGTARGET:
+	case ClearTrackingTarget:
 		mapChannel_recv_ClearTrackingTarget(cm, pyString, pyStringLen);
 		return;
-	case METHODID_SETTRACKINGTARGET:
+	case SetTrackingTarget:
 		mapChannel_recv_SetTrackingTarget(cm, pyString, pyStringLen);
 		return;
-	case METHODID_SHOUT: // Shout
+	case Shout: // Shout
 		communicator_recv_shout(cm, pyString, pyStringLen);
 		return;
 	case 343: // RequestPerformAbility
 		manifestation_recv_RequestPerformAbility(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTUSEOBJECT: // RequestUseObject
+	case RequestUseObject: // RequestUseObject
 		dynamicObject_recv_RequestUseObject(cm, pyString, pyStringLen);
 		return;
 	case 407: //AssignNPCMission
 		npc_recv_AssignNPCMission(cm, pyString, pyStringLen);
 		return;
-	case METHODID_PERSONALINVENTORY_DESTROYITEM: // PersonalInventory_DestroyItem
+	case PersonalInventory_DestroyItem: // PersonalInventory_DestroyItem
 		item_recv_PersonalInventoryDestroyItem(cm, pyString, pyStringLen);
 		return;
-	case METHODID_PERSONALINVENTORY_MOVEITEM: // PersonalInventory_MoveItem
+	case PersonalInventory_MoveItem: // PersonalInventory_MoveItem
 		item_recv_PersonalInventoryMoveItem(cm, pyString, pyStringLen);
 		return;
 	case 506: // RequestArmAbility
@@ -572,16 +574,16 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case 507: // RequestArmWeapon
 		item_recv_RequestArmWeapon(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTEQUIPARMOR: // RequestEquipArmor
+	case RequestEquipArmor: // RequestEquipArmor
 		item_recv_RequestEquipArmor(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTEQUIPWEAPON: // RequestEquipWeapon
+	case RequestEquipWeapon: // RequestEquipWeapon
 		item_recv_RequestEquipWeapon(cm, pyString, pyStringLen);
 		return;
 	case 518: // RequestNPCConverse
 		npc_recv_RequestNPCConverse(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTNPCVENDING: // RequestNPCVending
+	case RequestNPCVending: // RequestNPCVending
 		npc_recv_RequestNPCVending(cm, pyString, pyStringLen);
 		return;
 	case RequestVendorSale:
@@ -599,10 +601,10 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case 522: // RequestSetAbilitySlot
 		manifestation_recv_RequestSetAbilitySlot(cm, pyString, pyStringLen);
 		return;
-	case 530: // RequestWeaponDraw
+	case RequestWeaponDraw: // RequestWeaponDraw
 		item_recv_RequestWeaponDraw(cm, pyString, pyStringLen);
 		return;
-	case 531: // RequestWeaponReload
+	case RequestWeaponReload: // RequestWeaponReload
 		item_recv_RequestWeaponReload(cm, pyString, pyStringLen, false);
 		return;
 	case 532: // RequestWeaponStow
@@ -617,44 +619,45 @@ void mapChannel_processPythonRPC(mapChannelClient_t *cm, uint32 methodID, uint8 
 	case 410: // AutoFireKeepAlive
 		manifestation_recv_AutoFireKeepAlive(cm, pyString, pyStringLen);
 		return;
-	case 573: // WeaponDrawerInventory_MoveItem
+	case WeaponDrawerInventory_MoveItem: // WeaponDrawerInventory_MoveItem
 		printf("TODO: WeaponDrawerInventory MoveItem\n");
 		return;
-	case METHODID_REQUESTTOOLTIPFORITEMTEMPLATEID: // RequestTooltipForItemTemplateId
+	case RequestTooltipForItemTemplateId: // RequestTooltipForItemTemplateId
 		item_recv_RequestTooltipForItemTemplateId(cm, pyString, pyStringLen);
 		return;
-	case 753: // RequestVisualCombatMode
+	case RequestVisualCombatMode: // RequestVisualCombatMode
 		printf("VisualCombatMode:\n");
 		HexOut(pyString, pyStringLen);
 		printf("\n\n");
 		manifestation_recv_RequestVisualCombatMode(cm, pyString, pyStringLen);
 		return;
-	case 759: // RequestActioninterrupt
+	case RequestActionInterrupt: // RequestActionInterrupt
 		dynamicObject_recv_RequestActionInterrupt(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTLOGOUT: // RequestLogout
+	case RequestLogout: // RequestLogout
 		mapChannel_recv_LogoutRequest(cm, pyString, pyStringLen);
 		return;
-	case METHODID_CHANNELCHAT: // ChannelChat
+	case ChannelChat: // ChannelChat
 		communicator_recv_channelChat(cm, pyString, pyStringLen);
 		return;
-	case METHODID_CHARACTERLOGOUT: // CharacterLogout
+	case CharacterLogout: // CharacterLogout
 		mapChannel_recv_CharacterLogout(cm, pyString, pyStringLen);
 		return;
-	case METHODID_REQUESTWEAPONATTACK: //player attack
+	case RequestWeaponAttack: //player attack
 		missile_playerTryFireWeapon(cm);
 		return;
-	case METHODID_REVIVEME: // dead player wish to go to the hospital
+	case ReviveMe: // dead player wish to go to the hospital
 		manifestation_recv_Revive(cm, pyString, pyStringLen);
 		return;
-	case METHODID_SELECTWAYPOINT: // waypoint selected
+	case SelectWaypoint: // waypoint selected
 		waypoint_recv_SelectWaypoint(cm, pyString, pyStringLen);
+		wormhole_recv_SelectWormhole(cm, pyString, pyStringLen);
 		return;
 	case RequestLootAllFromCorpse: // player auto-loot full corpse
 		lootdispenser_recv_RequestLootAllFromCorpse(cm, pyString, pyStringLen);
 		return;
 	default:
-		printf("MapChannel_UnknownMethodID: %d\n", methodID);
+		printf("MapChannel_UnknownMethodID: %d\n", MethodID);
 		printf("MapChannel_RPCPacket - Size: %d\n", pyStringLen);
 		HexOut(pyString, pyStringLen);
 		printf("\n\n");

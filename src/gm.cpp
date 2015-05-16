@@ -47,7 +47,7 @@ void gm_addPathNode(mapChannelClient_t *cm)
 	pym_addInt(&pms, 26582); // classID
 	pym_addNoneStruct(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	// set position
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -101,7 +101,7 @@ void gm_discardPath(mapChannelClient_t *cm)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, pathNodeList[f].entityId_nodeDebugObject); // entityID
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_DESTROYPHYSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, DestroyPhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	}
 	// delete path
 	delete cm->player->gmData->pathCreation;
@@ -141,7 +141,7 @@ void gm_finishPath(mapChannelClient_t *cm, bool attachToLastSpawnpool)
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, pathNodeList[f].entityId_nodeDebugObject); // entityID
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, METHODID_DESTROYPHYSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(cm->cgm, 5, DestroyPhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	}
 	// analyze path to get mode (cyclic or one-shot)
 	float startLoc[3];

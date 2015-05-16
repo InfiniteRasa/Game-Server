@@ -178,7 +178,7 @@ void inventory_removeItemBySlot(mapChannelClient_t *client, sint32 inventoryType
 	pym_addInt(&pms, inventoryType); // inventoryType
 	pym_addInt(&pms, entityId); // entityID
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYREMOVEITEM, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, InventoryRemoveItem, pym_getData(&pms), pym_getLen(&pms));
 	// update item in database
 	DataInterface_Character_updateCharacterInventory(client->tempCharacterData->characterID, slotIndex + slotType, 0, 0);
 }
@@ -222,7 +222,7 @@ void inventory_addItemBySlot(mapChannelClient_t *client, sint32 inventoryType, s
 	pym_addInt(&pms, entityId); // entityID
 	pym_addInt(&pms, slotIndex); // slotIndex
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYADDITEM, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, InventoryAddItem, pym_getData(&pms), pym_getLen(&pms));
 	// update item in database
 	DataInterface_Character_updateCharacterInventory(client->tempCharacterData->characterID, itemEntity->locationSlotIndex, itemEntity->itemTemplate->item.templateId, itemEntity->stacksize);
 }
@@ -453,7 +453,7 @@ void item_recv_RequestEquipArmor(mapChannelClient_t *client, uint8 *pyString, si
 	// update armor
 	manifestation_updateStatsValues(client, false);
 	manifestation_buildAttributeInfoPacket(client, &pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(client, client->player->actor->entityId, AttributeInfo, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void item_recv_RequestEquipWeapon(mapChannelClient_t *client, uint8 *pyString, sint32 pyStringLen)
@@ -674,7 +674,7 @@ void _cb_item_recv_RequestWeaponReload_actionUpdate(mapChannel_t* mapChannel, ac
 		pym_addInt(&pms, actor->currentAction.actionArgId);	// Arg ID
 		pym_addInt(&pms, item->weaponData.ammoCount);		// new ammo count
 		pym_tuple_end(&pms); 								// Packet End
-		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 		/*pym_init(&pms);
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, item->weaponData.ammoCount);
@@ -772,7 +772,7 @@ void item_sendItemDataToClient(mapChannelClient_t *client, item_t *item)
 	pym_addInt(&pms, item->itemTemplate->item.classId);					// classID
 	pym_addNoneStruct(&pms);											// entityData (dunno)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	// send item info
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -926,7 +926,7 @@ void inventory_notifyEquipmentUpdate(mapChannelClient_t *client)
 	// more equipment todo?
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, METHODID_EQUIPMENTINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, client->player->actor->entityId, EquipmentInfo, pym_getData(&pms), pym_getLen(&pms));
 }
 
 /*
@@ -965,7 +965,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_list_end(&pms);
 	pym_addInt(&pms, 250); // maxSize (50 per category)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, InventoryCreate, pym_getData(&pms), pym_getLen(&pms));
 	// create weapon drawer
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -975,7 +975,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_list_end(&pms);
 	pym_addInt(&pms, 5); // maxSize
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, InventoryCreate, pym_getData(&pms), pym_getLen(&pms));
 	// create equipped inventory
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -985,7 +985,7 @@ void inventory_initForClient(mapChannelClient_t *client)
 	pym_list_end(&pms);
 	pym_addInt(&pms, 5); // maxSize
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 9, METHODID_INVENTORYCREATE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 9, InventoryCreate, pym_getData(&pms), pym_getLen(&pms));
 
 	//// test items
 	//// (item templates + properties should be read from the db and created dynamically)

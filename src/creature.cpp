@@ -155,7 +155,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_addInt(&pms, creature->actor.entityClassId); // classID
 	pym_addNoneStruct(&pms); // entityData (dunno)
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	// set attributes - Recv_AttributeInfo (29)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -249,7 +249,7 @@ void creature_createCreatureOnClient(mapChannelClient_t *client, creature_t *cre
 	pym_tuple_begin(&pms);	// creatureFlags 
 	pym_tuple_end(&pms);	// creatureflag.pyo
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, METHODID_CREATUREINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, creature->actor.entityId, CreatureInfo, pym_getData(&pms), pym_getLen(&pms));
 	// set running
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -408,7 +408,7 @@ void creature_handleCreatureKill(mapChannel_t* mapChannel, creature_t *creature,
 	pym_addInt(&pms, 5); // dead
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, METHODID_STATECHANGE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, &creature->actor, creature->actor.entityId, StateChange, pym_getData(&pms), pym_getLen(&pms));
 	// tell spawnpool if set
 	if( creature->spawnPool )
 	{
@@ -535,7 +535,7 @@ void creature_cellUpdateLocation(mapChannel_t *mapChannel, creature_t* creature,
 			}
 		}
 		if( isGone )
-			netMgr_pythonAddMethodCallRaw(&oldNotifiers[m], 1, 5, METHODID_DESTROYPHYSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(&oldNotifiers[m], 1, 5, DestroyPhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	}
 	// update location
 	creature->actor.cellLocation.x = newLocX;

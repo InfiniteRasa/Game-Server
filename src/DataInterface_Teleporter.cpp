@@ -5,18 +5,17 @@
 
 void cb_DataInterface_teleporter_getList(MYSQL *dbCon, diJob_teleporterData *job, void *cb, void *param)
 {
-  
 	sint8 queryText[1024];
 	job->scount = 0;
 	job->tdata = NULL;
 	
 	//__debugbreak();
-	wsprintf(queryText, "SELECT id,type,px,py,pz,nameId FROM teleporter");
+	wsprintf(queryText, "SELECT id,type,sx,sy,sz,nameId,contextId FROM teleporter");
 	
 	// execute query
 	if( mysql_query(dbCon, queryText) )
 	{
-		printf("Error in query\n");
+		printf("Error in query getTeleporters\n");
 		while(1) Sleep(1000);	
 	}
 	MYSQL_RES *dbResult = mysql_store_result(dbCon);
@@ -27,18 +26,15 @@ void cb_DataInterface_teleporter_getList(MYSQL *dbCon, diJob_teleporterData *job
 	sint32 x = 0;
 	while((dbRow = mysql_fetch_row(dbResult)))
 	{
-           //float temp_dx,temp_dy,temp_dx,temp_sx,temp_sy,temp_sz,temp_bx,temp_bz;
-		   //uint32 temp_id,temp_type;
-		   //sint8 temp_label[50];
 		   di_teleporterData *teleporter = teleporterList+x;
 		   x++;
 		   sscanf(dbRow[0], "%d", &teleporter->id);
 		   sscanf(dbRow[1], "%d", &teleporter->type);
-		   //strcpy(teleporter->label, dbRow[2]); 
 		   sscanf(dbRow[2], "%f", &teleporter->sx);
 		   sscanf(dbRow[3], "%f", &teleporter->sy);
 		   sscanf(dbRow[4], "%f", &teleporter->sz);
 		   sscanf(dbRow[5], "%d", &teleporter->nameId);
+		   sscanf(dbRow[6], "%d", &teleporter->contextId);
 	}//---while
 	mysql_free_result(dbResult);
 	job->tdata = teleporterList;
@@ -68,14 +64,14 @@ void cb_DataInterface_teleporter_updateList(MYSQL *dbCon, diJob_teleporterData *
 	printf("DB-GameObject-Insert: type: %i\n",worldObject->type);
 
 	sprintf(queryText, "INSERT INTO teleporter ("
-			"`type`,`px`,`py`,`pz`,`nameId`"
-			") VALUES (%d,%f,%f,%f,%d)", 
+			"`type`,`sx`,`sy`,`sz`,`nameId`,`contextId`"
+			") VALUES (%d,%f,%f,%f,%d,%d)", 
 			worldObject->type, worldObject->sx, worldObject->sy,
-			worldObject->sz,worldObject->nameId);
+			worldObject->sz, worldObject->nameId, worldObject->contextId);
 	if( mysql_query(dbCon, queryText) )
 	{
 			//characterData->error = true;
-			printf("Error in query\n");
+			printf("Error in query 'cb_DataInterface_teleporter_updateList'\n");
 			puts(queryText);
 			puts(mysql_error(dbCon));
 			return;

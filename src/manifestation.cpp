@@ -55,7 +55,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	pym_tuple_end(&pms);
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_ALLCREDITS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, AllCredits, pym_getData(&pms), pym_getLen(&pms));
 	// advancement stats (level, experiencePoints, attributes, trainPts, skillPts)
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -71,7 +71,7 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	sint32 availableSkillPoints = manifestation_getSkillPointsAvailable(owner);
 	pym_addInt(&pms, availableSkillPoints); // skillPts
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_ADVANCEMENTSTATS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, AdvancementStats, pym_getData(&pms), pym_getLen(&pms));
 	// set skills
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -85,10 +85,10 @@ void manifestation_assignPlayer(mapChannel_t *mapChannel, mapChannelClient_t *ow
 	}
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(owner->cgm, owner->player->actor->entityId, Skills, pym_getData(&pms), pym_getLen(&pms));
 	// set abilities
 	// it seems that we also have to send Recv_Abilities to make icons in the skill window dragable,
-	// done: currently a few skills are hardcoded but we should switch to a "skillIdx2AbilityID" list similar to the one we use for METHODID_SKILLS.
+	// done: currently a few skills are hardcoded but we should switch to a "skillIdx2AbilityID" list similar to the one we use for Skills.
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
 	pym_list_begin(&pms);
@@ -265,6 +265,7 @@ void manifestation_createPlayerCharacter(mapChannel_t *mapChannel, mapChannelCli
 	manifestation->actor->posY = characterData->posY;
 	manifestation->actor->posZ = characterData->posZ;
 	manifestation->actor->rotation = characterData->rotation;
+	manifestation->actor->contextId = characterData->currentContextId;
 	manifestation->actor->entityClassId = characterData->genderIsMale?692:691;
 	manifestation->actor->activeEffects = NULL;
 	manifestation->genderIsMale = characterData->genderIsMale;
@@ -362,10 +363,10 @@ void manifestation_cellIntroducePlayersToClient(mapChannel_t *mapChannel, mapCha
 		pym_addInt(&pms, tempClient->player->actor->entityClassId); // classID
 		pym_addNoneStruct(&pms); // entityData (dunno)
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 		// set attributes - Recv_AttributeInfo (29)
 		manifestation_buildAttributeInfoPacket(client, &pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, tempClient->player->actor->entityId, AttributeInfo, pym_getData(&pms), pym_getLen(&pms));
 		// doesnt seem important (its only for loading gfx early?)
 		//// PreloadData
 		//pym_init(&pms);
@@ -485,7 +486,7 @@ void manifestation_cellIntroduceClientToPlayers(mapChannel_t *mapChannel, mapCha
 	pym_tuple_end(&pms);
 	for(sint32 i=0; i<playerCount; i++)
 	{
-		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, 5, METHODID_CREATEPYHSICALENTITY, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(playerList[i]->cgm, 5, CreatePhysicalEntity, pym_getData(&pms), pym_getLen(&pms));
 	}
 	// set attributes - Recv_AttributeInfo (29)
 	manifestation_buildAttributeInfoPacket(client, &pms);
@@ -739,7 +740,7 @@ void manifestation_GainCredits(mapChannelClient_t *cm, sint32 credits)
 	pym_addInt(&pms, cm->player->credits); // new amount
 	pym_addInt(&pms, credits); // delta
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_UPDATECREDITS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, UpdateCredits, pym_getData(&pms), pym_getLen(&pms));
 	// send player message
 	if( credits > 0 )
 	{
@@ -769,7 +770,7 @@ void manifestation_GainPrestige(mapChannelClient_t *cm, sint32 prestige)
 	pym_addInt(&pms, cm->player->prestige); // new amount
 	pym_addInt(&pms, prestige); // delta
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_UPDATECREDITS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, UpdateCredits, pym_getData(&pms), pym_getLen(&pms));
 }
 
 
@@ -795,7 +796,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 	pym_addInt(&pms, 0); // wasTeamCritKill
 	pym_tuple_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_EXPERIENCECHANGED, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, ExperienceChanged, pym_getData(&pms), pym_getLen(&pms));
 	// check for level up 
 	// since we can level up multiple levels at once, check as long as there is a level up possible
 	while( cm->player->actor->stats.level < 50 )
@@ -814,7 +815,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 			pym_tuple_begin(&pms);
 			pym_addInt(&pms, cm->player->actor->stats.level); // newLevel
 			pym_tuple_end(&pms);
-			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_LEVELUP, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, LevelUp, pym_getData(&pms), pym_getLen(&pms));
 			// todo: Send Recv_DisplayClientMessage with PM_LEVEL_INCREASED to display text for level up
 			// todo: For all others send Recv_setLevel() to update level display for this player
 			// update stats
@@ -822,7 +823,7 @@ void manifestation_GainExperience(mapChannelClient_t *cm, sint32 experience)
 			// set attributes - Recv_AttributeInfo (29)
 			manifestation_buildAttributeInfoPacket(cm, &pms);
 			// send to all clients in range
-			netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, AttributeInfo, pym_getData(&pms), pym_getLen(&pms));
 			// update available allocation points (attributes, trainPts, skillPts)
 			manifestation_SendAvailableAllocationPoints(cm);
 		}
@@ -876,7 +877,7 @@ void manifestation_recv_AllocateAttributePoints(mapChannelClient_t *cm, uint8 *p
 	// set attributes - Recv_AttributeInfo (29)
 	manifestation_buildAttributeInfoPacket(cm, &pms);
 	// send to all clients in range
-	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, METHODID_ATTRIBUTEINFO, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_cellDomain_pythonAddMethodCallRaw(cm, cm->player->actor->entityId, AttributeInfo, pym_getData(&pms), pym_getLen(&pms));
 }
 
 void manifestation_SendAvailableAllocationPoints(mapChannelClient_t *cm)
@@ -896,7 +897,7 @@ void manifestation_SendAvailableAllocationPoints(mapChannelClient_t *cm)
 	// todo: Subtract skill points
 	pym_addInt(&pms, availableSkillPoints); // skillPts
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, METHODID_AVAILABLEALLOCATIONPOINTS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(cm->cgm, cm->player->actor->entityId, AvailableAllocationPoints, pym_getData(&pms), pym_getLen(&pms));
 }
 
 /*
@@ -1112,7 +1113,7 @@ void manifestation_recv_LevelSkills(mapChannelClient_t *cm, uint8 *pyString, sin
 	}
 	pym_list_end(&pms);
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(&cm, 1, cm->player->actor->entityId, METHODID_SKILLS, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(&cm, 1, cm->player->actor->entityId, Skills, pym_getData(&pms), pym_getLen(&pms));
 	// set abilities
 	pym_init(&pms);
 	pym_tuple_begin(&pms);
@@ -1455,7 +1456,7 @@ void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 p
 	netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel, 
 											cm->player->actor, 
 											cm->player->actor->entityId, 
-											METHODID_REVIVED, 
+											Revived, 
 											pym_getData(&pms), pym_getLen(&pms));
 
 	// update health (Recv_UpdateHealth 380) or 285
@@ -1468,7 +1469,7 @@ void manifestation_recv_Revive(mapChannelClient_t *cm, uint8 *pyString, sint32 p
 	pym_tuple_end(&pms);
 	netMgr_cellDomain_pythonAddMethodCallRaw(cm->mapChannel,
 											 cm->player->actor, 
-		                                     cm->player->actor->entityId, METHODID_UPDATEHEALTH, 
+		                                     cm->player->actor->entityId, UpdateHealth, 
 											 pym_getData(&pms), pym_getLen(&pms));
 
 	// introduce him back to cell.

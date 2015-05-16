@@ -123,7 +123,7 @@ bool controlpoint_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 			pym_addInt(&pms, 80);			// Action ID
 			pym_addInt(&pms, 7);			// Arg ID
 			pym_tuple_end(&pms); 			// Packet End
-			netMgr_pythonAddMethodCallRaw(mapChannel, objData->userEntityId, METHODID_PERFORMRECOVERY, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_pythonAddMethodCallRaw(mapChannel, objData->userEntityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
 			// update control point state
 			pym_init(&pms);
 			pym_tuple_begin(&pms);
@@ -133,7 +133,7 @@ bool controlpoint_periodicCallback(mapChannel_t *mapChannel, dynObject_t *dynObj
 			pym_tuple_begin(&pms);	// args
 			pym_tuple_end(&pms);
 			pym_tuple_end(&pms);
-			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, METHODID_USE, pym_getData(&pms), pym_getLen(&pms));
+			netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, dynObject, dynObject->entityId, Use, pym_getData(&pms), pym_getLen(&pms));
 
 		}
 		return false; // immediately unregister timer (one-shot)
@@ -179,7 +179,7 @@ void controlpoint_useObject(mapChannel_t *mapChannel, dynObject_t *dynObject, ma
 	pym_addInt(&pms, 10000); // windupTime
 	// possible additional args
 	pym_tuple_end(&pms);
-	netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, METHODID_USE, pym_getData(&pms), pym_getLen(&pms));
+	netMgr_pythonAddMethodCallRaw(client->cgm, dynObject->entityId, Use, pym_getData(&pms), pym_getLen(&pms));
 	//// change CP state - ForceState
 	//pym_init(&pms);
 	//pym_tuple_begin(&pms);
