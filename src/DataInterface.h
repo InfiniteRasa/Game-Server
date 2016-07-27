@@ -521,7 +521,7 @@ typedef struct
 	uint32 mind;
 	uint32 spirit;
 	unsigned long long characterID;
-	char logos[410];
+	char logos[409];
 	// output
 	bool error;
 }diJob_updateCharacter_t;

@@ -32,7 +32,6 @@ void _cb_teleporter_initForMapChannel(void *param, diJob_teleporterData *jobData
 			// if (mapChannel->mapInfo->contextId == teleporterList->contextId) // this should be enable so it dont add wormhole object on every map
 			{
 				dynObject = wormhole_create(mapChannel, teleporterList->sx, teleporterList->sy, teleporterList->sz, 0.0f, teleporterList->id, teleporterList->nameId, teleporterList->contextId);
-				printf("wormhole created \n");
 			}
 			else
 				continue;
