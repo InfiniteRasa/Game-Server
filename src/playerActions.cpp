@@ -45,7 +45,7 @@ void manifestation_recv_RequestPerformAbility(mapChannelClient_t *cm, uint8 *pyS
 		gameEffect_attachSprint(cm->mapChannel, cm->player->actor, actionArgId, 5000);
 		return;
 	default:
-		printf("Unknown Ability: ID %i ArgID %i Target %u64\n", actionId, actionArgId, targetEntityId);
+		printf("Unknown Ability: ID %i ArgID %i Target %I64u\n", actionId, actionArgId, targetEntityId);
 		return;
 	};
 	

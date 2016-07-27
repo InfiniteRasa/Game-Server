@@ -51,7 +51,7 @@ dynObject_t *_dynamicObject_create(uint32 classId, dynObjectType_t* objectType)
 {
 	if( objectType == NULL )
 	{
-		printf("Error: Cannot create object with no type\n", objectType);
+		printf("Error: Cannot create object with no type\n");
 		return NULL;
 	}
 	dynObject_t *dynObject = (dynObject_t*)malloc(sizeof(dynObject_t));
@@ -598,8 +598,6 @@ void dynamicObject_cellIntroduceObjectsToClient(mapChannel_t *mapChannel, mapCha
 	for(sint32 i=0; i<objectCount; i++)
 	{
 		dynamicObject_createObjectOnClient(client, objectList[i]);
-		printf("objectlist %i \n", objectList[i]->entityId);
-		printf("objectlist class %i \n", objectList[i]->entityClassId);
 		if( objectList[i]->type->appearForPlayers )
 			objectList[i]->type->appearForPlayers(mapChannel, objectList[i], tempPlayerList, 1);
 	}

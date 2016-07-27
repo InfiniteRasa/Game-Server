@@ -1300,7 +1300,7 @@ void manifestation_recv_StartAutoFire(mapChannelClient_t *client, uint8 *pyStrin
 	// TODO!
 
 	printf("TODO: "); puts(__FUNCTION__);
-	printf("target: %u\n", client->player->targetEntityId);
+	printf("target: %I64u\n", client->player->targetEntityId);
 
 	//##################### Begin: if target is Mapchannel Client #################
 	//desc: have to use mapchannel-client id instead of player-entity-id because
