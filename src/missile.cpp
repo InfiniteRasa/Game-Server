@@ -23,7 +23,7 @@ void missile_launch(mapChannel_t *mapChannel, actor_t *origin, unsigned long lon
 		void *entity = entityMgr_get(targetEntityId);
 		if( entity == NULL )
 		{
-			printf("the missile target doesnt exist: %u\n", targetEntityId);
+			printf("the missile target doesnt exist: %I64u\n", targetEntityId);
 			// entity does not exist
 			return;
 		}
@@ -303,6 +303,7 @@ void missile_doDamage(mapChannel_t *mapChannel, mapChannelClient_t* client, sint
 
 /*
  * Handles all weapon use actions
+ * Action ID #1
  */
 void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missile_t *missile)
 {
@@ -374,6 +375,7 @@ void missile_ActionRecoveryHandler_WeaponAttack(mapChannel_t *mapChannel, missil
 
 /*
  * Handles all weapon melee actions
+ * Action ID #174
  */
 void missile_ActionRecoveryHandler_WeaponMelee(mapChannel_t *mapChannel, missile_t *missile)
 {
@@ -382,69 +384,8 @@ void missile_ActionRecoveryHandler_WeaponMelee(mapChannel_t *mapChannel, missile
 }
 
 /*
- * Handles all thrax kick actions
- */
-void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t *missile)
-{
-	pyMarshalString_t pms;
-	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
-	void *entity = entityMgr_get(missile->targetEntityId);
-	if( entity == NULL ) // check if entity still exists
-		return;
-	sint32 damage = missile->damageA;
-	/* Execute action */
-	pym_init(&pms);
-	pym_tuple_begin(&pms);  						// Packet Start
-	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
-	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
-	pym_list_begin(&pms); 							// Hits Start
-		pym_addLong(&pms, missile->targetActor->entityId);// Each hit creature
-	pym_list_end(&pms); 							// Hits End
-	pym_list_begin(&pms); 							// Misses Start
-	pym_list_end(&pms); 							// Misses End
-	pym_list_begin(&pms); 							// Misses Data Start
-	pym_list_end(&pms); 							// Misses Data End
-	pym_list_begin(&pms); 							// Hits Data Start
-		pym_tuple_begin(&pms); 						// Each Hit tuple start
-			//pym_addInt(&pms, missile->targetEntityId); // thrax kick actions dont need this field for some reason?
-			pym_tuple_begin(&pms); 						// rawInfo start
-					pym_addInt(&pms, 1); 				//self.damageType = normal
-					pym_addInt(&pms, 0); 					//self.reflected = 0
-					pym_addInt(&pms, 0); 					//self.filtered = 0
-					pym_addInt(&pms, 0); 					//self.absorbed = 0
-					pym_addInt(&pms, 0); 					//self.resisted = 0
-					pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
-					pym_addInt(&pms, 0); 					//self.isCrit = 0
-					pym_addInt(&pms, 0); 					//self.deathBlow = 0
-					pym_addInt(&pms, 0); 					//self.coverModifier = 0
-					pym_addInt(&pms, 0); 					//self.wasImmune = 0
-					//targetEffectIds // 131
-					pym_list_begin(&pms);
-					pym_list_end(&pms);
-					//sourceEffectIds
-					pym_list_begin(&pms);
-					pym_list_end(&pms);
-			pym_tuple_end(&pms); 						// rawInfo end
-			pym_addNoneStruct(&pms);  					// OnHitData
-		pym_tuple_end(&pms); 						// Each Hit tuple start
-	pym_list_end(&pms); 							// Hits Data End
-	pym_tuple_end(&pms); 							// Packet End
-	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
-	if( targetType == ENTITYTYPE_CREATURE )
-		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
-	else if( targetType == ENTITYTYPE_CLIENT )
-	{
-		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
-		//todo: Make knockback effect work
-		//gameEffect_attach(mapChannel, ((mapChannelClient_t*)entity)->player->actor, 10000082, 10000082, 1, 5000);
-	}
-	else
-		printf("Unsupported entity type for missile_doDamage()\n");
-}
-
-
-/*
  * Handles use of the recruit lighting ability
+ * Action ID #194
  */
 void missile_ActionHandler_Lighting(mapChannel_t *mapChannel, missile_t *missile)
 {
@@ -520,6 +461,88 @@ void missile_ActionHandler_Lighting(mapChannel_t *mapChannel, missile_t *missile
 		printf("Unsupported entity type for missile_doDamage()\n");
 }
 
+/*
+* Handles use of the Forean Lighting ability
+* Action ID #203
+*/
+void missile_ActionHandler_CR_FOREAN_LIGHTNING(mapChannel_t *mapChannel, missile_t *missile)
+{
+	//TO DO...
+	printf("ToDo: missile_ActionHandler_CR_FOREAN_LIGHTNING\n");
+}
+
+/*
+* Handles use of the Ameboid Slime ability
+* Action ID #211
+*/
+void missile_ActionHandler_CR_AMOEBOID_SLIME(mapChannel_t *mapChannel, missile_t *missile)
+{
+	//TO DO...
+	printf("ToDo: missile_ActionHandler_CR_AMOEBOID_SLIME\n");
+}
+
+/*
+* Handles all thrax kick actions
+* Action ID #397
+*/
+void missile_ActionRecoveryHandler_ThraxKick(mapChannel_t *mapChannel, missile_t *missile)
+{
+	pyMarshalString_t pms;
+	sint32 targetType = entityMgr_getEntityType(missile->targetEntityId);
+	void *entity = entityMgr_get(missile->targetEntityId);
+	if (entity == NULL) // check if entity still exists
+		return;
+	sint32 damage = missile->damageA;
+	/* Execute action */
+	pym_init(&pms);
+	pym_tuple_begin(&pms);  						// Packet Start
+	pym_addInt(&pms, missile->actionId);			// Action ID // 1 Weapon attack
+	pym_addInt(&pms, missile->argId);				// Arg ID // 133 pistol physical not crouched
+	pym_list_begin(&pms); 							// Hits Start
+	pym_addLong(&pms, missile->targetActor->entityId);// Each hit creature
+	pym_list_end(&pms); 							// Hits End
+	pym_list_begin(&pms); 							// Misses Start
+	pym_list_end(&pms); 							// Misses End
+	pym_list_begin(&pms); 							// Misses Data Start
+	pym_list_end(&pms); 							// Misses Data End
+	pym_list_begin(&pms); 							// Hits Data Start
+	pym_tuple_begin(&pms); 						// Each Hit tuple start
+												//pym_addInt(&pms, missile->targetEntityId); // thrax kick actions dont need this field for some reason?
+	pym_tuple_begin(&pms); 						// rawInfo start
+	pym_addInt(&pms, 1); 				//self.damageType = normal
+	pym_addInt(&pms, 0); 					//self.reflected = 0
+	pym_addInt(&pms, 0); 					//self.filtered = 0
+	pym_addInt(&pms, 0); 					//self.absorbed = 0
+	pym_addInt(&pms, 0); 					//self.resisted = 0
+	pym_addInt(&pms, missile->damageA); 	//self.finalAmt = missile->damageA
+	pym_addInt(&pms, 0); 					//self.isCrit = 0
+	pym_addInt(&pms, 0); 					//self.deathBlow = 0
+	pym_addInt(&pms, 0); 					//self.coverModifier = 0
+	pym_addInt(&pms, 0); 					//self.wasImmune = 0
+											//targetEffectIds // 131
+	pym_list_begin(&pms);
+	pym_list_end(&pms);
+	//sourceEffectIds
+	pym_list_begin(&pms);
+	pym_list_end(&pms);
+	pym_tuple_end(&pms); 						// rawInfo end
+	pym_addNoneStruct(&pms);  					// OnHitData
+	pym_tuple_end(&pms); 						// Each Hit tuple start
+	pym_list_end(&pms); 							// Hits Data End
+	pym_tuple_end(&pms); 							// Packet End
+	netMgr_cellDomain_pythonAddMethodCallRaw(mapChannel, missile->source, missile->source->entityId, PerformRecovery, pym_getData(&pms), pym_getLen(&pms));
+	if (targetType == ENTITYTYPE_CREATURE)
+		missile_doDamage(mapChannel, (creature_t*)entity, damage, missile->source);
+	else if (targetType == ENTITYTYPE_CLIENT)
+	{
+		missile_doDamage(mapChannel, (mapChannelClient_t*)entity, damage, missile->source);
+		//todo: Make knockback effect work
+		//gameEffect_attach(mapChannel, ((mapChannelClient_t*)entity)->player->actor, 10000082, 10000082, 1, 5000);
+	}
+	else
+		printf("Unsupported entity type for missile_doDamage()\n");
+}
+
 void missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 {
 	if( missile->actionId == 1 )
@@ -528,6 +551,10 @@ void missile_trigger(mapChannel_t *mapChannel, missile_t *missile)
 		missile_ActionRecoveryHandler_WeaponMelee(mapChannel, missile);
 	else if( missile->actionId == 194 )
 		missile_ActionHandler_Lighting(mapChannel, missile);
+	else if (missile->actionId == 203)
+		missile_ActionHandler_CR_FOREAN_LIGHTNING(mapChannel, missile);
+	else if (missile->actionId == 211)
+		missile_ActionHandler_CR_AMOEBOID_SLIME(mapChannel, missile);
 	else if( missile->actionId == 397 )
 		missile_ActionRecoveryHandler_ThraxKick(mapChannel, missile);
 	else

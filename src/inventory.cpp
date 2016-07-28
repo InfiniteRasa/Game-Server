@@ -652,8 +652,8 @@ void _cb_item_recv_RequestWeaponReload_actionUpdate(mapChannel_t* mapChannel, ac
 			if (itemAmmo->itemTemplate->item.classId == ammoClassId)
 			{
 				// consume ammo
-				sint32 ammoToGrab = min(item->itemTemplate->weapon.clipSize - foundAmmoAmount, itemAmmo->stacksize);
-				foundAmmoAmount += ammoToGrab;
+				sint32 ammoToGrab = min(item->itemTemplate->weapon.clipSize - foundAmmoAmount - item->weaponData.ammoCount, itemAmmo->stacksize);
+				foundAmmoAmount = ammoToGrab + item->weaponData.ammoCount;
 				inventory_reduceStackCount(client, itemAmmo, ammoToGrab);
 				foundAmmo = true;
 				if (foundAmmoAmount == item->itemTemplate->weapon.clipSize)

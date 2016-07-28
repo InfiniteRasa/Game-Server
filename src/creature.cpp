@@ -22,6 +22,11 @@ creatureType_t* creatureType_createCreatureType(sint32 entityClassId, sint32 nam
 	return creatureType;
 }
 
+/* ToDo */
+void creatureType_registerCreatureType(creatureType_t * creatureType, sint8 * name)
+{
+}
+
 creatureType_t* creatureType_findType(sint32 typeId)
 {
 	creatureType_t *creatureType = (creatureType_t*)hashTable_get(&creatureEnv.ht_creatureType, typeId);
