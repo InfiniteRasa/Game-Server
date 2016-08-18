@@ -280,7 +280,7 @@ void wormhole_recv_SelectWormhole(mapChannelClient_t *client, uint8 *pyString, s
 	// todo4: check if destination is on same map or not
 	if (wormholeObject->contextId == mapChannel->mapInfo->contextId)
 	{
-		printf("map chanel id %d, wormhole pos id %d \n", wormholeObject->contextId, mapChannel->mapInfo->contextId);
+		printf("map chanel id %u, wormhole pos id %u \n", wormholeObject->contextId, mapChannel->mapInfo->contextId);
 		wormhole_t* wormholeObjectData = (wormhole_t*)wormholeObject->objectData;
 		wormholeTriggerCheck_t newTriggerCheck = { 0 };
 		newTriggerCheck.entityId = client->clientEntityId;
@@ -397,7 +397,7 @@ void wormhole_recv_SelectWormhole(mapChannelClient_t *client, uint8 *pyString, s
 		pym_tuple_begin(&pms);
 		pym_addInt(&pms, wormholeObject->contextId);
 		pym_tuple_end(&pms);
-		netMgr_pythonAddMethodCallRaw(client->cgm, 5, 362, pym_getData(&pms), pym_getLen(&pms));
+		netMgr_pythonAddMethodCallRaw(client->cgm, 5, SetCurrentContextId, pym_getData(&pms), pym_getLen(&pms));
 	}
 }
 

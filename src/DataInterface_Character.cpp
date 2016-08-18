@@ -285,7 +285,7 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	}
 
 	// get skills
-	sprintf(queryText, "SELECT * FROM skills WHERE characterID=%d LIMIT 1", job->outCharacterData->characterID);
+	sprintf(queryText, "SELECT * FROM skills WHERE characterID=%I64u LIMIT 1", job->outCharacterData->characterID);
 
 	// execute query
 	if (mysql_query(dbCon, queryText))
@@ -308,7 +308,7 @@ void cb_DataInterface_Character_getCharacterData(MYSQL *dbCon, diJob_characterDa
 	}
 
 	// get abilities
-	sprintf(queryText, "SELECT * FROM abilities WHERE characterID=%d LIMIT 1", job->outCharacterData->characterID);
+	sprintf(queryText, "SELECT * FROM abilities WHERE characterID=%I64u LIMIT 1", job->outCharacterData->characterID);
 
 	// execute query
 	if (mysql_query(dbCon, queryText))
@@ -457,7 +457,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 	my_ulonglong characterID = mysql_insert_id(dbCon);
 	sprintf(queryText, "INSERT INTO inventory "
 		"(slot50item, slot50qty, slot250item, slot250qty, slot251item, slot251qty, slot252item, slot252qty, slot253item, slot253qty, slot265item, slot265qty, slot266item, slot266qty, slot267item, slot267qty, characterID) VALUES"
-		"(28, 100, 17131, 1, 13126, 1, 13066, 1, 13096, 1, 13186, 1, 13156, 1, 17131, 1, %d)", characterID);
+		"(28, 100, 17131, 1, 13126, 1, 13066, 1, 13096, 1, 13186, 1, 13156, 1, 17131, 1, %I64u)", characterID);
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
@@ -468,7 +468,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		return;
 	}
 	// create default entry in skills table
-	sprintf(queryText, "INSERT INTO skills (characterID) VALUES(%d)", characterID);
+	sprintf(queryText, "INSERT INTO skills (characterID) VALUES(%I64u)", characterID);
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
@@ -479,7 +479,7 @@ void cb_DataInterface_Character_createCharacter(MYSQL *dbCon, di_characterLayout
 		return;
 	}
 	// create default entry in abilities table
-	sprintf(queryText, "INSERT INTO abilities (characterID) VALUES(%d)", characterID);
+	sprintf(queryText, "INSERT INTO abilities (characterID) VALUES(%I64u)", characterID);
 	// execute query
 	if (mysql_query(dbCon, queryText))
 	{
@@ -627,7 +627,7 @@ void DataInterface_Character_updateCharacter(unsigned long long userID, sint32 s
 void cb_DataInterface_Character_getCharacterInventory(MYSQL *dbCon, diJob_getCharacterInventory_t *job, void(*cb)(void *param, diJob_getCharacterInventory_t *jobData), void *param)
 {
 	sint8 queryText[128];
-	sprintf(queryText, "SELECT * FROM inventory WHERE characterID=%d LIMIT 1", job->characterID);
+	sprintf(queryText, "SELECT * FROM inventory WHERE characterID=%I64u LIMIT 1", job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -677,7 +677,7 @@ void DataInterface_Character_getCharacterInventory(unsigned long long characterI
 void cb_DataInterface_Character_updateCharacterInventory(MYSQL *dbCon, diJob_updateCharacterInventory_t *job)
 {
 	sint8 queryText[128];
-	sprintf(queryText, "UPDATE inventory SET slot%ditem=%d, slot%dqty=%d WHERE characterID=%d", job->slotIndex, job->templateId, job->slotIndex, job->qty, job->characterID);
+	sprintf(queryText, "UPDATE inventory SET slot%ditem=%d, slot%dqty=%d WHERE characterID=%I64u", job->slotIndex, job->templateId, job->slotIndex, job->qty, job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -709,7 +709,7 @@ void DataInterface_Character_updateCharacterInventory(unsigned long long charact
 void cb_DataInterface_Character_updateCharacterAppearance(MYSQL *dbCon, diJob_updateCharacterAppearance_t *job)
 {
 	sint8 queryText[128];
-	sprintf(queryText, "UPDATE characters SET ad%u_classId=%u, ad%u_hue=%u WHERE id=%u", job->index, job->classId, job->index, job->hue, job->characterID);
+	sprintf(queryText, "UPDATE characters SET ad%u_classId=%u, ad%u_hue=%u WHERE id=%I64u", job->index, job->classId, job->index, job->hue, job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -741,7 +741,7 @@ void DataInterface_Character_updateCharacterAppearance(unsigned long long charac
 void cb_DataInterface_Character_updateCharacterAmmo(MYSQL *dbCon, diJob_updateCharacterAmmo_t *job)
 {
 	sint8 queryText[128];
-	sprintf(queryText, "UPDATE inventory SET slot%dammo=%d WHERE characterID=%d", job->slotIndex, job->ammo, job->characterID);
+	sprintf(queryText, "UPDATE inventory SET slot%dammo=%d WHERE characterID=%I64u", job->slotIndex, job->ammo, job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -775,10 +775,10 @@ void cb_DataInterface_Character_updateCharacterSkills(MYSQL *dbCon, diJob_update
 	sprintf(queryText, "UPDATE skills SET ");
 	for (sint32 i = 0; i < 73; i++)
 	{
-		sprintf(queryText, "%s skill%d=%d, ", queryText, i, *(job->level+i), job->characterID);
+		sprintf(queryText, "%s skill%d=%d,", queryText, i, *(job->level+i));
 	}
-	queryText[strlen(queryText) - 2] = '\0';
-	sprintf(queryText, "%s WHERE characterID=%d", queryText, job->characterID);
+	queryText[strlen(queryText) - 1] = '\0';
+	sprintf(queryText, "%s WHERE characterID=%I64u;", queryText, job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
@@ -809,9 +809,9 @@ void cb_DataInterface_Character_updateCharacterAbility(MYSQL *dbCon, diJob_updat
 {
 	sint8 queryText[128];
 	if (job->drawer != NULL)
-		sprintf(queryText, "UPDATE abilities SET currentDrawer=%d WHERE characterID=%d", job->drawer, job->characterID);
+		sprintf(queryText, "UPDATE abilities SET currentDrawer=%d WHERE characterID=%I64u", job->drawer, job->characterID);
 	else
-		sprintf(queryText, "UPDATE abilities SET ability%ditem=%d, ability%dlevel=%d WHERE characterID=%d", job->index, job->item, job->index, job->level, job->characterID);
+		sprintf(queryText, "UPDATE abilities SET ability%ditem=%d, ability%dlevel=%d WHERE characterID=%I64u", job->index, job->item, job->index, job->level, job->characterID);
 	// execute query
 	job->error = false;
 	if (mysql_query(dbCon, queryText))
